@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from typing import Dict, Any
-from ..services.azure_vision import AzureVisionService
+from ..services.document_intelligence import DocumentIntelligenceService
 import io
 
 router = APIRouter()
@@ -8,7 +8,7 @@ router = APIRouter()
 @router.post("/analyze")
 async def analyze_receipt(
     file: UploadFile = File(...),
-    vision_service: AzureVisionService = Depends(AzureVisionService)
+    doc_service: DocumentIntelligenceService = Depends(DocumentIntelligenceService)
 ) -> Dict[str, Any]:
     """
     Analyze a receipt image and extract its information.
@@ -22,25 +22,43 @@ async def analyze_receipt(
     """
     try:
         # Validate file type
-        if not file.content_type.startswith('image/'):
+        allowed_types = ['image/jpeg', 'image/png', 'image/tiff', 'application/pdf']
+        if file.content_type not in allowed_types:
             raise HTTPException(
                 status_code=400,
-                detail="File must be an image"
+                detail=f"File must be one of the following types: {', '.join(allowed_types)}"
+            )
+        
+        if file.size > 4 * 1024 * 1024:  # 4MB limit
+            raise HTTPException(
+                status_code=400,
+                detail="File size too large. Maximum size is 4MB."
             )
         
         # Read file contents
         contents = await file.read()
         
         # Process the receipt
-        result = await vision_service.analyze_receipt(contents)
-        
+        result = await doc_service.analyze_receipt(
+            file_bytes=contents  # Pass bytes directly
+        )
         return {
             "success": True,
             "data": result
         }
-        
     except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+            
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error processing receipt: {str(e)}")  # Add logging for debugging
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail=f"Error processing receipt: {str(e)}"
         )

@@ -4,9 +4,9 @@ from functools import lru_cache
 class Settings(BaseSettings):
     """Application settings"""
     
-    # Azure Vision Settings
-    AZURE_VISION_ENDPOINT: str
-    AZURE_VISION_KEY: str
+    # Azure Document Intelligence Settings
+    AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: str
+    AZURE_DOCUMENT_INTELLIGENCE_KEY: str
     
     # API Settings
     API_PREFIX: str = "/api/v1"

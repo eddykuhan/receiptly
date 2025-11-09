@@ -9,33 +9,48 @@ from typing import Optional, Dict, Any, List
 
 class AzureVisionService:
     def __init__(self):
-        endpoint = os.getenv("AZURE_VISION_ENDPOINT")
-        subscription_key = os.getenv("AZURE_VISION_KEY")
+        from ..core.config import get_settings
+        settings = get_settings()
         
-        if not endpoint or not subscription_key:
+        if not settings.AZURE_VISION_ENDPOINT or not settings.AZURE_VISION_KEY:
             raise ValueError("Azure Vision credentials not properly configured")
         
         self.client = ComputerVisionClient(
-            endpoint=endpoint,
-            credentials=CognitiveServicesCredentials(subscription_key)
+            endpoint=settings.AZURE_VISION_ENDPOINT,
+            credentials=CognitiveServicesCredentials(settings.AZURE_VISION_KEY)
         )
 
-    async def analyze_receipt(self, image_bytes: bytes) -> Dict[str, Any]:
+    async def analyze_receipt(self, file_bytes: bytes, content_type: str) -> Dict[str, Any]:
         """
-        Analyze a receipt image using Azure Computer Vision.
+        Analyze a receipt from either an image or PDF using Azure Computer Vision.
         
         Args:
-            image_bytes: The receipt image in bytes
+            file_bytes: The receipt file in bytes
+            content_type: The MIME type of the file
             
         Returns:
             Dictionary containing extracted receipt information
         """
         try:
             # Convert bytes to stream for Azure SDK
-            image_stream = io.BytesIO(image_bytes)
+            file_stream = io.BytesIO(file_bytes)
             
-            # Read the text from the image
-            read_response = self.client.read_in_stream(image_stream, raw=True)
+            # For PDF files, we need to specify the file type
+            is_pdf = content_type == 'application/pdf'
+            
+            # Read the text from the file
+            if is_pdf:
+                read_response = self.client.read_in_stream(
+                    file_stream,
+                    raw=True,
+                    pages="1",  # Only process first page of PDF
+                    file_extension=".pdf"
+                )
+            else:
+                read_response = self.client.read_in_stream(
+                    file_stream,
+                    raw=True
+                )
             
             # Get the operation location (URL with ID in the response)
             operation_location = read_response.headers["Operation-Location"]
@@ -74,6 +89,7 @@ class AzureVisionService:
         Returns:
             Dictionary containing structured receipt data
         """
+        print(f"Extracted text lines: {text_lines}")  # Debugging line
         receipt_data = {
             "store_name": "",
             "store_address": "",
