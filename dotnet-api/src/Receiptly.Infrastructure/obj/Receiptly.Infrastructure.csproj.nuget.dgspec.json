@@ -1,0 +1,184 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Infrastructure/Receiptly.Infrastructure.csproj": {}
+  },
+  "projects": {
+    "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Core/Receiptly.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Core/Receiptly.Core.csproj",
+        "projectName": "Receiptly.Core",
+        "projectPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Core/Receiptly.Core.csproj",
+        "packagesPath": "/Users/kuhan/.nuget/packages/",
+        "outputPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Core/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/kuhan/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Domain/Receiptly.Domain.csproj": {
+                "projectPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Domain/Receiptly.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.121/libexec/sdk/8.0.121/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Domain/Receiptly.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Domain/Receiptly.Domain.csproj",
+        "projectName": "Receiptly.Domain",
+        "projectPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Domain/Receiptly.Domain.csproj",
+        "packagesPath": "/Users/kuhan/.nuget/packages/",
+        "outputPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Domain/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/kuhan/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.121/libexec/sdk/8.0.121/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Infrastructure/Receiptly.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Infrastructure/Receiptly.Infrastructure.csproj",
+        "projectName": "Receiptly.Infrastructure",
+        "projectPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Infrastructure/Receiptly.Infrastructure.csproj",
+        "packagesPath": "/Users/kuhan/.nuget/packages/",
+        "outputPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Infrastructure/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/kuhan/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Core/Receiptly.Core.csproj": {
+                "projectPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Core/Receiptly.Core.csproj"
+              },
+              "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Domain/Receiptly.Domain.csproj": {
+                "projectPath": "/Users/kuhan/Projects/receiptly/dotnet-api/src/Receiptly.Domain/Receiptly.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.10, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.121/libexec/sdk/8.0.121/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
