@@ -124,11 +124,24 @@ class DocumentIntelligenceService:
         """Extract store location information from receipt."""
         location = {}
         
+        # Debug: Print available merchant-related fields
+        merchant_fields = [k for k in receipt.fields.keys() if 'Merchant' in k or 'Address' in k]
+        if merchant_fields:
+            print(f"Available merchant/address fields: {merchant_fields}")
+        
         if "MerchantAddress" in receipt.fields:
-            location["address"] = receipt.fields["MerchantAddress"].value
+            address_value = receipt.fields["MerchantAddress"].value
+            print(f"MerchantAddress found: {address_value}")
+            location["address"] = address_value
+        else:
+            print("MerchantAddress field not found in receipt")
         
         if "MerchantPhoneNumber" in receipt.fields:
-            location["phone"] = receipt.fields["MerchantPhoneNumber"].value
+            phone_value = receipt.fields["MerchantPhoneNumber"].value
+            print(f"MerchantPhoneNumber found: {phone_value}")
+            location["phone"] = phone_value
+        else:
+            print("MerchantPhoneNumber field not found in receipt")
         
         return location if location else None
     

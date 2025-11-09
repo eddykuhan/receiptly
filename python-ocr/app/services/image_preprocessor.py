@@ -11,12 +11,17 @@ class ImagePreprocessor:
     # Processing parameters
     TARGET_DPI = 300
     MIN_WIDTH = 800
-    CONTRAST_FACTOR = 1.5
-    SHARPNESS_FACTOR = 2.0
+    CONTRAST_FACTOR = 1.3  # Reduced from 1.5 to be less aggressive
+    SHARPNESS_FACTOR = 1.5  # Reduced from 2.0 to be less aggressive
     
-    def __init__(self):
-        """Initialize the image preprocessor."""
-        pass
+    def __init__(self, enable_binarization: bool = False):
+        """
+        Initialize the image preprocessor.
+        
+        Args:
+            enable_binarization: Whether to apply black/white conversion (can lose data)
+        """
+        self.enable_binarization = enable_binarization
     
     def process(self, image_bytes: bytes) -> bytes:
         """
@@ -43,7 +48,11 @@ class ImagePreprocessor:
             image = self._enhance_sharpness(image)
             image = self._denoise(image)
             image = self._deskew(image)
-            image = self._binarize(image)
+            
+            # Only apply binarization if explicitly enabled
+            # Binarization can lose information like addresses
+            if self.enable_binarization:
+                image = self._binarize(image)
             
             # Convert back to bytes
             return self._image_to_bytes(image)
@@ -111,6 +120,7 @@ class ImagePreprocessor:
     def _denoise(self, image: Image.Image) -> Image.Image:
         """
         Remove noise from the image while preserving text.
+        Uses a gentler approach to preserve all text including addresses.
         
         Args:
             image: PIL Image
@@ -121,8 +131,8 @@ class ImagePreprocessor:
         # Convert to OpenCV format
         img_array = np.array(image)
         
-        # Apply bilateral filter to reduce noise while keeping edges sharp
-        denoised = cv2.bilateralFilter(img_array, 9, 75, 75)
+        # Apply lighter bilateral filter to preserve more detail
+        denoised = cv2.bilateralFilter(img_array, 5, 50, 50)
         
         # Convert back to PIL Image
         return Image.fromarray(denoised)
