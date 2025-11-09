@@ -41,6 +41,7 @@ venv/
 # Python bytecode cache
 __pycache__/
 *.py[cod]
+raw_responses/
 
 env/
 ENV/
