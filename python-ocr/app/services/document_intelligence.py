@@ -5,7 +5,9 @@ from datetime import datetime
 import io
 import json
 import os
+import uuid
 from .image_preprocessor import ImagePreprocessor
+from .s3_storage import S3StorageService
 
 
 class DocumentIntelligenceService:
@@ -22,19 +24,42 @@ class DocumentIntelligenceService:
         self._validate_credentials(settings)
         self.client = self._create_client(settings)
         self.preprocessor = ImagePreprocessor()
+        
+        # Initialize S3 storage (optional - gracefully handles missing config)
+        try:
+            self.s3_storage = S3StorageService()
+            self.s3_enabled = True
+            print("S3 storage enabled")
+        except ValueError as e:
+            print(f"S3 storage disabled: {str(e)}")
+            self.s3_storage = None
+            self.s3_enabled = False
     
-    async def analyze_receipt(self, file_bytes: bytes) -> Dict[str, Any]:
+    async def analyze_receipt(
+        self, 
+        file_bytes: bytes, 
+        user_id: str,
+        filename: str = "receipt.jpg",
+        content_type: str = "image/jpeg"
+    ) -> Dict[str, Any]:
         """
         Analyze a receipt using Azure Document Intelligence.
         Applies image preprocessing before analysis to improve accuracy.
+        Stores all data in S3 with user-based organization.
         
         Args:
             file_bytes: The receipt file in bytes
+            user_id: Unique identifier for the user uploading the receipt
+            filename: Original filename (optional)
+            content_type: MIME type of the uploaded file
             
         Returns:
-            Dictionary containing structured receipt data
+            Dictionary containing structured receipt data with S3 references
         """
         try:
+            # Generate unique receipt ID
+            receipt_id = str(uuid.uuid4())
+            
             # Preprocess the image to improve OCR accuracy
             print("Preprocessing image...")
             processed_bytes = self.preprocessor.process(file_bytes)
@@ -46,8 +71,32 @@ class DocumentIntelligenceService:
             if not receipt:
                 return None
             
+            # Extract structured data
+            receipt_data = self._extract_receipt_data(receipt)
+            receipt_data["receipt_id"] = receipt_id
+            receipt_data["user_id"] = user_id
+            
+            # Upload all data to S3 if enabled
+            s3_keys = {}
+            if self.s3_enabled:
+                s3_keys = self.s3_storage.upload_receipt_data(
+                    user_id=user_id,
+                    receipt_id=receipt_id,
+                    original_image=file_bytes,
+                    processed_image=processed_bytes,
+                    raw_response=receipt.to_dict(),
+                    extracted_data=receipt_data,
+                    filename=filename,
+                    content_type=content_type
+                )
+            
+            # Save locally (keeping existing functionality)
             self._save_raw_response(receipt)
-            return self._extract_receipt_data(receipt)
+            
+            # Add S3 references to response
+            receipt_data["s3_keys"] = s3_keys
+            
+            return receipt_data
             
         except Exception as e:
             print(f"Error analyzing receipt: {str(e)}")
