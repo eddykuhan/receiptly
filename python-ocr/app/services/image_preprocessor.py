@@ -1,0 +1,217 @@
+from PIL import Image, ImageEnhance, ImageFilter
+import io
+import cv2
+import numpy as np
+from typing import Tuple
+
+
+class ImagePreprocessor:
+    """Preprocesses images to improve OCR accuracy."""
+    
+    # Processing parameters
+    TARGET_DPI = 300
+    MIN_WIDTH = 800
+    CONTRAST_FACTOR = 1.5
+    SHARPNESS_FACTOR = 2.0
+    
+    def __init__(self):
+        """Initialize the image preprocessor."""
+        pass
+    
+    def process(self, image_bytes: bytes) -> bytes:
+        """
+        Apply preprocessing pipeline to improve OCR accuracy.
+        
+        Args:
+            image_bytes: Original image in bytes
+            
+        Returns:
+            Processed image in bytes
+        """
+        try:
+            # Convert bytes to BytesIO and ensure position is at start
+            image_stream = io.BytesIO(image_bytes)
+            image_stream.seek(0)
+            
+            # Convert to PIL Image
+            image = Image.open(image_stream)
+            
+            # Apply preprocessing pipeline
+            image = self._convert_to_rgb(image)
+            image = self._resize_if_needed(image)
+            image = self._enhance_contrast(image)
+            image = self._enhance_sharpness(image)
+            image = self._denoise(image)
+            image = self._deskew(image)
+            image = self._binarize(image)
+            
+            # Convert back to bytes
+            return self._image_to_bytes(image)
+        except Exception as e:
+            print(f"Error during image preprocessing: {str(e)}")
+            print("Returning original image without preprocessing")
+            # Return original image if preprocessing fails
+            return image_bytes
+    
+    # Private methods - Image processing steps
+    
+    @staticmethod
+    def _convert_to_rgb(image: Image.Image) -> Image.Image:
+        """Convert image to RGB mode if needed."""
+        if image.mode != 'RGB':
+            return image.convert('RGB')
+        return image
+    
+    def _resize_if_needed(self, image: Image.Image) -> Image.Image:
+        """
+        Resize image if it's too small for good OCR.
+        
+        Args:
+            image: PIL Image
+            
+        Returns:
+            Resized image if needed, otherwise original
+        """
+        width, height = image.size
+        
+        if width < self.MIN_WIDTH:
+            scale_factor = self.MIN_WIDTH / width
+            new_width = int(width * scale_factor)
+            new_height = int(height * scale_factor)
+            return image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        return image
+    
+    def _enhance_contrast(self, image: Image.Image) -> Image.Image:
+        """
+        Enhance image contrast to make text more readable.
+        
+        Args:
+            image: PIL Image
+            
+        Returns:
+            Contrast-enhanced image
+        """
+        enhancer = ImageEnhance.Contrast(image)
+        return enhancer.enhance(self.CONTRAST_FACTOR)
+    
+    def _enhance_sharpness(self, image: Image.Image) -> Image.Image:
+        """
+        Enhance image sharpness to make text edges clearer.
+        
+        Args:
+            image: PIL Image
+            
+        Returns:
+            Sharpness-enhanced image
+        """
+        enhancer = ImageEnhance.Sharpness(image)
+        return enhancer.enhance(self.SHARPNESS_FACTOR)
+    
+    def _denoise(self, image: Image.Image) -> Image.Image:
+        """
+        Remove noise from the image while preserving text.
+        
+        Args:
+            image: PIL Image
+            
+        Returns:
+            Denoised image
+        """
+        # Convert to OpenCV format
+        img_array = np.array(image)
+        
+        # Apply bilateral filter to reduce noise while keeping edges sharp
+        denoised = cv2.bilateralFilter(img_array, 9, 75, 75)
+        
+        # Convert back to PIL Image
+        return Image.fromarray(denoised)
+    
+    def _deskew(self, image: Image.Image) -> Image.Image:
+        """
+        Detect and correct image skew/rotation.
+        
+        Args:
+            image: PIL Image
+            
+        Returns:
+            Deskewed image
+        """
+        # Convert to OpenCV format
+        img_array = np.array(image)
+        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        
+        # Detect edges
+        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+        
+        # Detect lines using Hough transform
+        lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+        
+        if lines is not None and len(lines) > 0:
+            # Calculate the dominant angle
+            angles = []
+            for line in lines[:20]:  # Use first 20 lines
+                rho, theta = line[0]
+                angle = np.degrees(theta) - 90
+                angles.append(angle)
+            
+            # Get median angle to avoid outliers
+            median_angle = np.median(angles)
+            
+            # Only rotate if skew is significant (more than 0.5 degrees)
+            if abs(median_angle) > 0.5:
+                # Rotate image
+                height, width = img_array.shape[:2]
+                center = (width // 2, height // 2)
+                rotation_matrix = cv2.getRotationMatrix2D(center, median_angle, 1.0)
+                rotated = cv2.warpAffine(img_array, rotation_matrix, (width, height), 
+                                        flags=cv2.INTER_CUBIC, 
+                                        borderMode=cv2.BORDER_REPLICATE)
+                return Image.fromarray(rotated)
+        
+        return image
+    
+    def _binarize(self, image: Image.Image) -> Image.Image:
+        """
+        Convert image to black and white using adaptive thresholding.
+        This improves text recognition accuracy.
+        
+        Args:
+            image: PIL Image
+            
+        Returns:
+            Binarized image
+        """
+        # Convert to OpenCV format
+        img_array = np.array(image)
+        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        
+        # Apply adaptive thresholding
+        binary = cv2.adaptiveThreshold(
+            gray, 
+            255, 
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+            cv2.THRESH_BINARY, 
+            11, 
+            2
+        )
+        
+        # Convert back to RGB for consistency
+        binary_rgb = cv2.cvtColor(binary, cv2.COLOR_GRAY2RGB)
+        
+        return Image.fromarray(binary_rgb)
+    
+    @staticmethod
+    def _image_to_bytes(image: Image.Image) -> bytes:
+        """
+        Convert PIL Image to bytes.
+        
+        Args:
+            image: PIL Image
+            
+        Returns:
+            Image as bytes in PNG format
+        """
+        output = io.BytesIO()
+        image.save(output, format='PNG', optimize=True)
+        return output.getvalue()

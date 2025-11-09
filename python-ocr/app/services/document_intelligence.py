@@ -1,24 +1,32 @@
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
+from datetime import datetime
 import io
+import json
+import os
+from .image_preprocessor import ImagePreprocessor
+
 
 class DocumentIntelligenceService:
+    """Service for analyzing receipts using Azure Document Intelligence."""
+    
+    RAW_RESPONSES_DIR = "raw_responses"
+    RECEIPT_MODEL = "prebuilt-receipt"
+    
     def __init__(self):
+        """Initialize the Azure Document Intelligence client and image preprocessor."""
         from ..core.config import get_settings
         settings = get_settings()
         
-        if not settings.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT or not settings.AZURE_DOCUMENT_INTELLIGENCE_KEY:
-            raise ValueError("Azure Document Intelligence credentials not properly configured")
-        
-        self.client = DocumentAnalysisClient(
-            endpoint=settings.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT,
-            credential=AzureKeyCredential(settings.AZURE_DOCUMENT_INTELLIGENCE_KEY)
-        )
-
+        self._validate_credentials(settings)
+        self.client = self._create_client(settings)
+        self.preprocessor = ImagePreprocessor()
+    
     async def analyze_receipt(self, file_bytes: bytes) -> Dict[str, Any]:
         """
         Analyze a receipt using Azure Document Intelligence.
+        Applies image preprocessing before analysis to improve accuracy.
         
         Args:
             file_bytes: The receipt file in bytes
@@ -27,104 +35,199 @@ class DocumentIntelligenceService:
             Dictionary containing structured receipt data
         """
         try:
-            # Convert bytes to stream
-            document_stream = io.BytesIO(file_bytes)
+            # Preprocess the image to improve OCR accuracy
+            print("Preprocessing image...")
+            processed_bytes = self.preprocessor.process(file_bytes)
+            print("Image preprocessing complete\n")
             
-            # Analyze the receipt
-            poller = self.client.begin_analyze_document(
-                "prebuilt-receipt",  # Using the prebuilt receipt model
-                document=document_stream
-            )
+            # Analyze the preprocessed image
+            receipt = await self._analyze_document(processed_bytes)
             
-            # Wait for the analysis to complete
-            result = poller.result()
-            
-            if len(result.documents) == 0:
+            if not receipt:
                 return None
-                
-            # Get the first document (receipt)
-            receipt = result.documents[0]
             
-            # Extract structured data
-            receipt_data = {}
+            self._save_raw_response(receipt)
+            return self._extract_receipt_data(receipt)
             
-            # Print receipt properties for debugging
-            print(f"Receipt fields: {receipt.fields.keys()}")
-            print(f"Fields content: {receipt.fields}")
-            if "TransactionDate" in receipt.fields:
-                print(f"Transaction date field: {receipt.fields['TransactionDate']}")
-                print(f"Transaction date type: {type(receipt.fields['TransactionDate'].value)}")
-            if "TransactionTime" in receipt.fields:
-                print(f"Transaction time field: {receipt.fields['TransactionTime']}")
-            
-            try:
-                # Extract basic receipt information
-                transaction_date = None
-                if "TransactionDate" in receipt.fields:
-                    date_value = receipt.fields["TransactionDate"].value
-                    time_value = receipt.fields["TransactionTime"].value if "TransactionTime" in receipt.fields else None
-                    
-                    # Format the datetime information
-                    if isinstance(date_value, str):
-                        transaction_date = {
-                            "date": date_value,
-                            "time": time_value
-                        }
-                    else:
-                        # If it's already a datetime object
-                        transaction_date = {
-                            "date": date_value.strftime("%Y-%m-%d") if date_value else None,
-                            "time": date_value.strftime("%H:%M:%S") if date_value else None
-                        }
-                        if time_value:  # If there's a separate time field
-                            transaction_date["time"] = time_value
-                
-                receipt_data = {
-                    "merchant_name": receipt.fields["MerchantName"].value if "MerchantName" in receipt.fields else None,
-                    "transaction_date": transaction_date,
-                    "total": receipt.fields["Total"].value if "Total" in receipt.fields else None,
-                    "subtotal": receipt.fields["Subtotal"].value if "Subtotal" in receipt.fields else None,
-                    "tax": receipt.fields["TotalTax"].value if "TotalTax" in receipt.fields else None,
-                    "items": []
-                }
-                # Extract items if available
-                if "Items" in receipt.fields:
-                    print("Found Items field")
-                    items_field = receipt.fields["Items"]
-                    print(f"Items field type: {type(items_field)}")
-                    print(f"Items field value type: {type(items_field.value)}")
-                    print(f"Items field value: {items_field.value}")
-                    
-                    items = items_field.value
-                    for item in items:
-                        print(f"Processing item: {item}")
-                        item_value = item.value if hasattr(item, 'value') else {}
-                        
-                        item_data = {
-                            "name": item_value["Description"].value if "Description" in item_value else None,
-                            "quantity": item_value["Quantity"].value if "Quantity" in item_value else None,
-                            "unit_price": item_value["Price"].value if "Price" in item_value else None,
-                            "total_price": item_value["TotalPrice"].value if "TotalPrice" in item_value else None
-                        }
-                        
-                        if item_data:  # Only append if we found any data
-                            print(f"Extracted item data: {item_data}")
-                            receipt_data["items"].append(item_data)
-                else:
-                    print("No Items field found in receipt")
-            except Exception as e:
-                print(f"Error extracting receipt data: {str(e)}")
-                # Return whatever data we managed to extract
-                
-            return receipt_data
-
         except Exception as e:
             print(f"Error analyzing receipt: {str(e)}")
             raise
-
-    def _get_field_value(self, field: Any) -> Optional[Any]:
-        """Helper method to safely get field values"""
+    
+    # Private methods - Azure client operations
+    
+    @staticmethod
+    def _validate_credentials(settings) -> None:
+        """Validate that Azure credentials are properly configured."""
+        if not settings.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT or not settings.AZURE_DOCUMENT_INTELLIGENCE_KEY:
+            raise ValueError("Azure Document Intelligence credentials not properly configured")
+    
+    @staticmethod
+    def _create_client(settings) -> DocumentAnalysisClient:
+        """Create and return an Azure Document Analysis client."""
+        return DocumentAnalysisClient(
+            endpoint=settings.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT,
+            credential=AzureKeyCredential(settings.AZURE_DOCUMENT_INTELLIGENCE_KEY)
+        )
+    
+    async def _analyze_document(self, file_bytes: bytes) -> Optional[Any]:
+        """
+        Send document to Azure for analysis.
+        
+        Args:
+            file_bytes: The document file in bytes
+            
+        Returns:
+            The first analyzed document or None if no documents found
+        """
+        document_stream = io.BytesIO(file_bytes)
+        
+        poller = self.client.begin_analyze_document(
+            self.RECEIPT_MODEL,
+            document=document_stream
+        )
+        
+        result = poller.result()
+        
+        return result.documents[0] if len(result.documents) > 0 else None
+    
+    # Private methods - Data extraction
+    
+    def _extract_receipt_data(self, receipt: Any) -> Dict[str, Any]:
+        """
+        Extract structured data from the analyzed receipt.
+        
+        Args:
+            receipt: The analyzed receipt document
+            
+        Returns:
+            Dictionary containing extracted receipt data
+        """
         try:
-            return field.value if field is not None else None
+            return {
+                "merchant_name": self._extract_merchant_name(receipt),
+                "store_location": self._extract_store_location(receipt),
+                "transaction_date": self._extract_transaction_date(receipt),
+                "total": self._extract_field_value(receipt, "Total"),
+                "subtotal": self._extract_field_value(receipt, "Subtotal"),
+                "tax": self._extract_field_value(receipt, "TotalTax"),
+                "items": self._extract_items(receipt)
+            }
+        except Exception:
+            # Return partial data if extraction fails
+            return {}
+    
+    def _extract_merchant_name(self, receipt: Any) -> Optional[str]:
+        """Extract merchant name from receipt."""
+        return self._extract_field_value(receipt, "MerchantName")
+    
+    def _extract_store_location(self, receipt: Any) -> Optional[Dict[str, str]]:
+        """Extract store location information from receipt."""
+        location = {}
+        
+        if "MerchantAddress" in receipt.fields:
+            location["address"] = receipt.fields["MerchantAddress"].value
+        
+        if "MerchantPhoneNumber" in receipt.fields:
+            location["phone"] = receipt.fields["MerchantPhoneNumber"].value
+        
+        return location if location else None
+    
+    def _extract_transaction_date(self, receipt: Any) -> Optional[Dict[str, str]]:
+        """Extract transaction date and time from receipt."""
+        if "TransactionDate" not in receipt.fields:
+            return None
+        
+        date_value = receipt.fields["TransactionDate"].value
+        time_value = receipt.fields.get("TransactionTime", {}).value if "TransactionTime" in receipt.fields else None
+        
+        if isinstance(date_value, str):
+            return {
+                "date": date_value,
+                "time": time_value
+            }
+        
+        # Handle datetime objects
+        return {
+            "date": date_value.strftime("%Y-%m-%d") if date_value else None,
+            "time": time_value or (date_value.strftime("%H:%M:%S") if date_value else None)
+        }
+    
+    def _extract_items(self, receipt: Any) -> List[Dict[str, Any]]:
+        """Extract line items from receipt."""
+        if "Items" not in receipt.fields:
+            return []
+        
+        items = []
+        items_field = receipt.fields["Items"].value
+        
+        for item in items_field:
+            item_data = self._extract_item_data(item)
+            if item_data:
+                items.append(item_data)
+        
+        return items
+    
+    def _extract_item_data(self, item: Any) -> Optional[Dict[str, Any]]:
+        """
+        Extract data from a single receipt item.
+        
+        Args:
+            item: The item field from the receipt
+            
+        Returns:
+            Dictionary containing item data or None if extraction fails
+        """
+        try:
+            item_value = item.value if hasattr(item, 'value') else {}
+            
+            return {
+                "name": item_value["Description"].value if "Description" in item_value else None,
+                "quantity": item_value["Quantity"].value if "Quantity" in item_value else None,
+                "unit_price": item_value["Price"].value if "Price" in item_value else None,
+                "total_price": item_value["TotalPrice"].value if "TotalPrice" in item_value else None
+            }
         except Exception:
             return None
+    
+    def _extract_field_value(self, receipt: Any, field_name: str) -> Optional[Any]:
+        """
+        Safely extract a field value from the receipt.
+        
+        Args:
+            receipt: The receipt document
+            field_name: The name of the field to extract
+            
+        Returns:
+            The field value or None if not found
+        """
+        if field_name not in receipt.fields:
+            return None
+        
+        try:
+            return receipt.fields[field_name].value
+        except Exception:
+            return None
+    
+    # Private methods - File operations
+    
+    def _save_raw_response(self, receipt: Any) -> None:
+        """
+        Save the raw Azure response to a timestamped JSON file.
+        
+        Args:
+            receipt: The receipt document to save
+        """
+        try:
+            os.makedirs(self.RAW_RESPONSES_DIR, exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{self.RAW_RESPONSES_DIR}/receipt_{timestamp}.json"
+            
+            receipt_dict = receipt.to_dict()
+            
+            with open(filename, 'w') as f:
+                json.dump(receipt_dict, f, indent=2, default=str)
+            
+            print(f"Raw response saved to: {filename}\n")
+        except Exception as e:
+            print(f"Warning: Failed to save raw response: {str(e)}")
