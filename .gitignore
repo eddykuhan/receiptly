@@ -35,7 +35,17 @@ bld/
 *.userosscache
 *.sln.docstates
 *.userprefs
+# Python virtual environments
+venv/
+.venv/
+# Python bytecode cache
+__pycache__/
+*.py[cod]
 
+env/
+ENV/
+venv*/
+env*/
 ## JetBrains Rider
 .idea/
 *.sln.iml
