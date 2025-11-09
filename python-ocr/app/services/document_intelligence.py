@@ -3,8 +3,6 @@ from azure.core.credentials import AzureKeyCredential
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import io
-import json
-import os
 import uuid
 from .image_preprocessor import ImagePreprocessor
 from .s3_storage import S3StorageService
@@ -13,7 +11,6 @@ from .s3_storage import S3StorageService
 class DocumentIntelligenceService:
     """Service for analyzing receipts using Azure Document Intelligence."""
     
-    RAW_RESPONSES_DIR = "raw_responses"
     RECEIPT_MODEL = "prebuilt-receipt"
     
     def __init__(self):
@@ -89,9 +86,6 @@ class DocumentIntelligenceService:
                     filename=filename,
                     content_type=content_type
                 )
-            
-            # Save locally (keeping existing functionality)
-            self._save_raw_response(receipt)
             
             # Add S3 references to response
             receipt_data["s3_keys"] = s3_keys
@@ -269,27 +263,3 @@ class DocumentIntelligenceService:
             return receipt.fields[field_name].value
         except Exception:
             return None
-    
-    # Private methods - File operations
-    
-    def _save_raw_response(self, receipt: Any) -> None:
-        """
-        Save the raw Azure response to a timestamped JSON file.
-        
-        Args:
-            receipt: The receipt document to save
-        """
-        try:
-            os.makedirs(self.RAW_RESPONSES_DIR, exist_ok=True)
-            
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{self.RAW_RESPONSES_DIR}/receipt_{timestamp}.json"
-            
-            receipt_dict = receipt.to_dict()
-            
-            with open(filename, 'w') as f:
-                json.dump(receipt_dict, f, indent=2, default=str)
-            
-            print(f"Raw response saved to: {filename}\n")
-        except Exception as e:
-            print(f"Warning: Failed to save raw response: {str(e)}")

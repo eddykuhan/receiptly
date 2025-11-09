@@ -34,3 +34,11 @@ async def root():
         "version": "1.0.0",
         "docs_url": "/docs"
     }
+
+@app.get("/health")
+async def health():
+    """Health check endpoint for container orchestration"""
+    return {
+        "status": "healthy",
+        "service": "receiptly-ocr"
+    }
