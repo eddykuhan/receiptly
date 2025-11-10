@@ -25,16 +25,23 @@ cd ../Receiptly.API
 
 ### 2. Configure AWS S3
 
-Update `appsettings.json` or use User Secrets:
+**Important:** Use User Secrets for local development (secrets are not committed to git):
 
 ```bash
 cd src/Receiptly.API
 dotnet user-secrets init
 dotnet user-secrets set "AWS:AccessKeyId" "your-access-key"
 dotnet user-secrets set "AWS:SecretAccessKey" "your-secret-key"
-dotnet user-secrets set "AWS:S3BucketName" "receiptly-receipts-prod"
-dotnet user-secrets set "AWS:Region" "us-east-1"
+dotnet user-secrets set "AWS:S3BucketName" "your-bucket-name"
+dotnet user-secrets set "AWS:Region" "ap-southeast-1"
 ```
+
+To verify your secrets:
+```bash
+dotnet user-secrets list --project src/Receiptly.API/Receiptly.API.csproj
+```
+
+**Note:** The `appsettings.json` file has empty placeholders for these values and should remain that way to avoid committing secrets to the repository.
 
 ### 3. Configure Python OCR Service URL
 
