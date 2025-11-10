@@ -6,7 +6,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.11" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.11.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
+    <PackageReference Include="System.Net.Http.Json" Version="9.0.10" />
   </ItemGroup>
 
   <PropertyGroup>

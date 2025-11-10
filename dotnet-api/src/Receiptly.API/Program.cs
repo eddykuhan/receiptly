@@ -1,37 +1,90 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Web;
-using Receiptly.Infrastructure.Data;
+using Receiptly.Core.Services;
+using Receiptly.Infrastructure.Services;
+using Serilog;
+using Polly;
+using Polly.Extensions.Http;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "logs/receiptly-.log",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
-// Add services to the container.
-builder.Services.AddControllers();
-
-// Add Azure AD Authentication
-builder.Services.AddMicrosoftIdentityWebApiAuthentication(builder.Configuration);
-
-// Add DbContext
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Information("Starting Receiptly API");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Add Serilog
+    builder.Host.UseSerilog();
+
+    // Add services to the container.
+    builder.Services.AddControllers();
+
+    // Add S3 Storage Service
+    builder.Services.AddSingleton<S3StorageService>();
+
+    // Add Python OCR Client with Polly retry policy
+    builder.Services.AddHttpClient<PythonOcrClient>()
+        .AddPolicyHandler(GetRetryPolicy());
+
+    // Add Receipt Processing Service
+    builder.Services.AddScoped<IReceiptProcessingService, ReceiptProcessingService>();
+
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+
+    // Add Serilog request logging
+    app.UseSerilogRequestLogging();
+
+    app.MapControllers();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+// Polly retry policy for Python OCR client
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError() // Handles 5xx, 408, and network failures
+        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+        .WaitAndRetryAsync(
+            retryCount: 3,
+            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+            onRetry: (outcome, timespan, retryCount, context) =>
+            {
+                Log.Warning(
+                    "Python OCR request failed. Retry {RetryCount}/3. Waiting {Delay}s before next attempt. Reason: {Reason}",
+                    retryCount,
+                    timespan.TotalSeconds,
+                    outcome.Exception?.Message ?? outcome.Result?.StatusCode.ToString() ?? "Unknown");
+            });
+}
