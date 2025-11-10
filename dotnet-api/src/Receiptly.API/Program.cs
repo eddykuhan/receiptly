@@ -52,10 +52,19 @@ try
         app.UseSwaggerUI();
     }
 
-    app.UseHttpsRedirection();
+    // Only use HTTPS redirection in production with proper certificates
+    // app.UseHttpsRedirection();
 
     // Add Serilog request logging
     app.UseSerilogRequestLogging();
+
+    // Health check endpoint
+    app.MapGet("/health", () => Results.Ok(new
+    {
+        status = "healthy",
+        service = "receiptly-api",
+        timestamp = DateTime.UtcNow
+    }));
 
     app.MapControllers();
 
