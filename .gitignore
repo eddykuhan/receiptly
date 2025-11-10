@@ -5,6 +5,10 @@
 node_modules/
 *.log
 
+# Service management
+.service-pids
+logs/
+
 # Environment files
 .env
 .env.local

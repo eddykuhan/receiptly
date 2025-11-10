@@ -35,11 +35,12 @@ class DocumentIntelligenceService:
             # Download image from URL
             print(f"Downloading image from URL: {image_url}")
             file_bytes = await self._download_image(image_url)
+            print(f"Downloaded {len(file_bytes)} bytes")
             
             # Preprocess the image to improve OCR accuracy
             print("Preprocessing image...")
             processed_bytes = self.preprocessor.process(file_bytes)
-            print("Image preprocessing complete\n")
+            print(f"Image preprocessing complete. Output: {len(processed_bytes)} bytes\n")
             
             # Analyze the preprocessed image
             receipt = await self._analyze_document(processed_bytes)

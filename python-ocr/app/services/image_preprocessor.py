@@ -34,11 +34,28 @@ class ImagePreprocessor:
             Processed image in bytes
         """
         try:
+            # Validate input
+            if not image_bytes or len(image_bytes) == 0:
+                print("Error: Empty image bytes received")
+                return image_bytes
+            
+            # Check if it's a PDF - PDFs don't need image preprocessing
+            if image_bytes.startswith(b'%PDF'):
+                print("PDF detected - skipping image preprocessing")
+                return image_bytes
+            
             # Convert bytes to BytesIO and ensure position is at start
             image_stream = io.BytesIO(image_bytes)
             image_stream.seek(0)
             
             # Convert to PIL Image
+            image = Image.open(image_stream)
+            
+            # Verify image was loaded successfully
+            image.verify()
+            
+            # Reopen image after verify (verify() closes the file)
+            image_stream.seek(0)
             image = Image.open(image_stream)
             
             # Apply preprocessing pipeline
@@ -58,7 +75,20 @@ class ImagePreprocessor:
             return self._image_to_bytes(image)
         except Exception as e:
             print(f"Error during image preprocessing: {str(e)}")
-            print("Returning original image without preprocessing")
+            print(f"Image bytes length: {len(image_bytes) if image_bytes else 0}")
+            
+            # Detect file type
+            if image_bytes:
+                if image_bytes.startswith(b'%PDF'):
+                    print("File type: PDF (should have been skipped)")
+                elif image_bytes.startswith(b'\xff\xd8\xff'):
+                    print("File type: JPEG")
+                elif image_bytes.startswith(b'\x89PNG'):
+                    print("File type: PNG")
+                else:
+                    print(f"File type: Unknown - First 20 bytes: {image_bytes[:20]}")
+            
+            print("Returning original file without preprocessing")
             # Return original image if preprocessing fails
             return image_bytes
     
