@@ -19,7 +19,7 @@ public class PythonOcrClient
     /// <summary>
     /// Send image URL to Python OCR service for analysis
     /// </summary>
-    public async Task<OcrResponse> AnalyzeReceiptAsync(string imageUrl)
+    public async Task<OcrApiResponse> AnalyzeReceiptAsync(string imageUrl)
     {
         var request = new OcrRequest { ImageUrl = imageUrl };
         
@@ -36,7 +36,7 @@ public class PythonOcrClient
             throw new Exception("OCR analysis failed");
         }
 
-        return result.Data;
+        return result;
     }
 }
 
@@ -53,6 +53,24 @@ public class OcrApiResponse
     
     [JsonPropertyName("data")]
     public OcrResponse Data { get; set; } = new();
+    
+    [JsonPropertyName("validation")]
+    public OcrValidation? Validation { get; set; }
+}
+
+public class OcrValidation
+{
+    [JsonPropertyName("is_valid_receipt")]
+    public bool IsValidReceipt { get; set; }
+    
+    [JsonPropertyName("confidence")]
+    public float Confidence { get; set; }
+    
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = string.Empty;
+    
+    [JsonPropertyName("doc_type")]
+    public string DocType { get; set; } = string.Empty;
 }
 
 public class OcrResponse

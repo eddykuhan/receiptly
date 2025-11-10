@@ -32,6 +32,9 @@ try
     // Add S3 Storage Service
     builder.Services.AddSingleton<S3StorageService>();
 
+    // Add File Validation Service
+    builder.Services.AddScoped<FileValidationService>();
+
     // Add Python OCR Client with Polly retry policy
     builder.Services.AddHttpClient<PythonOcrClient>()
         .AddPolicyHandler(GetRetryPolicy());

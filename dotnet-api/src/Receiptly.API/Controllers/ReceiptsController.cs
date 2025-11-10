@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Receiptly.Core.Services;
 using Receiptly.Domain.Models;
+using Receiptly.Infrastructure.Services;
 
 namespace Receiptly.API.Controllers;
 
@@ -9,19 +10,22 @@ namespace Receiptly.API.Controllers;
 public class ReceiptsController : ControllerBase
 {
     private readonly IReceiptProcessingService _receiptProcessingService;
+    private readonly FileValidationService _fileValidationService;
     private readonly ILogger<ReceiptsController> _logger;
 
     public ReceiptsController(
         IReceiptProcessingService receiptProcessingService,
+        FileValidationService fileValidationService,
         ILogger<ReceiptsController> logger)
     {
         _receiptProcessingService = receiptProcessingService;
+        _fileValidationService = fileValidationService;
         _logger = logger;
     }
 
     /// <summary>
     /// Upload and process a receipt image
-    /// Flow: Upload to S3 → Python OCR → Save raw data → Extract structured data → Save to DB
+    /// Flow: Validate file → Upload to S3 → Python OCR → Validate receipt → Save raw data → Extract structured data → Save to S3
     /// </summary>
     [HttpPost("upload")]
     public async Task<ActionResult<Receipt>> UploadReceipt(IFormFile file)
@@ -38,18 +42,23 @@ public class ReceiptsController : ControllerBase
                 return BadRequest("No file uploaded");
             }
 
-            var allowedTypes = new[] { "image/jpeg", "image/png", "image/tiff", "application/pdf" };
-            if (!allowedTypes.Contains(file.ContentType))
+            // Comprehensive file validation
+            _logger.LogInformation("Validating file format and content");
+            var validationResult = await _fileValidationService.ValidateReceiptFileAsync(file);
+            
+            if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Upload failed: Invalid file type {ContentType}", file.ContentType);
-                return BadRequest($"File type not supported. Allowed types: {string.Join(", ", allowedTypes)}");
+                _logger.LogWarning("File validation failed: {ErrorMessage}", validationResult.ErrorMessage);
+                return BadRequest(new 
+                { 
+                    error = "File validation failed",
+                    message = validationResult.ErrorMessage,
+                    detectedType = validationResult.DetectedFileType
+                });
             }
 
-            if (file.Length > 4 * 1024 * 1024) // 4MB limit
-            {
-                _logger.LogWarning("Upload failed: File too large ({Size} bytes)", file.Length);
-                return BadRequest("File size too large. Maximum size is 4MB.");
-            }
+            _logger.LogInformation("File validation passed. Type: {FileType}, Size: {Size} bytes", 
+                validationResult.DetectedFileType, validationResult.FileSize);
 
             // Use a default user ID for now (since authentication is removed)
             var userId = "default-user";

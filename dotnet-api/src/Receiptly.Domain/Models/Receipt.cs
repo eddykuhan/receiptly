@@ -1,5 +1,7 @@
 namespace Receiptly.Domain.Models;
 
+using Receiptly.Domain.Enums;
+
 public class Receipt
 {
     public Guid Id { get; set; }
@@ -14,4 +16,9 @@ public class Receipt
     public DateTime? UpdatedAt { get; set; }
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
+    
+    // Validation fields
+    public ReceiptStatus Status { get; set; } = ReceiptStatus.PendingValidation;
+    public double? ValidationConfidence { get; set; }
+    public string? ValidationMessage { get; set; }
 }
