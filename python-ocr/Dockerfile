@@ -1,5 +1,13 @@
 FROM python:3.11-slim
 
+# Build arguments for metadata
+ARG BUILD_DATE
+ARG VCS_REF
+LABEL org.opencontainers.image.created=$BUILD_DATE \
+      org.opencontainers.image.revision=$VCS_REF \
+      org.opencontainers.image.title="Receiptly Python OCR Service" \
+      org.opencontainers.image.description="FastAPI service for receipt OCR using Azure Document Intelligence"
+
 WORKDIR /app
 
 # Install system dependencies for OpenCV and image processing

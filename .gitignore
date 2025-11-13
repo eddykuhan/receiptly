@@ -48,6 +48,15 @@ __pycache__/
 raw_responses/
 
 env/
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfplan
+**/terraform.tfvars
+**/.terraform.tfstate.lock.info
 ENV/
 venv*/
 env*/
