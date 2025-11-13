@@ -1,0 +1,52 @@
+services:
+  python-ocr:
+    build:
+      context: ./python-ocr
+      dockerfile: Dockerfile
+    container_name: receiptly-python-ocr
+    ports:
+      - "8000:8000"
+    environment:
+      - AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT}
+      - AZURE_DOCUMENT_INTELLIGENCE_KEY=${AZURE_DOCUMENT_INTELLIGENCE_KEY}
+    env_file:
+      - ./python-ocr/.env
+    networks:
+      - receiptly-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  dotnet-api:
+    build:
+      context: ./dotnet-api
+      dockerfile: Dockerfile
+    container_name: receiptly-dotnet-api
+    ports:
+      - "5188:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - AWS__AccessKeyId=${AWS_ACCESS_KEY_ID}
+      - AWS__SecretAccessKey=${AWS_SECRET_ACCESS_KEY}
+      - AWS__S3BucketName=${AWS_S3_BUCKET_NAME}
+      - AWS__Region=${AWS_REGION}
+      - PythonOcr__ServiceUrl=http://python-ocr:8000
+    networks:
+      - receiptly-network
+    depends_on:
+      python-ocr:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  receiptly-network:
+    driver: bridge
