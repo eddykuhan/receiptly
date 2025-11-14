@@ -1,4 +1,5 @@
 using Receiptly.Core.Services;
+using Receiptly.Core.Interfaces;
 using Receiptly.Domain.Models;
 using Receiptly.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
@@ -10,15 +11,18 @@ public class ReceiptProcessingService : IReceiptProcessingService
 {
     private readonly S3StorageService _s3Storage;
     private readonly PythonOcrClient _ocrClient;
+    private readonly IReceiptRepository _receiptRepository;
     private readonly ILogger<ReceiptProcessingService> _logger;
 
     public ReceiptProcessingService(
         S3StorageService s3Storage, 
         PythonOcrClient ocrClient,
+        IReceiptRepository receiptRepository,
         ILogger<ReceiptProcessingService> logger)
     {
         _s3Storage = s3Storage;
         _ocrClient = ocrClient;
+        _receiptRepository = receiptRepository;
         _logger = logger;
     }
 
@@ -30,13 +34,15 @@ public class ReceiptProcessingService : IReceiptProcessingService
     /// 4. Save raw response to S3
     /// 5. Extract structured data
     /// 6. Save extracted data to S3
-    /// 7. Return Receipt entity with validation status
+    /// 7. Save receipt to PostgreSQL database
+    /// 8. Return Receipt entity with validation status
     /// </summary>
     public async Task<Receipt> ProcessReceiptAsync(
         string userId,
         Stream imageStream,
         string contentType,
-        string filename)
+        string filename,
+        CancellationToken cancellationToken = default)
     {
         var receiptId = Guid.NewGuid();
         _logger.LogInformation("Starting receipt processing. ReceiptId: {ReceiptId}, UserId: {UserId}, Filename: {Filename}", 
@@ -45,7 +51,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
         try
         {
             // Step 1: Upload image to S3 and get presigned URL
-            _logger.LogInformation("Step 1/6: Uploading image to S3. ReceiptId: {ReceiptId}", receiptId);
+            _logger.LogInformation("Step 1/7: Uploading image to S3. ReceiptId: {ReceiptId}", receiptId);
             var imageUrl = await _s3Storage.UploadReceiptImageAsync(
                 userId,
                 receiptId,
@@ -54,14 +60,20 @@ public class ReceiptProcessingService : IReceiptProcessingService
                 filename);
             _logger.LogInformation("Image uploaded to S3. PresignedUrl generated. ReceiptId: {ReceiptId}", receiptId);
 
+            // Check cancellation
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Step 2: Call Python OCR service with the image URL
-            _logger.LogInformation("Step 2/6: Calling Python OCR service. ReceiptId: {ReceiptId}", receiptId);
+            _logger.LogInformation("Step 2/7: Calling Python OCR service. ReceiptId: {ReceiptId}", receiptId);
             var ocrResult = await _ocrClient.AnalyzeReceiptAsync(imageUrl);
             _logger.LogInformation("OCR analysis completed. DocType: {DocType}, Confidence: {Confidence}, ReceiptId: {ReceiptId}", 
                 ocrResult.Data.DocType, ocrResult.Data.Confidence, receiptId);
 
+            // Check cancellation
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Step 3: Validate receipt
-            _logger.LogInformation("Step 3/6: Validating receipt. ReceiptId: {ReceiptId}", receiptId);
+            _logger.LogInformation("Step 3/7: Validating receipt. ReceiptId: {ReceiptId}", receiptId);
             var validation = ocrResult.Validation;
             if (validation != null)
             {
@@ -70,18 +82,30 @@ public class ReceiptProcessingService : IReceiptProcessingService
             }
 
             // Step 4: Save raw OCR response to S3
-            _logger.LogInformation("Step 4/6: Saving raw OCR response to S3. ReceiptId: {ReceiptId}", receiptId);
+            _logger.LogInformation("Step 4/7: Saving raw OCR response to S3. ReceiptId: {ReceiptId}", receiptId);
             await _s3Storage.SaveRawResponseAsync(userId, receiptId, ocrResult.Data);
 
+            // Check cancellation
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Step 5: Extract structured data from OCR response
-            _logger.LogInformation("Step 5/6: Extracting structured data. ReceiptId: {ReceiptId}", receiptId);
-            var receipt = ExtractReceiptData(receiptId, ocrResult.Data, validation);
+            _logger.LogInformation("Step 5/7: Extracting structured data. ReceiptId: {ReceiptId}", receiptId);
+            var receipt = ExtractReceiptData(receiptId, userId, imageUrl, filename, ocrResult.Data, validation);
             _logger.LogInformation("Data extracted. MerchantName: {MerchantName}, Items: {ItemCount}, Total: {Total}, Status: {Status}, ReceiptId: {ReceiptId}", 
                 receipt.StoreName, receipt.Items.Count, receipt.TotalAmount, receipt.Status, receiptId);
 
             // Step 6: Save extracted data to S3
-            _logger.LogInformation("Step 6/6: Saving extracted data to S3. ReceiptId: {ReceiptId}", receiptId);
+            _logger.LogInformation("Step 6/7: Saving extracted data to S3. ReceiptId: {ReceiptId}", receiptId);
             await _s3Storage.SaveExtractedDataAsync(userId, receiptId, receipt);
+
+            // Check cancellation
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Step 7: Save receipt to PostgreSQL database
+            _logger.LogInformation("Step 7/7: Saving receipt to database. ReceiptId: {ReceiptId}", receiptId);
+            receipt.ProcessedAt = DateTime.UtcNow;
+            await _receiptRepository.CreateAsync(receipt, cancellationToken);
+            _logger.LogInformation("Receipt saved to database. ReceiptId: {ReceiptId}", receiptId);
 
             _logger.LogInformation("Receipt processing completed successfully. ReceiptId: {ReceiptId}", receiptId);
             return receipt;
@@ -96,11 +120,17 @@ public class ReceiptProcessingService : IReceiptProcessingService
     /// <summary>
     /// Extract structured receipt data from Azure Document Intelligence response
     /// </summary>
-    private Receipt ExtractReceiptData(Guid receiptId, OcrResponse ocrResponse, OcrValidation? validation)
+    private Receipt ExtractReceiptData(Guid receiptId, string userId, string imageUrl, string filename, OcrResponse ocrResponse, OcrValidation? validation)
     {
         var receipt = new Receipt
         {
             Id = receiptId,
+            UserId = userId,
+            ImageUrl = imageUrl,
+            OriginalFileName = filename,
+            S3Key = $"{userId}/receipts/{receiptId}/original",
+            OcrProvider = "Azure Document Intelligence + Tesseract",
+            OcrConfidence = ocrResponse.Confidence,
             CreatedAt = DateTime.UtcNow,
             Status = Receiptly.Domain.Enums.ReceiptStatus.PendingValidation
         };
@@ -111,6 +141,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
         // Set validation information
         if (validation != null)
         {
+            receipt.IsValidReceipt = validation.IsValidReceipt;
             receipt.ValidationConfidence = validation.Confidence;
             receipt.ValidationMessage = validation.Message;
             
@@ -125,16 +156,49 @@ public class ReceiptProcessingService : IReceiptProcessingService
             }
         }
 
-        // Extract merchant name
+        // Extract merchant name (from Tesseract override)
         if (ocrResponse.Fields.TryGetValue("MerchantName", out var merchantName))
         {
             receipt.StoreName = merchantName.Value?.ToString() ?? string.Empty;
         }
 
-        // Extract merchant address
+        // Extract merchant address (from Tesseract override)
         if (ocrResponse.Fields.TryGetValue("MerchantAddress", out var merchantAddress))
         {
             receipt.StoreAddress = merchantAddress.Value?.ToString() ?? string.Empty;
+        }
+
+        // Extract merchant phone number (from Tesseract override)
+        if (ocrResponse.Fields.TryGetValue("MerchantPhoneNumber", out var merchantPhone))
+        {
+            receipt.StorePhoneNumber = merchantPhone.Value?.ToString() ?? string.Empty;
+        }
+
+        // Extract postal code (from Tesseract metadata)
+        if (ocrResponse.Metadata != null && ocrResponse.Metadata.TryGetValue("postal_code", out var postalCode))
+        {
+            receipt.PostalCode = postalCode?.ToString() ?? string.Empty;
+        }
+
+        // Extract country (from Tesseract metadata)
+        if (ocrResponse.Metadata != null && ocrResponse.Metadata.TryGetValue("country", out var country))
+        {
+            receipt.Country = country?.ToString() ?? string.Empty;
+        }
+
+        // Extract location confidence (from Tesseract metadata)
+        if (ocrResponse.Metadata != null && ocrResponse.Metadata.TryGetValue("tesseract_confidence", out var tesseractConf))
+        {
+            if (float.TryParse(tesseractConf?.ToString(), out var confValue))
+            {
+                receipt.LocationConfidence = confValue;
+            }
+        }
+
+        // Extract OCR strategy (from Tesseract metadata)
+        if (ocrResponse.Metadata != null && ocrResponse.Metadata.TryGetValue("extraction_strategy", out var strategy))
+        {
+            receipt.OcrStrategy = strategy?.ToString() ?? string.Empty;
         }
 
         // Extract transaction date
@@ -142,7 +206,10 @@ public class ReceiptProcessingService : IReceiptProcessingService
         {
             if (DateTime.TryParse(transactionDate.Value?.ToString(), out var parsedDate))
             {
-                receipt.PurchaseDate = parsedDate;
+                // Ensure the date is in UTC for PostgreSQL
+                receipt.PurchaseDate = parsedDate.Kind == DateTimeKind.Utc 
+                    ? parsedDate 
+                    : DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
             }
         }
 
@@ -155,10 +222,43 @@ public class ReceiptProcessingService : IReceiptProcessingService
             }
         }
 
+        // Extract subtotal amount
+        if (ocrResponse.Fields.TryGetValue("Subtotal", out var subtotal))
+        {
+            if (decimal.TryParse(subtotal.Value?.ToString(), out var subtotalAmount))
+            {
+                receipt.SubtotalAmount = subtotalAmount;
+            }
+        }
+
         // Extract tax amount
         if (ocrResponse.Fields.TryGetValue("TotalTax", out var tax))
         {
-            receipt.TaxAmount = tax.Value?.ToString();
+            if (decimal.TryParse(tax.Value?.ToString(), out var taxAmount))
+            {
+                receipt.TaxAmount = taxAmount;
+            }
+        }
+
+        // Extract tip amount
+        if (ocrResponse.Fields.TryGetValue("Tip", out var tip))
+        {
+            if (decimal.TryParse(tip.Value?.ToString(), out var tipAmount))
+            {
+                receipt.TipAmount = tipAmount;
+            }
+        }
+
+        // Extract receipt type
+        if (ocrResponse.Fields.TryGetValue("ReceiptType", out var receiptType))
+        {
+            receipt.ReceiptType = receiptType.Value?.ToString() ?? string.Empty;
+        }
+
+        // Extract transaction ID
+        if (ocrResponse.Fields.TryGetValue("TransactionId", out var transactionId))
+        {
+            receipt.TransactionId = transactionId.Value?.ToString() ?? string.Empty;
         }
 
         // Extract line items

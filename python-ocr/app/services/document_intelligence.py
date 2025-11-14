@@ -2,8 +2,8 @@ from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from typing import Dict, Any, Optional, List
 import io
-import httpx
 from .image_preprocessor import ImagePreprocessor
+from ..utils.image_utils import download_image
 
 
 class DocumentIntelligenceService:
@@ -34,7 +34,7 @@ class DocumentIntelligenceService:
         try:
             # Download image from URL
             print(f"Downloading image from URL: {image_url}")
-            file_bytes = await self._download_image(image_url)
+            file_bytes = await download_image(image_url)
             print(f"Downloaded {len(file_bytes)} bytes")
             
             # Preprocess the image to improve OCR accuracy
@@ -56,22 +56,6 @@ class DocumentIntelligenceService:
             raise
     
     # Private methods - Azure client operations
-    
-    @staticmethod
-    async def _download_image(url: str) -> bytes:
-        """
-        Download image from URL.
-        
-        Args:
-            url: URL to download the image from
-            
-        Returns:
-            Image bytes
-        """
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            return response.content
     
     @staticmethod
     def _validate_credentials(settings) -> None:

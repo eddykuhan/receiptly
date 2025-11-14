@@ -10,13 +10,17 @@ public class FileValidationService
 {
     private readonly ILogger<FileValidationService> _logger;
     
-    // Allowed MIME types for receipts
+    // Allowed MIME types for receipts (images only, PDF not supported)
     private static readonly string[] AllowedMimeTypes = {
         "image/jpeg",
         "image/jpg", 
         "image/png",
         "image/tiff",
-        "image/tif",
+        "image/tif"
+    };
+    
+    // Rejected MIME types with specific error messages
+    private static readonly string[] RejectedMimeTypes = {
         "application/pdf"
     };
     
@@ -25,10 +29,12 @@ public class FileValidationService
     {
         { "jpeg", new byte[] { 0xFF, 0xD8, 0xFF } },
         { "png", new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A } },
-        { "pdf", new byte[] { 0x25, 0x50, 0x44, 0x46 } }, // %PDF
         { "tiff_ii", new byte[] { 0x49, 0x49, 0x2A, 0x00 } }, // TIFF little-endian
         { "tiff_mm", new byte[] { 0x4D, 0x4D, 0x00, 0x2A } }  // TIFF big-endian
     };
+    
+    // PDF signature for explicit rejection
+    private static readonly byte[] PdfSignature = { 0x25, 0x50, 0x44, 0x46 }; // %PDF
     
     private const long MaxFileSizeBytes = 10 * 1024 * 1024; // 10MB
     private const long MinFileSizeBytes = 1024; // 1KB
@@ -77,13 +83,25 @@ public class FileValidationService
             };
         }
         
-        // Check MIME type
+        // Check MIME type - Reject PDF explicitly
+        if (RejectedMimeTypes.Contains(file.ContentType?.ToLowerInvariant()))
+        {
+            return new FileValidationResult
+            {
+                IsValid = false,
+                ErrorMessage = "PDF files are not supported. Please upload an image file (JPEG, PNG, or TIFF)",
+                FileSize = file.Length,
+                DetectedFileType = "PDF Document"
+            };
+        }
+        
+        // Check if MIME type is in allowed list
         if (!AllowedMimeTypes.Contains(file.ContentType?.ToLowerInvariant()))
         {
             return new FileValidationResult
             {
                 IsValid = false,
-                ErrorMessage = $"Invalid file type '{file.ContentType}'. Allowed types: {string.Join(", ", AllowedMimeTypes)}",
+                ErrorMessage = $"Invalid file type '{file.ContentType}'. Allowed types: JPEG, PNG, TIFF images only",
                 FileSize = file.Length
             };
         }
@@ -127,7 +145,19 @@ public class FileValidationService
                 };
             }
             
-            // Check against known signatures
+            // Check if it's a PDF (and reject it explicitly)
+            if (HeaderMatchesSignature(headerBytes, PdfSignature))
+            {
+                return new FileValidationResult
+                {
+                    IsValid = false,
+                    ErrorMessage = "PDF files are not supported. Please upload an image file (JPEG, PNG, or TIFF)",
+                    DetectedFileType = "PDF Document",
+                    FileSize = file.Length
+                };
+            }
+            
+            // Check against known allowed signatures
             foreach (var (fileType, signature) in FileSignatures)
             {
                 if (HeaderMatchesSignature(headerBytes, signature))
@@ -137,7 +167,6 @@ public class FileValidationService
                     {
                         "jpeg" => "JPEG Image",
                         "png" => "PNG Image",
-                        "pdf" => "PDF Document",
                         "tiff_ii" or "tiff_mm" => "TIFF Image",
                         _ => fileType.ToUpperInvariant()
                     };
@@ -154,7 +183,7 @@ public class FileValidationService
             return new FileValidationResult
             {
                 IsValid = false,
-                ErrorMessage = "File signature does not match any supported receipt format. The file may be corrupted or have the wrong extension.",
+                ErrorMessage = "File signature does not match any supported image format (JPEG, PNG, TIFF). The file may be corrupted or have the wrong extension.",
                 FileSize = file.Length
             };
         }

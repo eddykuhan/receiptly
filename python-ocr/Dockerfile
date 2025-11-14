@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.created=$BUILD_DATE \
 
 WORKDIR /app
 
-# Install system dependencies for OpenCV and image processing
+# Install system dependencies for OpenCV, image processing, and Tesseract OCR
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
@@ -21,6 +21,9 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     libgl1 \
     libglvnd0 \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    libtesseract-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache

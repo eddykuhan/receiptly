@@ -1,5 +1,9 @@
 using Receiptly.Core.Services;
+using Receiptly.Core.Interfaces;
 using Receiptly.Infrastructure.Services;
+using Receiptly.Infrastructure.Repositories;
+using Receiptly.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Polly;
 using Polly.Extensions.Http;
@@ -27,13 +31,44 @@ try
     builder.Host.UseSerilog();
 
     // Add services to the container.
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            // Prevent circular reference errors when serializing Receipt <-> Items
+            options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+            options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        });
+
+    // Add PostgreSQL DbContext
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    {
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        options.UseNpgsql(connectionString, npgsqlOptions =>
+        {
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorCodesToAdd: null);
+        });
+        
+        if (builder.Environment.IsDevelopment())
+        {
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+        }
+    });
 
     // Add S3 Storage Service
     builder.Services.AddSingleton<S3StorageService>();
 
     // Add File Validation Service
     builder.Services.AddScoped<FileValidationService>();
+
+    // Add Repository
+    builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
+
+    // Add AutoMapper
+    builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
     // Add Python OCR Client with Polly retry policy
     builder.Services.AddHttpClient<PythonOcrClient>()
@@ -47,6 +82,25 @@ try
     builder.Services.AddSwaggerGen();
 
     var app = builder.Build();
+
+    // Apply migrations automatically in development
+    if (app.Environment.IsDevelopment())
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            try
+            {
+                Log.Information("Applying database migrations...");
+                dbContext.Database.Migrate();
+                Log.Information("Database migrations applied successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Could not apply database migrations. Database may not be available yet.");
+            }
+        }
+    }
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())

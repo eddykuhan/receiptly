@@ -1,0 +1,160 @@
+name: Deploy Database Migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+  push:
+    branches:
+      - develop
+    paths:
+      - 'dotnet-api/src/Receiptly.Infrastructure/Data/Migrations/**'
+
+jobs:
+  deploy-migrations:
+    name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Get RDS credentials from AWS Secrets Manager
+        id: get-secret
+        run: |
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id ${{ secrets.DB_SECRET_NAME }} \
+            --query SecretString \
+            --output text)
+          
+          # Parse JSON secret for username and password only
+          DB_USER=$(echo $SECRET_JSON | jq -r '.username')
+          DB_PASSWORD=$(echo $SECRET_JSON | jq -r '.password')
+          
+          # Use RDS_ENDPOINT from repository secrets
+          DB_HOST="${{ secrets.RDS_ENDPOINT }}"
+          DB_PORT="5432"
+          DB_NAME="receiptly_db"
+          
+          # Build connection string
+          CONNECTION_STRING="Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD};SSL Mode=Require;Trust Server Certificate=true"
+          
+          # Mask password in logs
+          echo "::add-mask::$DB_PASSWORD"
+          echo "CONNECTION_STRING=$CONNECTION_STRING" >> $GITHUB_OUTPUT
+          echo "DB_USER=$DB_USER" >> $GITHUB_OUTPUT
+          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_OUTPUT
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: ./dotnet-api
+
+      - name: Build project
+        run: dotnet build --no-restore --configuration Release
+        working-directory: ./dotnet-api
+
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef --version 9.0.0
+
+      - name: Generate migration SQL script
+        run: |
+          dotnet ef migrations script \
+            --project src/Receiptly.Infrastructure/Receiptly.Infrastructure.csproj \
+            --startup-project src/Receiptly.API/Receiptly.API.csproj \
+            --output migration.sql \
+            --idempotent \
+            --no-build
+        working-directory: ./dotnet-api
+
+      - name: Show migration script (sanitized)
+        run: |
+          echo "=== Migration Script Preview (First 50 lines) ==="
+          head -n 50 migration.sql
+        working-directory: ./dotnet-api
+
+      - name: Apply migrations
+        run: |
+          dotnet ef database update \
+            --project src/Receiptly.Infrastructure/Receiptly.Infrastructure.csproj \
+            --startup-project src/Receiptly.API/Receiptly.API.csproj \
+            --connection "${{ steps.get-secret.outputs.CONNECTION_STRING }}" \
+            --no-build \
+            --verbose
+        working-directory: ./dotnet-api
+        env:
+          DOTNET_ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
+
+      - name: Verify migration
+        run: |
+          # Install PostgreSQL client
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          
+          # Get credentials from Secrets Manager
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id ${{ secrets.DB_SECRET_NAME }} \
+            --query SecretString \
+            --output text)
+          
+          DB_USER=$(echo $SECRET_JSON | jq -r '.username')
+          DB_HOST="${{ secrets.RDS_ENDPOINT }}"
+          DB_NAME="receiptly_db"
+          
+          # Check applied migrations
+          export PGPASSWORD=$(echo $SECRET_JSON | jq -r '.password')
+          psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "\
+            SELECT \"MigrationId\", \"ProductVersion\" \
+            FROM \"__EFMigrationsHistory\" \
+            ORDER BY \"MigrationId\" DESC \
+            LIMIT 5;"
+          
+          # Verify tables exist
+          psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "\dt"
+
+      - name: Create deployment summary
+        if: always()
+        run: |
+          echo "## 🚀 Migration Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ github.event.inputs.environment || 'staging' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **RDS Endpoint**: ${{ secrets.RDS_ENDPOINT }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Database**: receiptly_db" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Migration deployment failed!"
+          echo "Check the logs above for details."
+          exit 1
+
+      - name: Rollback on failure (optional)
+        if: failure() && github.event.inputs.environment == 'production'
+        run: |
+          echo "🔄 Rolling back migrations..."
+          # Add rollback logic here if needed
+          # dotnet ef database update <previous-migration-name>

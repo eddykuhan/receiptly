@@ -14,12 +14,14 @@ Receiptly is a receipt scanning and price comparison application using a microse
 
 1. **.NET API Gateway** (`/dotnet-api/`)
    - Clean Architecture with 4 layers:
-     - `Receiptly.API`: Controllers and endpoints
-     - `Receiptly.Core`: Business logic
-     - `Receiptly.Infrastructure`: Data access, external services
-     - `Receiptly.Domain`: Domain models
-   - Uses Entity Framework Core with SQL Server
-   - Azure AD B2C authentication
+     - `Receiptly.API`: Controllers, DTOs, and endpoints
+     - `Receiptly.Core`: Business logic, interfaces
+     - `Receiptly.Infrastructure`: Data access, external services, repositories
+     - `Receiptly.Domain`: Domain models, enums
+   - Uses Entity Framework Core with PostgreSQL
+   - AutoMapper for DTO mapping
+   - Repository pattern for data access
+   - CancellationToken support for async operations
 
 2. **Python OCR Service** (`/python-ocr/`)
    - FastAPI-based microservice
@@ -29,6 +31,8 @@ Receiptly is a receipt scanning and price comparison application using a microse
 ## Key Patterns and Conventions
 
 ### .NET Patterns
+
+#### Domain Models
 ```csharp
 // Domain models use nullable reference types
 public class Receipt
@@ -37,6 +41,72 @@ public class Receipt
     public string StoreName { get; set; } = string.Empty;  // Note default initialization
     public List<Item> Items { get; set; } = new();
     public DateTime? UpdatedAt { get; set; }  // Optional fields are nullable
+}
+```
+
+#### DTOs (Data Transfer Objects)
+```csharp
+// DTOs exclude internal fields and prevent circular references
+public class ReceiptDto
+{
+    public Guid Id { get; set; }
+    public string StoreName { get; set; } = string.Empty;
+    public List<ItemDto> Items { get; set; } = new();  // ItemDto excludes Receipt reference
+    // Excludes: S3Key, internal database fields
+}
+```
+
+#### Repository Pattern
+```csharp
+// All repository methods accept CancellationToken
+public interface IReceiptRepository
+{
+    Task<Receipt> CreateAsync(Receipt receipt, CancellationToken cancellationToken = default);
+    Task<Receipt?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<List<Receipt>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default);
+}
+```
+
+#### AutoMapper Usage
+```csharp
+// Controllers use AutoMapper to convert domain models to DTOs
+public class ReceiptsController : ControllerBase
+{
+    private readonly IMapper _mapper;
+    
+    public async Task<ActionResult<ReceiptDto>> GetReceipt(Guid id, CancellationToken cancellationToken)
+    {
+        var receipt = await _receiptRepository.GetByIdAsync(id, cancellationToken);
+        var receiptDto = _mapper.Map<ReceiptDto>(receipt);
+        return Ok(receiptDto);
+    }
+}
+```
+
+#### CancellationToken Pattern
+```csharp
+// Always accept CancellationToken in async methods
+// Check cancellation at strategic points in long-running operations
+public async Task<Receipt> ProcessReceiptAsync(
+    string userId, 
+    Stream imageStream, 
+    CancellationToken cancellationToken = default)
+{
+    await UploadToS3Async(...);
+    cancellationToken.ThrowIfCancellationRequested();
+    
+    var ocrResult = await CallOcrAsync(...);
+    cancellationToken.ThrowIfCancellationRequested();
+    
+    await SaveToDbAsync(..., cancellationToken);
+    return receipt;
+}
+
+// Handle OperationCanceledException in controllers
+catch (OperationCanceledException)
+{
+    _logger.LogWarning("Request cancelled");
+    return StatusCode(499, new { error = "Request cancelled" });
 }
 ```
 
@@ -77,9 +147,9 @@ async def analyze_receipt(
 ## Integration Points
 
 1. **Azure Services**
-   - Azure AD B2C: Authentication (configured in `appsettings.json`)
    - Azure Computer Vision: OCR processing (configured in `.env`)
-   - Azure SQL: Main database
+   - AWS S3: Receipt image storage
+   - PostgreSQL: Main database (AWS RDS in production)
 
 2. **Service Communication**
    - REST APIs with JSON payloads
