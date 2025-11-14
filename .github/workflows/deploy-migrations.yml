@@ -120,7 +120,7 @@ jobs:
           
           DB_USER=$(echo $SECRET_JSON | jq -r '.username')
           DB_HOST="${{ secrets.RDS_ENDPOINT }}"
-          DB_NAME="receiptly_db"
+          DB_NAME="receiptly"
           
           # Check applied migrations
           export PGPASSWORD=$(echo $SECRET_JSON | jq -r '.password')
