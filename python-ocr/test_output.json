@@ -1,0 +1,1476 @@
+{
+  "success": true,
+  "data": {
+    "doc_type": "receipt.retailMeal",
+    "bounding_regions": [
+      {
+        "page_number": 1,
+        "polygon": [
+          {
+            "x": 0.0,
+            "y": 0.0
+          },
+          {
+            "x": 800.0,
+            "y": 0.0
+          },
+          {
+            "x": 800.0,
+            "y": 1290.0
+          },
+          {
+            "x": 0.0,
+            "y": 1290.0
+          }
+        ]
+      }
+    ],
+    "spans": [
+      {
+        "offset": 0,
+        "length": 665
+      }
+    ],
+    "fields": {
+      "Items": {
+        "value_type": "list",
+        "value": [
+          {
+            "value_type": "dictionary",
+            "value": {
+              "Description": {
+                "value_type": "string",
+                "value": "CADBURY ROSES TUB PS 600G",
+                "content": "CADBURY ROSES TUB PS 600G",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 24.0,
+                        "y": 451.0
+                      },
+                      {
+                        "x": 364.0,
+                        "y": 461.0
+                      },
+                      {
+                        "x": 363.0,
+                        "y": 496.0
+                      },
+                      {
+                        "x": 23.0,
+                        "y": 487.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 217,
+                    "length": 25
+                  }
+                ],
+                "confidence": 0.975
+              },
+              "Price": {
+                "value_type": "float",
+                "value": 49.99,
+                "content": "49.99",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 93.0,
+                        "y": 537.0
+                      },
+                      {
+                        "x": 163.0,
+                        "y": 538.0
+                      },
+                      {
+                        "x": 162.0,
+                        "y": 568.0
+                      },
+                      {
+                        "x": 92.0,
+                        "y": 567.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 279,
+                    "length": 5
+                  }
+                ],
+                "confidence": 0.981
+              },
+              "ProductCode": {
+                "value_type": "string",
+                "value": "7622210959935",
+                "content": "7622210959935",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 40.0,
+                        "y": 495.0
+                      },
+                      {
+                        "x": 221.0,
+                        "y": 498.0
+                      },
+                      {
+                        "x": 220.0,
+                        "y": 532.0
+                      },
+                      {
+                        "x": 39.0,
+                        "y": 527.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 243,
+                    "length": 13
+                  }
+                ],
+                "confidence": 0.976
+              },
+              "QuantityUnit": {
+                "value_type": "string",
+                "value": "UNIT",
+                "content": "UNIT",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 227.0,
+                        "y": 499.0
+                      },
+                      {
+                        "x": 284.0,
+                        "y": 500.0
+                      },
+                      {
+                        "x": 284.0,
+                        "y": 534.0
+                      },
+                      {
+                        "x": 226.0,
+                        "y": 532.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 257,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.984
+              },
+              "TotalPrice": {
+                "value_type": "float",
+                "value": 52.9,
+                "content": "52.90",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 708.0,
+                        "y": 498.0
+                      },
+                      {
+                        "x": 783.0,
+                        "y": 498.0
+                      },
+                      {
+                        "x": 783.0,
+                        "y": 533.0
+                      },
+                      {
+                        "x": 708.0,
+                        "y": 533.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 270,
+                    "length": 5
+                  }
+                ],
+                "confidence": 0.982
+              }
+            },
+            "content": "CADBURY ROSES TUB PS 600G\n7622210959935 UNIT\n1x52.90\n52.90\n03\n49.99\n-2.91",
+            "bounding_regions": [
+              {
+                "page_number": 1,
+                "polygon": [
+                  {
+                    "x": 24.0,
+                    "y": 452.0
+                  },
+                  {
+                    "x": 785.0,
+                    "y": 471.0
+                  },
+                  {
+                    "x": 782.0,
+                    "y": 585.0
+                  },
+                  {
+                    "x": 21.0,
+                    "y": 566.0
+                  }
+                ]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 217,
+                "length": 73
+              }
+            ],
+            "confidence": 0.96
+          },
+          {
+            "value_type": "dictionary",
+            "value": {
+              "Description": {
+                "value_type": "string",
+                "value": "WHITE SESAME SEED (BIJIAN PUTIH) (125G)",
+                "content": "WHITE SESAME SEED (BIJIAN PUTIH) (125G)",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 20.0,
+                        "y": 587.0
+                      },
+                      {
+                        "x": 545.0,
+                        "y": 590.0
+                      },
+                      {
+                        "x": 545.0,
+                        "y": 626.0
+                      },
+                      {
+                        "x": 20.0,
+                        "y": 622.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 291,
+                    "length": 39
+                  }
+                ],
+                "confidence": 0.973
+              },
+              "Price": {
+                "value_type": "float",
+                "value": 2.3,
+                "content": "1\u00d72.30",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 491.0,
+                        "y": 633.0
+                      },
+                      {
+                        "x": 574.0,
+                        "y": 633.0
+                      },
+                      {
+                        "x": 574.0,
+                        "y": 665.0
+                      },
+                      {
+                        "x": 491.0,
+                        "y": 665.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 350,
+                    "length": 6
+                  }
+                ],
+                "confidence": 0.981
+              },
+              "ProductCode": {
+                "value_type": "string",
+                "value": "2200001626874",
+                "content": "2200001626874",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 36.0,
+                        "y": 629.0
+                      },
+                      {
+                        "x": 217.0,
+                        "y": 631.0
+                      },
+                      {
+                        "x": 217.0,
+                        "y": 661.0
+                      },
+                      {
+                        "x": 36.0,
+                        "y": 659.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 331,
+                    "length": 13
+                  }
+                ],
+                "confidence": 0.975
+              },
+              "QuantityUnit": {
+                "value_type": "string",
+                "value": "UNIT",
+                "content": "UNIT",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 225.0,
+                        "y": 631.0
+                      },
+                      {
+                        "x": 282.0,
+                        "y": 632.0
+                      },
+                      {
+                        "x": 282.0,
+                        "y": 662.0
+                      },
+                      {
+                        "x": 224.0,
+                        "y": 661.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 345,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.984
+              },
+              "TotalPrice": {
+                "value_type": "float",
+                "value": 2.3,
+                "content": "2.30",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 726.0,
+                        "y": 636.0
+                      },
+                      {
+                        "x": 782.0,
+                        "y": 636.0
+                      },
+                      {
+                        "x": 782.0,
+                        "y": 667.0
+                      },
+                      {
+                        "x": 726.0,
+                        "y": 667.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 357,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.982
+              }
+            },
+            "content": "WHITE SESAME SEED (BIJIAN PUTIH) (125G)\n2200001626874 UNIT\n1\u00d72.30\n2.30",
+            "bounding_regions": [
+              {
+                "page_number": 1,
+                "polygon": [
+                  {
+                    "x": 20.0,
+                    "y": 587.0
+                  },
+                  {
+                    "x": 783.0,
+                    "y": 592.0
+                  },
+                  {
+                    "x": 782.0,
+                    "y": 667.0
+                  },
+                  {
+                    "x": 19.0,
+                    "y": 662.0
+                  }
+                ]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 291,
+                "length": 70
+              }
+            ],
+            "confidence": 0.963
+          },
+          {
+            "value_type": "dictionary",
+            "value": {
+              "Description": {
+                "value_type": "string",
+                "value": "HALBA CAMPUR (125G)",
+                "content": "HALBA CAMPUR (125G)",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 17.0,
+                        "y": 676.0
+                      },
+                      {
+                        "x": 280.0,
+                        "y": 678.0
+                      },
+                      {
+                        "x": 280.0,
+                        "y": 715.0
+                      },
+                      {
+                        "x": 17.0,
+                        "y": 713.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 362,
+                    "length": 19
+                  }
+                ],
+                "confidence": 0.974
+              },
+              "Price": {
+                "value_type": "float",
+                "value": 1.55,
+                "content": "1\u00d71.55",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 489.0,
+                        "y": 724.0
+                      },
+                      {
+                        "x": 571.0,
+                        "y": 723.0
+                      },
+                      {
+                        "x": 572.0,
+                        "y": 757.0
+                      },
+                      {
+                        "x": 490.0,
+                        "y": 758.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 401,
+                    "length": 6
+                  }
+                ],
+                "confidence": 0.981
+              },
+              "ProductCode": {
+                "value_type": "string",
+                "value": "2200001626928",
+                "content": "2200001626928",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 33.0,
+                        "y": 722.0
+                      },
+                      {
+                        "x": 212.0,
+                        "y": 722.0
+                      },
+                      {
+                        "x": 212.0,
+                        "y": 752.0
+                      },
+                      {
+                        "x": 34.0,
+                        "y": 751.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 382,
+                    "length": 13
+                  }
+                ],
+                "confidence": 0.975
+              },
+              "QuantityUnit": {
+                "value_type": "string",
+                "value": "UNIT",
+                "content": "UNIT",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 222.0,
+                        "y": 722.0
+                      },
+                      {
+                        "x": 279.0,
+                        "y": 723.0
+                      },
+                      {
+                        "x": 279.0,
+                        "y": 753.0
+                      },
+                      {
+                        "x": 222.0,
+                        "y": 752.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 396,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.985
+              },
+              "TotalPrice": {
+                "value_type": "float",
+                "value": 1.55,
+                "content": "1.55",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 725.0,
+                        "y": 728.0
+                      },
+                      {
+                        "x": 782.0,
+                        "y": 728.0
+                      },
+                      {
+                        "x": 782.0,
+                        "y": 763.0
+                      },
+                      {
+                        "x": 726.0,
+                        "y": 763.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 408,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.982
+              }
+            },
+            "content": "HALBA CAMPUR (125G)\n2200001626928 UNIT\n1\u00d71.55\n1.55",
+            "bounding_regions": [
+              {
+                "page_number": 1,
+                "polygon": [
+                  {
+                    "x": 17.0,
+                    "y": 677.0
+                  },
+                  {
+                    "x": 782.0,
+                    "y": 679.0
+                  },
+                  {
+                    "x": 782.0,
+                    "y": 763.0
+                  },
+                  {
+                    "x": 17.0,
+                    "y": 761.0
+                  }
+                ]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 362,
+                "length": 50
+              }
+            ],
+            "confidence": 0.962
+          },
+          {
+            "value_type": "dictionary",
+            "value": {
+              "Description": {
+                "value_type": "string",
+                "value": "MUSTARD SEED (BIJI SAWI) (200G)",
+                "content": "MUSTARD SEED (BIJI SAWI) (200G)",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 15.0,
+                        "y": 769.0
+                      },
+                      {
+                        "x": 437.0,
+                        "y": 772.0
+                      },
+                      {
+                        "x": 437.0,
+                        "y": 808.0
+                      },
+                      {
+                        "x": 15.0,
+                        "y": 805.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 413,
+                    "length": 31
+                  }
+                ],
+                "confidence": 0.977
+              },
+              "Price": {
+                "value_type": "float",
+                "value": 2.4,
+                "content": "1\u00d72.40",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 490.0,
+                        "y": 816.0
+                      },
+                      {
+                        "x": 574.0,
+                        "y": 816.0
+                      },
+                      {
+                        "x": 574.0,
+                        "y": 852.0
+                      },
+                      {
+                        "x": 490.0,
+                        "y": 852.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 464,
+                    "length": 6
+                  }
+                ],
+                "confidence": 0.981
+              },
+              "ProductCode": {
+                "value_type": "string",
+                "value": "2200001626812",
+                "content": "2200001626812",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 33.0,
+                        "y": 815.0
+                      },
+                      {
+                        "x": 214.0,
+                        "y": 814.0
+                      },
+                      {
+                        "x": 214.0,
+                        "y": 845.0
+                      },
+                      {
+                        "x": 33.0,
+                        "y": 844.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 445,
+                    "length": 13
+                  }
+                ],
+                "confidence": 0.975
+              },
+              "QuantityUnit": {
+                "value_type": "string",
+                "value": "UNIT",
+                "content": "UNIT",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 222.0,
+                        "y": 814.0
+                      },
+                      {
+                        "x": 278.0,
+                        "y": 814.0
+                      },
+                      {
+                        "x": 277.0,
+                        "y": 845.0
+                      },
+                      {
+                        "x": 221.0,
+                        "y": 845.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 459,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.984
+              },
+              "TotalPrice": {
+                "value_type": "float",
+                "value": 2.4,
+                "content": "2.40",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 725.0,
+                        "y": 824.0
+                      },
+                      {
+                        "x": 781.0,
+                        "y": 825.0
+                      },
+                      {
+                        "x": 780.0,
+                        "y": 856.0
+                      },
+                      {
+                        "x": 724.0,
+                        "y": 855.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 471,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.982
+              }
+            },
+            "content": "MUSTARD SEED (BIJI SAWI) (200G)\n2200001626812 UNIT\n1\u00d72.40\n2.40",
+            "bounding_regions": [
+              {
+                "page_number": 1,
+                "polygon": [
+                  {
+                    "x": 15.0,
+                    "y": 769.0
+                  },
+                  {
+                    "x": 781.0,
+                    "y": 774.0
+                  },
+                  {
+                    "x": 781.0,
+                    "y": 856.0
+                  },
+                  {
+                    "x": 15.0,
+                    "y": 851.0
+                  }
+                ]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 413,
+                "length": 62
+              }
+            ],
+            "confidence": 0.957
+          },
+          {
+            "value_type": "dictionary",
+            "value": {
+              "Description": {
+                "value_type": "string",
+                "value": "BLUEBERRY 125G C12",
+                "content": "BLUEBERRY 125G C12",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 13.0,
+                        "y": 862.0
+                      },
+                      {
+                        "x": 265.0,
+                        "y": 862.0
+                      },
+                      {
+                        "x": 265.0,
+                        "y": 898.0
+                      },
+                      {
+                        "x": 13.0,
+                        "y": 898.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 476,
+                    "length": 18
+                  }
+                ],
+                "confidence": 0.973
+              },
+              "Price": {
+                "value_type": "float",
+                "value": 8.4,
+                "content": "1\u00d78.40",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 490.0,
+                        "y": 911.0
+                      },
+                      {
+                        "x": 572.0,
+                        "y": 911.0
+                      },
+                      {
+                        "x": 572.0,
+                        "y": 946.0
+                      },
+                      {
+                        "x": 490.0,
+                        "y": 946.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 514,
+                    "length": 6
+                  }
+                ],
+                "confidence": 0.981
+              },
+              "ProductCode": {
+                "value_type": "string",
+                "value": "6001651292862",
+                "content": "6001651292862",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 28.0,
+                        "y": 908.0
+                      },
+                      {
+                        "x": 212.0,
+                        "y": 908.0
+                      },
+                      {
+                        "x": 212.0,
+                        "y": 938.0
+                      },
+                      {
+                        "x": 28.0,
+                        "y": 938.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 495,
+                    "length": 13
+                  }
+                ],
+                "confidence": 0.975
+              },
+              "QuantityUnit": {
+                "value_type": "string",
+                "value": "UNIT",
+                "content": "UNIT",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 218.0,
+                        "y": 908.0
+                      },
+                      {
+                        "x": 275.0,
+                        "y": 908.0
+                      },
+                      {
+                        "x": 275.0,
+                        "y": 937.0
+                      },
+                      {
+                        "x": 218.0,
+                        "y": 938.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 509,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.984
+              },
+              "TotalPrice": {
+                "value_type": "float",
+                "value": 8.4,
+                "content": "8.40",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 725.0,
+                        "y": 919.0
+                      },
+                      {
+                        "x": 784.0,
+                        "y": 920.0
+                      },
+                      {
+                        "x": 784.0,
+                        "y": 954.0
+                      },
+                      {
+                        "x": 724.0,
+                        "y": 953.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 529,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.982
+              }
+            },
+            "content": "BLUEBERRY 125G C12\n6001651292862 UNIT\n1\u00d78.40\n01\n6.60\n8.40\n-1.80",
+            "bounding_regions": [
+              {
+                "page_number": 1,
+                "polygon": [
+                  {
+                    "x": 12.0,
+                    "y": 862.0
+                  },
+                  {
+                    "x": 784.0,
+                    "y": 862.0
+                  },
+                  {
+                    "x": 784.0,
+                    "y": 997.0
+                  },
+                  {
+                    "x": 12.0,
+                    "y": 997.0
+                  }
+                ]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 476,
+                "length": 57
+              },
+              {
+                "offset": 560,
+                "length": 5
+              }
+            ],
+            "confidence": 0.953
+          },
+          {
+            "value_type": "dictionary",
+            "value": {
+              "Price": {
+                "value_type": "float",
+                "value": 8.4,
+                "content": "1\u00d78.40",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 490.0,
+                        "y": 997.0
+                      },
+                      {
+                        "x": 573.0,
+                        "y": 997.0
+                      },
+                      {
+                        "x": 573.0,
+                        "y": 1031.0
+                      },
+                      {
+                        "x": 491.0,
+                        "y": 1031.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 553,
+                    "length": 6
+                  }
+                ],
+                "confidence": 0.981
+              },
+              "ProductCode": {
+                "value_type": "string",
+                "value": "6001651292862",
+                "content": "6001651292862",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 25.0,
+                        "y": 991.0
+                      },
+                      {
+                        "x": 208.0,
+                        "y": 992.0
+                      },
+                      {
+                        "x": 209.0,
+                        "y": 1023.0
+                      },
+                      {
+                        "x": 26.0,
+                        "y": 1023.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 534,
+                    "length": 13
+                  }
+                ],
+                "confidence": 0.836
+              },
+              "QuantityUnit": {
+                "value_type": "string",
+                "value": "UNIT",
+                "content": "UNIT",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 216.0,
+                        "y": 992.0
+                      },
+                      {
+                        "x": 273.0,
+                        "y": 992.0
+                      },
+                      {
+                        "x": 274.0,
+                        "y": 1023.0
+                      },
+                      {
+                        "x": 217.0,
+                        "y": 1023.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 548,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.984
+              },
+              "TotalPrice": {
+                "value_type": "float",
+                "value": 8.4,
+                "content": "8.40",
+                "bounding_regions": [
+                  {
+                    "page_number": 1,
+                    "polygon": [
+                      {
+                        "x": 725.0,
+                        "y": 1005.0
+                      },
+                      {
+                        "x": 786.0,
+                        "y": 1005.0
+                      },
+                      {
+                        "x": 786.0,
+                        "y": 1039.0
+                      },
+                      {
+                        "x": 724.0,
+                        "y": 1039.0
+                      }
+                    ]
+                  }
+                ],
+                "spans": [
+                  {
+                    "offset": 574,
+                    "length": 4
+                  }
+                ],
+                "confidence": 0.982
+              }
+            },
+            "content": "6001651292862 UNIT\n1\u00d78.40\n01\n6.60\n8.40\n-1.80",
+            "bounding_regions": [
+              {
+                "page_number": 1,
+                "polygon": [
+                  {
+                    "x": 10.0,
+                    "y": 991.0
+                  },
+                  {
+                    "x": 786.0,
+                    "y": 991.0
+                  },
+                  {
+                    "x": 786.0,
+                    "y": 1082.0
+                  },
+                  {
+                    "x": 10.0,
+                    "y": 1082.0
+                  }
+                ]
+              }
+            ],
+            "spans": [
+              {
+                "offset": 534,
+                "length": 25
+              },
+              {
+                "offset": 566,
+                "length": 18
+              }
+            ],
+            "confidence": 0.83
+          }
+        ],
+        "content": null,
+        "bounding_regions": [],
+        "spans": [],
+        "confidence": null
+      },
+      "MerchantAddress": {
+        "type": "string",
+        "value": "16-229 , LG FLOOR THE GARDENS WALL 59200 KUALA LUMPUR",
+        "content": "16-229 , LG FLOOR THE GARDENS WALL 59200 KUALA LUMPUR",
+        "confidence": 1.0,
+        "source": "tesseract"
+      },
+      "MerchantName": {
+        "type": "string",
+        "value": "JAYA GROCER",
+        "content": "JAYA GROCER",
+        "confidence": 1.0,
+        "source": "tesseract"
+      },
+      "MerchantPhoneNumber": {
+        "type": "phoneNumber",
+        "value": "0322831117",
+        "content": "0322831117",
+        "confidence": 1.0,
+        "source": "tesseract"
+      },
+      "Subtotal": {
+        "value_type": "float",
+        "value": 69.44,
+        "content": "69.44",
+        "bounding_regions": [
+          {
+            "page_number": 1,
+            "polygon": [
+              {
+                "x": 708.0,
+                "y": 1142.0
+              },
+              {
+                "x": 779.0,
+                "y": 1142.0
+              },
+              {
+                "x": 778.0,
+                "y": 1176.0
+              },
+              {
+                "x": 707.0,
+                "y": 1175.0
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 607,
+            "length": 5
+          }
+        ],
+        "confidence": 0.976
+      },
+      "Total": {
+        "value_type": "float",
+        "value": 89.45,
+        "content": "89.45",
+        "bounding_regions": [
+          {
+            "page_number": 1,
+            "polygon": [
+              {
+                "x": 703.0,
+                "y": 1250.0
+              },
+              {
+                "x": 770.0,
+                "y": 1250.0
+              },
+              {
+                "x": 770.0,
+                "y": 1275.0
+              },
+              {
+                "x": 703.0,
+                "y": 1274.0
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 660,
+            "length": 5
+          }
+        ],
+        "confidence": 0.963
+      },
+      "TransactionDate": {
+        "value_type": "date",
+        "value": "2022-12-14",
+        "content": "14/12/2022",
+        "bounding_regions": [
+          {
+            "page_number": 1,
+            "polygon": [
+              {
+                "x": 519.0,
+                "y": 379.0
+              },
+              {
+                "x": 662.0,
+                "y": 374.0
+              },
+              {
+                "x": 662.0,
+                "y": 414.0
+              },
+              {
+                "x": 518.0,
+                "y": 415.0
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 197,
+            "length": 10
+          }
+        ],
+        "confidence": 0.98
+      },
+      "TransactionTime": {
+        "value_type": "time",
+        "value": "12:38:41",
+        "content": "12:38:41",
+        "bounding_regions": [
+          {
+            "page_number": 1,
+            "polygon": [
+              {
+                "x": 670.0,
+                "y": 374.0
+              },
+              {
+                "x": 784.0,
+                "y": 374.0
+              },
+              {
+                "x": 785.0,
+                "y": 412.0
+              },
+              {
+                "x": 670.0,
+                "y": 414.0
+              }
+            ]
+          }
+        ],
+        "spans": [
+          {
+            "offset": 208,
+            "length": 8
+          }
+        ],
+        "confidence": 0.978
+      }
+    },
+    "confidence": 0.984,
+    "metadata": {
+      "location_extraction": {
+        "postal_code": "59200",
+        "country": "Malaysia",
+        "tesseract_confidence": 1.0,
+        "extraction_strategy": "simple"
+      }
+    }
+  },
+  "validation": {
+    "is_valid_receipt": true,
+    "confidence": 0.984,
+    "message": "Valid receipt detected with 98.40% confidence",
+    "doc_type": "receipt.retailMeal"
+  },
+  "location": {
+    "success": true,
+    "location": {
+      "store_name": "JAYA GROCER",
+      "address": "16-229 , LG FLOOR THE GARDENS WALL 59200 KUALA LUMPUR",
+      "phone": "0322831117",
+      "postal_code": "59200",
+      "country": "Malaysia",
+      "confidence": 1.0,
+      "full_location_text": "JAYA GROCER\nTrandcell Sdn Bhd ($44047-1)\n16-229 , LG FLOOR THE GARDENS WALL\nLINGKARAN SYED PUTRA\n$9200 KUALA LUMPUR\nTel: 03-2283111?\nInvoice No : vat223481 200686\n\"2e\u00a2cee\ne -\n=o \u201c*n.e\u00a2<<<<\u00ab eee \u00ab\u00a9 \u00ab\u00a9 ee oe ooo ee oe eee ."
+    },
+    "raw_text": "JAYA GROCER\nTrandcell Sdn Bhd ($44047-1)\n16-229 , LG FLOOR THE GARDENS WALL\nLINGKARAN SYED PUTRA\n$9200 KUALA LUMPUR\nTel: 03-2283111?\n\nInvoice No : vat223481 200686\n\n\"2e\u00a2cee\ne -\n=o \u201c*n.e\u00a2<<<<\u00ab eee \u00ab\u00a9 \u00ab\u00a9 ee oe ooo ee oe eee .\n",
+    "confidence": 1.0,
+    "strategy_used": "simple"
+  }
+}

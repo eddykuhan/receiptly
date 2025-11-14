@@ -2,7 +2,11 @@
 
 ## Overview
 
-Simplified stateless OCR service that downloads images from S3, preprocesses them, and returns raw Azure Document Intelligence analysis.
+Stateless OCR service that provides:
+1. **Azure Document Intelligence** - Structured receipt data extraction (items, totals, merchant info)
+2. **Tesseract OCR** - Store location and address extraction from receipt images
+
+Downloads images from S3, preprocesses them, and returns comprehensive analysis.
 
 ## Base URL
 
@@ -13,16 +17,21 @@ Simplified stateless OCR service that downloads images from S3, preprocesses the
 
 ### Analyze Receipt
 
-Analyze a receipt image from a URL.
+Analyze a receipt image from a URL with optional location extraction.
 
 **Endpoint:** `POST /api/v1/ocr/analyze`
 
 **Request:**
 ```json
 {
-  "image_url": "https://s3.amazonaws.com/presigned-url..."
+  "image_url": "https://s3.amazonaws.com/presigned-url...",
+  "extract_location": true
 }
 ```
+
+**Parameters:**
+- `image_url` (required): Presigned S3 URL or any accessible image URL
+- `extract_location` (optional, default: true): Enable Tesseract OCR for location extraction
 
 **Response:**
 ```json
@@ -103,9 +112,49 @@ Analyze a receipt image from a URL.
       }
     },
     "confidence": 0.96
+  },
+  "location": {
+    "success": true,
+    "location": {
+      "store_name": "Target Store #1234",
+      "address": "123 Main Street, Building A Level 2",
+      "phone": "+12345678901",
+      "postal_code": "12345",
+      "country": "Usa",
+      "confidence": 0.90,
+      "full_location_text": "Target Store #1234\n123 Main Street\nBuilding A Level 2\nCity, State 12345\nTel: (123) 456-7890"
+    },
+    "raw_text": "Target Store #1234...",
+    "confidence": 0.90
+  },
+  "validation": {
+    "is_valid_receipt": true,
+    "confidence": 0.96,
+    "message": "Valid receipt detected with 96.00% confidence",
+    "doc_type": "receipt.retail"
   }
 }
 ```
+
+**Response Fields:**
+
+- `success`: Boolean indicating if the analysis was successful
+- `data`: Raw Azure Document Intelligence response with structured receipt fields
+- `location`: Store location information extracted by Tesseract OCR
+  - `success`: Whether location extraction succeeded
+  - `location.store_name`: Extracted store/merchant name
+  - `location.address`: Full address with street, building, floor info
+  - `location.phone`: Phone number in cleaned format
+  - `location.postal_code`: Postal/ZIP code
+  - `location.country`: Detected country
+  - `location.confidence`: Confidence score (0.0-1.0) based on fields found
+  - `location.full_location_text`: Complete location text from top of receipt
+  - `raw_text`: First 500 characters of OCR text for debugging
+- `validation`: Receipt validation results
+  - `is_valid_receipt`: Whether document is a valid receipt
+  - `confidence`: Azure's confidence in receipt detection
+  - `message`: Human-readable validation message
+  - `doc_type`: Document type identified by Azure
 
 **Error Response:**
 ```json
@@ -134,11 +183,29 @@ Check service health.
 
 ## Image Preprocessing
 
-The service automatically applies the following preprocessing steps to improve OCR accuracy:
+The service uses an optimized workflow for maximum efficiency:
 
-1. **RGB Conversion** - Ensures consistent color space
-2. **Resize** - Minimum 800px on shortest side
-3. **Contrast Enhancement** - 1.3x increase
+### Processing Pipeline
+
+1. **Download Once** - Image downloaded from S3/URL only once
+2. **Location Extraction** (Tesseract OCR):
+   - Focus on top 30% of image (where store info typically appears)
+   - Adaptive thresholding for better text recognition
+   - Denoising for clarity
+   - OCR extraction and parsing
+3. **Azure Preprocessing**:
+   - RGB Conversion - Ensures consistent color space
+   - Resize - Minimum 800px on shortest side
+   - Contrast Enhancement - 1.3x increase
+   - Sharpening - Enhances text edges
+4. **Azure Analysis** - Structured receipt data extraction
+5. **Combine Results** - Location + Azure data returned together
+
+**Advantages:**
+- Single image download (bandwidth efficient)
+- Parallel-ready design (location extraction independent)
+- Optimized preprocessing for each use case
+- Better performance and error handling
 4. **Sharpness Enhancement** - 1.5x increase
 5. **Bilateral Denoising** - Reduces noise while preserving edges
 6. **Deskew** - Corrects rotation using Hough line detection
