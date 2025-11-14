@@ -56,7 +56,7 @@ jobs:
           # Use RDS_ENDPOINT from repository secrets
           DB_HOST="${{ secrets.RDS_ENDPOINT }}"
           DB_PORT="5432"
-          DB_NAME="receiptly_db"
+          DB_NAME="receiptly"
           
           # Build connection string
           CONNECTION_STRING="Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD};SSL Mode=Require;Trust Server Certificate=true"
