@@ -85,7 +85,7 @@ jobs:
             --startup-project src/Receiptly.API/Receiptly.API.csproj \
             --output migration.sql \
             --idempotent \
-            --no-build
+            --configuration Release
         working-directory: ./dotnet-api
 
       - name: Show migration script (sanitized)
@@ -100,7 +100,7 @@ jobs:
             --project src/Receiptly.Infrastructure/Receiptly.Infrastructure.csproj \
             --startup-project src/Receiptly.API/Receiptly.API.csproj \
             --connection "${{ steps.get-secret.outputs.CONNECTION_STRING }}" \
-            --no-build \
+            --configuration Release \
             --verbose
         working-directory: ./dotnet-api
         env:
