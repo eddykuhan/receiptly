@@ -83,6 +83,9 @@ public class OcrResponse
     
     [JsonPropertyName("confidence")]
     public float Confidence { get; set; }
+    
+    [JsonPropertyName("metadata")]
+    public Dictionary<string, object>? Metadata { get; set; }
 }
 
 public class OcrField

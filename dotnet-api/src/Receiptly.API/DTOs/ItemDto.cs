@@ -1,30 +1,21 @@
-namespace Receiptly.Domain.Models;
+namespace Receiptly.API.DTOs;
 
-public class Item
+/// <summary>
+/// Data Transfer Object for receipt line items
+/// </summary>
+public class ItemDto
 {
     public Guid Id { get; set; }
-    
-    // Product information
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public decimal Price { get; set; }
     public decimal? UnitPrice { get; set; }
     public int Quantity { get; set; }
-    public decimal? TotalPrice { get; set; } // Price * Quantity
-    
-    // Additional details
+    public decimal? TotalPrice { get; set; }
     public string? Category { get; set; }
     public string? Sku { get; set; }
     public string? Barcode { get; set; }
-    
-    // OCR metadata
-    public double? Confidence { get; set; } // OCR confidence for this item
-    
-    // Relationship
-    public Guid ReceiptId { get; set; }
-    public Receipt? Receipt { get; set; }
-    
-    // Audit
+    public double? Confidence { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
