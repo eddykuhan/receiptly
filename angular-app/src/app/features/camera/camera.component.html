@@ -1,21 +1,23 @@
 <div class="camera-container">
   <!-- Header -->
-  <div class="camera-header">
-    <h1>Scan Receipt</h1>
-  </div>
+  <header class="header">
+    <div class="header-content">
+      <mat-icon class="header-icon">camera_alt</mat-icon>
+      <div class="header-title">
+        <h1>Scan Receipt</h1>
+        <p class="subtitle">Capture or upload your receipt</p>
+      </div>
+    </div>
+  </header>
 
   <!-- Camera Actions (when no image captured) -->
   @if (!capturedImage()) {
     <div class="camera-actions">
       <div class="action-buttons">
-        <button mat-fab extended color="primary" class="camera-btn" (click)="takePhoto()">
-          <mat-icon>photo_camera</mat-icon>
-          Take Photo
-        </button>
         
         <button mat-fab extended color="accent" class="gallery-btn" (click)="selectFromGallery()">
           <mat-icon>photo_library</mat-icon>
-          From Gallery
+          Upload
         </button>
       </div>
       

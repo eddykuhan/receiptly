@@ -7,23 +7,41 @@
   background: linear-gradient(135deg, $bg-secondary 0%, #ffffff 100%);
 }
 
-.camera-header {
-  padding: $spacing-lg $spacing-lg $spacing-sm;
-  background: $bg-primary;
-  box-shadow: $shadow-sm;
+.header {
+  background: linear-gradient(135deg, $primary 0%, $purple 100%);
+  color: white;
+  padding: 1.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(10px);
 
-  h1 {
-    margin: 0;
-    font-size: $font-size-2xl;
-    font-weight: 700;
-    background: linear-gradient(135deg, $primary 0%, $purple 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .header-icon {
+    font-size: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .header-title {
+    flex: 1;
+
+    h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 0.25rem 0 0;
+      opacity: 0.9;
+      font-size: 0.875rem;
+    }
   }
 }
 
