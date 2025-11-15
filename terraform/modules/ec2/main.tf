@@ -189,10 +189,11 @@ resource "aws_instance" "ocr_service" {
   
   user_data = local.user_data
 
-  # Free tier eligible: use gp2 and 8GB (within free tier limit)
+  # Amazon Linux 2023 requires minimum 30GB volume
+  # Note: Free tier includes 30GB of EBS storage
   root_block_device {
     volume_type           = "gp2"
-    volume_size           = 8
+    volume_size           = 30
     delete_on_termination = true
   }
 
