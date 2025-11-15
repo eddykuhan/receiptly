@@ -34,7 +34,8 @@ Create an IAM role with the following permissions:
         "secretsmanager:GetSecretValue"
       ],
       "Resource": [
-        "arn:aws:secretsmanager:ap-southeast-1:*:secret:receiptly/*"
+        "arn:aws:secretsmanager:ap-southeast-1:*:secret:receiptly/database/credentials-*",
+        "arn:aws:secretsmanager:ap-southeast-1:*:secret:receiptly/s3/credentials-*"
       ]
     }
   ]
