@@ -16,7 +16,7 @@ module "vpc" {
   private_subnet_cidrs = ["10.1.11.0/24", "10.1.12.0/24", "10.1.13.0/24"]
 
   enable_nat_gateway = true
-  single_nat_gateway = false  # Multi-AZ for production
+  single_nat_gateway = false # Multi-AZ for production
 
   tags = {
     Name = "${var.project_name}-${var.environment}-vpc"
@@ -96,9 +96,9 @@ module "ecs" {
   ecr_repository_url = data.aws_ecr_repository.python_ocr.repository_url
   image_tag          = var.ecr_image_tag
 
-  cpu            = "1024"
-  memory         = "2048"
-  desired_count  = 2
+  cpu           = "1024"
+  memory        = "2048"
+  desired_count = 2
 
   task_execution_role_arn = module.iam.ecs_task_execution_role_arn
   task_role_arn           = module.iam.ecs_task_role_arn
@@ -118,7 +118,7 @@ module "ecs" {
     AWS_S3_BUCKET_NAME                   = module.secrets.secret_arns["${var.project_name}/${var.environment}/s3-bucket"]
   }
 
-  assign_public_ip = false  # Use private subnets with NAT
+  assign_public_ip = false # Use private subnets with NAT
 
   tags = {
     Name = "${var.project_name}-${var.environment}-ecs"
