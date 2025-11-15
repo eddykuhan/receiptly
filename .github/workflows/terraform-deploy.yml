@@ -71,11 +71,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: |
-          terraform plan -no-color \
-            -var="azure_endpoint=${{ secrets.AZURE_ENDPOINT }}" \
-            -var="azure_key=${{ secrets.AZURE_KEY }}" \
-            -out=tfplan
+        run: terraform plan -no-color -out=tfplan
         working-directory: ./terraform/environments/${{ matrix.environment }}
         continue-on-error: true
 
@@ -118,7 +114,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: staging
-      url: https://console.aws.amazon.com/ecs/home?region=ap-southeast-1
+      url: https://console.aws.amazon.com/s3/buckets/receiptly-staging-receipts
     
     permissions:
       contents: read
@@ -131,9 +127,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -145,27 +140,24 @@ jobs:
         working-directory: ./terraform/environments/staging
 
       - name: Terraform Apply
-        run: |
-          terraform apply -auto-approve \
-            -var="azure_endpoint=${{ secrets.AZURE_ENDPOINT }}" \
-            -var="azure_key=${{ secrets.AZURE_KEY }}"
+        run: terraform apply -auto-approve
         working-directory: ./terraform/environments/staging
 
       - name: Get Outputs
         id: outputs
         run: |
-          echo "ecs_cluster=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
-          echo "ecs_service=$(terraform output -raw ecs_service_name)" >> $GITHUB_OUTPUT
+          echo "bucket_name=$(terraform output -raw receipts_bucket_name)" >> $GITHUB_OUTPUT
+          echo "s3_secret=$(terraform output -raw s3_secret_name)" >> $GITHUB_OUTPUT
         working-directory: ./terraform/environments/staging
 
       - name: Deployment Summary
         run: |
           echo "### Staging Deployment Complete! 🚀" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**ECS Cluster:** ${{ steps.outputs.outputs.ecs_cluster }}" >> $GITHUB_STEP_SUMMARY
-          echo "**ECS Service:** ${{ steps.outputs.outputs.ecs_service }}" >> $GITHUB_STEP_SUMMARY
+          echo "**S3 Bucket:** ${{ steps.outputs.outputs.bucket_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**S3 Credentials Secret:** ${{ steps.outputs.outputs.s3_secret }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View logs: [CloudWatch](https://console.aws.amazon.com/cloudwatch/home?region=${{ env.AWS_REGION }})" >> $GITHUB_STEP_SUMMARY
+          echo "View bucket: [S3 Console](https://s3.console.aws.amazon.com/s3/buckets/${{ steps.outputs.outputs.bucket_name }})" >> $GITHUB_STEP_SUMMARY
 
   terraform-apply-production:
     name: Deploy to Production
@@ -176,7 +168,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
     environment:
       name: production
-      url: https://console.aws.amazon.com/ecs/home?region=ap-southeast-1
+      url: https://console.aws.amazon.com/s3/buckets/receiptly-production-receipts
     
     permissions:
       contents: read
@@ -189,9 +181,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -203,24 +194,21 @@ jobs:
         working-directory: ./terraform/environments/production
 
       - name: Terraform Apply
-        run: |
-          terraform apply -auto-approve \
-            -var="azure_endpoint=${{ secrets.AZURE_ENDPOINT }}" \
-            -var="azure_key=${{ secrets.AZURE_KEY }}"
+        run: terraform apply -auto-approve
         working-directory: ./terraform/environments/production
 
       - name: Get Outputs
         id: outputs
         run: |
-          echo "ecs_cluster=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
-          echo "ecs_service=$(terraform output -raw ecs_service_name)" >> $GITHUB_OUTPUT
+          echo "bucket_name=$(terraform output -raw receipts_bucket_name)" >> $GITHUB_OUTPUT
+          echo "s3_secret=$(terraform output -raw s3_secret_name)" >> $GITHUB_OUTPUT
         working-directory: ./terraform/environments/production
 
       - name: Deployment Summary
         run: |
           echo "### Production Deployment Complete! 🎉" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**ECS Cluster:** ${{ steps.outputs.outputs.ecs_cluster }}" >> $GITHUB_STEP_SUMMARY
-          echo "**ECS Service:** ${{ steps.outputs.outputs.ecs_service }}" >> $GITHUB_STEP_SUMMARY
+          echo "**S3 Bucket:** ${{ steps.outputs.outputs.bucket_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**S3 Credentials Secret:** ${{ steps.outputs.outputs.s3_secret }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View logs: [CloudWatch](https://console.aws.amazon.com/cloudwatch/home?region=${{ env.AWS_REGION }})" >> $GITHUB_STEP_SUMMARY
+          echo "View bucket: [S3 Console](https://s3.console.aws.amazon.com/s3/buckets/${{ steps.outputs.outputs.bucket_name }})" >> $GITHUB_STEP_SUMMARY
