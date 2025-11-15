@@ -96,7 +96,7 @@ jobs:
       - name: Build Docker image
         run: |
           cd python-ocr
-          docker build -t python-ocr:latest .
+          docker build --platform linux/amd64 -t python-ocr:latest .
 
       - name: Save Docker image
         run: |
