@@ -78,3 +78,20 @@ variable "db_deletion_protection" {
   type        = bool
   default     = false
 }
+
+# ==========================================
+# Azure Configuration
+# ==========================================
+variable "azure_cv_endpoint" {
+  description = "Azure Computer Vision endpoint URL"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "azure_cv_api_key" {
+  description = "Azure Computer Vision API key"
+  type        = string
+  sensitive   = true
+  default     = ""
+}

@@ -57,10 +57,18 @@ jobs:
       - name: Get Azure credentials from Secrets Manager
         id: secrets
         run: |
-          # Note: Azure credentials should be stored in Secrets Manager
-          # For now, using GitHub secrets as fallback
-          echo "azure_endpoint=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}" >> $GITHUB_OUTPUT
-          echo "azure_key=${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}" >> $GITHUB_OUTPUT
+          # Retrieve Azure credentials from AWS Secrets Manager
+          SECRET_JSON=$(aws secretsmanager get-secret-value \
+            --secret-id receiptly/azure/credentials \
+            --query 'SecretString' \
+            --output text)
+          
+          AZURE_ENDPOINT=$(echo "$SECRET_JSON" | jq -r '.endpoint')
+          AZURE_KEY=$(echo "$SECRET_JSON" | jq -r '.api_key')
+          
+          echo "azure_endpoint=$AZURE_ENDPOINT" >> $GITHUB_OUTPUT
+          echo "azure_key=$AZURE_KEY" >> $GITHUB_OUTPUT
+          echo "✅ Retrieved Azure credentials from Secrets Manager"
 
       - name: Create docker-compose.yml
         run: |
