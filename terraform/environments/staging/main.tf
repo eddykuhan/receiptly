@@ -218,6 +218,13 @@ module "secrets" {
         api_key  = var.azure_cv_api_key
       })
     }
+    "receiptly/ocr/service" = {
+      description = "Python OCR service configuration for Receiptly ${var.environment}"
+      value = jsonencode({
+        base_url = "http://localhost:8000"
+        health_check_url = "http://localhost:8000/health"
+      })
+    }
   }
 
   recovery_window_days = 7

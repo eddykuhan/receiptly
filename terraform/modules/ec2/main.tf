@@ -20,9 +20,18 @@ data "aws_ami" "amazon_linux_2023" {
 
 # Security Group for Python OCR Service
 resource "aws_security_group" "ocr_service" {
-  name_prefix = "${var.project_name}-${var.environment}-ocr-sg-"
-  description = "Security group for Python OCR service EC2 instance"
+  name_prefix = "${var.project_name}-${var.environment}-app-sg-"
+  description = "Security group for application services (API + OCR) EC2 instance"
   vpc_id      = var.vpc_id
+
+  # Allow HTTP access to .NET API (port 5000)
+  ingress {
+    description = ".NET API service"
+    from_port   = 5000
+    to_port     = 5000
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_cidr_blocks
+  }
 
   # Allow HTTP access to Python OCR service (port 8000)
   ingress {
@@ -52,7 +61,7 @@ resource "aws_security_group" "ocr_service" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ocr-sg"
+    Name        = "${var.project_name}-${var.environment}-app-sg"
     Environment = var.environment
     Project     = var.project_name
   }
@@ -144,7 +153,7 @@ resource "aws_iam_instance_profile" "ocr_instance" {
   }
 }
 
-# User Data Script to install Docker and run Python OCR container
+# User Data Script to install Docker for both services
 locals {
   user_data = <<-EOT
     #!/bin/bash
@@ -163,13 +172,29 @@ locals {
     # Add ec2-user to docker group
     usermod -a -G docker ec2-user
     
-    # Install Docker Compose
-    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
+    # Create deployment directories
+    mkdir -p /opt/receiptly/api
+    mkdir -p /opt/receiptly/ocr
     
-    # Create deployment directory
-    mkdir -p /opt/receiptly
-    cd /opt/receiptly
+    # Create systemd service for .NET API
+    cat > /etc/systemd/system/receiptly-api.service <<'EOF'
+    [Unit]
+    Description=Receiptly .NET API Service
+    After=docker.service
+    Requires=docker.service
+    
+    [Service]
+    Type=simple
+    WorkingDirectory=/opt/receiptly/api
+    ExecStartPre=-/usr/bin/docker stop receiptly-api
+    ExecStartPre=-/usr/bin/docker rm receiptly-api
+    ExecStart=/usr/bin/docker run --name receiptly-api -p 5000:5000 --env-file /opt/receiptly/api/.env receiptly-api:latest
+    ExecStop=/usr/bin/docker stop receiptly-api
+    Restart=always
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
     
     # Create systemd service for Python OCR
     cat > /etc/systemd/system/receiptly-ocr.service <<'EOF'
@@ -179,11 +204,13 @@ locals {
     Requires=docker.service
     
     [Service]
-    Type=oneshot
-    RemainAfterExit=yes
-    WorkingDirectory=/opt/receiptly
-    ExecStart=/usr/local/bin/docker-compose up -d
-    ExecStop=/usr/local/bin/docker-compose down
+    Type=simple
+    WorkingDirectory=/opt/receiptly/ocr
+    ExecStartPre=-/usr/bin/docker stop receiptly-ocr
+    ExecStartPre=-/usr/bin/docker rm receiptly-ocr
+    ExecStart=/usr/bin/docker run --name receiptly-ocr -p 8000:8000 --env-file /opt/receiptly/ocr/.env python-ocr:latest
+    ExecStop=/usr/bin/docker stop receiptly-ocr
+    Restart=always
     
     [Install]
     WantedBy=multi-user.target
@@ -213,10 +240,10 @@ resource "aws_instance" "ocr_service" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ocr-service"
+    Name        = "${var.project_name}-${var.environment}-app-server"
     Environment = var.environment
     Project     = var.project_name
-    Service     = "python-ocr"
+    Service     = "api-ocr"
   }
 
   lifecycle {

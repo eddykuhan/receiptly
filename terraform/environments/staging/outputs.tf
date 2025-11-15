@@ -42,14 +42,19 @@ output "db_name" {
 # ==========================================
 # EC2 Outputs
 # ==========================================
-output "ocr_instance_id" {
-  description = "Python OCR EC2 instance ID"
+output "app_instance_id" {
+  description = "Application server EC2 instance ID"
   value       = module.ocr_service.instance_id
 }
 
-output "ocr_instance_public_ip" {
-  description = "Python OCR EC2 instance public IP"
+output "app_instance_public_ip" {
+  description = "Application server EC2 instance public IP"
   value       = module.ocr_service.instance_public_ip
+}
+
+output "api_service_url" {
+  description = ".NET API service URL"
+  value       = module.ocr_service.api_service_url
 }
 
 output "ocr_service_url" {
