@@ -4,13 +4,18 @@ output "instance_id" {
 }
 
 output "instance_public_ip" {
-  description = "EC2 instance public IP"
-  value       = aws_instance.ocr_service.public_ip
+  description = "EC2 instance public IP (Elastic IP)"
+  value       = aws_eip.ocr_service.public_ip
 }
 
 output "instance_private_ip" {
   description = "EC2 instance private IP"
   value       = aws_instance.ocr_service.private_ip
+}
+
+output "elastic_ip" {
+  description = "Elastic IP address"
+  value       = aws_eip.ocr_service.public_ip
 }
 
 output "security_group_id" {
@@ -20,12 +25,12 @@ output "security_group_id" {
 
 output "ocr_service_url" {
   description = "Python OCR service URL"
-  value       = "http://${aws_instance.ocr_service.public_ip}:8000"
+  value       = "http://${aws_eip.ocr_service.public_ip}:8000"
 }
 
 output "api_service_url" {
   description = ".NET API service URL"
-  value       = "http://${aws_instance.ocr_service.public_ip}:5000"
+  value       = "http://${aws_eip.ocr_service.public_ip}:5000"
 }
 
 output "instance_role_arn" {
