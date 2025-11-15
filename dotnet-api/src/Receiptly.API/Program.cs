@@ -129,6 +129,41 @@ try
     builder.Services.AddSingleton(s3Config);
     builder.Services.AddSingleton<S3StorageService>();
 
+    // Retrieve OCR service configuration from AWS Secrets Manager
+    OcrServiceSecretsConfig ocrConfig;
+    try
+    {
+        var secretId = builder.Configuration["AWS:OcrSecretId"] ?? "receiptly/ocr/service";
+        var region = builder.Configuration["AWS:Region"] ?? "ap-southeast-1";
+        
+        Log.Information("Retrieving OCR service configuration from Secrets Manager: {SecretId}", secretId);
+        
+        using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
+        var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+        {
+            SecretId = secretId
+        });
+        
+        ocrConfig = JsonSerializer.Deserialize<OcrServiceSecretsConfig>(secretResponse.SecretString)
+            ?? throw new InvalidOperationException("Failed to deserialize OCR service configuration from Secrets Manager");
+        
+        Log.Information("Successfully retrieved OCR service configuration: {BaseUrl}", ocrConfig.BaseUrl);
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Failed to retrieve OCR service configuration from Secrets Manager. Falling back to configuration.");
+        
+        // Fallback to appsettings.json/user secrets for local development
+        ocrConfig = new OcrServiceSecretsConfig
+        {
+            BaseUrl = builder.Configuration["PythonOcr:BaseUrl"] ?? "http://localhost:8000",
+            HealthCheckUrl = builder.Configuration["PythonOcr:HealthCheckUrl"] ?? "http://localhost:8000/health"
+        };
+    }
+
+    // Add OCR service configuration
+    builder.Services.AddSingleton(ocrConfig);
+
     // Add File Validation Service
     builder.Services.AddScoped<FileValidationService>();
 

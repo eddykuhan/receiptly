@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+using Receiptly.Infrastructure.Configuration;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,10 +10,10 @@ public class PythonOcrClient
     private readonly HttpClient _httpClient;
     private readonly string _ocrServiceUrl;
 
-    public PythonOcrClient(HttpClient httpClient, IConfiguration configuration)
+    public PythonOcrClient(HttpClient httpClient, OcrServiceSecretsConfig ocrConfig)
     {
         _httpClient = httpClient;
-        _ocrServiceUrl = configuration["PythonOcr:ServiceUrl"] ?? "http://localhost:8000";
+        _ocrServiceUrl = ocrConfig.BaseUrl;
     }
 
     /// <summary>
