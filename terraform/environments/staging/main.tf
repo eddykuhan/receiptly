@@ -71,9 +71,9 @@ module "database" {
   allowed_cidr_blocks = ["0.0.0.0/0"]
 
   # Free Tier Configuration
-  postgres_version  = "16.3"
+  postgres_version  = "16.6"
   instance_class    = "db.t3.micro" # Free tier eligible
-  allocated_storage = 20            # Free tier: up to 20GB
+  allocated_storage = 20             # Free tier: up to 20GB
 
   # Database Configuration
   database_name   = "receiptly"
@@ -82,8 +82,8 @@ module "database" {
   # Network
   publicly_accessible = true # Required for GitHub Actions and local dev
 
-  # Backup (free tier: 7 days max)
-  backup_retention_period = 7
+  # Backup (free tier: 1 day max)
+  backup_retention_period = 1
 
   # For staging: no final snapshot or deletion protection
   skip_final_snapshot = true

@@ -27,7 +27,7 @@ variable "allowed_cidr_blocks" {
 variable "postgres_version" {
   description = "PostgreSQL version"
   type        = string
-  default     = "16.3" # Latest stable version
+  default     = "16.6" # PostgreSQL 16.6 available in ap-southeast-1
 }
 
 variable "instance_class" {
@@ -61,9 +61,9 @@ variable "publicly_accessible" {
 }
 
 variable "backup_retention_period" {
-  description = "Backup retention period in days (Free tier: 0-7 days)"
+  description = "Backup retention period in days (Free tier: 0-1 days, paid: up to 35 days)"
   type        = number
-  default     = 7
+  default     = 1
 }
 
 variable "skip_final_snapshot" {
