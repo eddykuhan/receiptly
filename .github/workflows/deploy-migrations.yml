@@ -49,14 +49,12 @@ jobs:
             --query SecretString \
             --output text)
           
-          # Parse JSON secret for username and password only
+          # Parse JSON secret for all database connection details
           DB_USER=$(echo $SECRET_JSON | jq -r '.username')
           DB_PASSWORD=$(echo $SECRET_JSON | jq -r '.password')
-          
-          # Use RDS_ENDPOINT from repository secrets
-          DB_HOST="${{ secrets.RDS_ENDPOINT }}"
-          DB_PORT="5432"
-          DB_NAME="receiptly"
+          DB_HOST=$(echo $SECRET_JSON | jq -r '.host')
+          DB_PORT=$(echo $SECRET_JSON | jq -r '.port')
+          DB_NAME=$(echo $SECRET_JSON | jq -r '.database')
           
           # Build connection string
           CONNECTION_STRING="Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD};SSL Mode=Require;Trust Server Certificate=true"
@@ -66,6 +64,8 @@ jobs:
           echo "CONNECTION_STRING=$CONNECTION_STRING" >> $GITHUB_OUTPUT
           echo "DB_USER=$DB_USER" >> $GITHUB_OUTPUT
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_OUTPUT
+          echo "DB_HOST=$DB_HOST" >> $GITHUB_OUTPUT
+          echo "DB_NAME=$DB_NAME" >> $GITHUB_OUTPUT
 
       - name: Restore dependencies
         run: dotnet restore
@@ -119,8 +119,8 @@ jobs:
             --output text)
           
           DB_USER=$(echo $SECRET_JSON | jq -r '.username')
-          DB_HOST="${{ secrets.RDS_ENDPOINT }}"
-          DB_NAME="receiptly"
+          DB_HOST=$(echo $SECRET_JSON | jq -r '.host')
+          DB_NAME=$(echo $SECRET_JSON | jq -r '.database')
           
           # Check applied migrations
           export PGPASSWORD=$(echo $SECRET_JSON | jq -r '.password')
@@ -139,8 +139,8 @@ jobs:
           echo "## 🚀 Migration Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment**: ${{ github.event.inputs.environment || 'staging' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **RDS Endpoint**: ${{ secrets.RDS_ENDPOINT }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Database**: receiptly_db" >> $GITHUB_STEP_SUMMARY
+          echo "- **RDS Endpoint**: ${{ steps.get-secret.outputs.DB_HOST }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Database**: ${{ steps.get-secret.outputs.DB_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
