@@ -50,3 +50,20 @@ html, body {
 .mat-mdc-form-field {
   font-family: 'Inter', sans-serif !important;
 }
+
+// Fix for Material Icons to ensure ligatures work
+mat-icon {
+  font-family: 'Material Icons' !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  line-height: 1 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
+  word-wrap: normal !important;
+  direction: ltr !important;
+  -webkit-font-feature-settings: 'liga' !important;
+  font-feature-settings: 'liga' !important;
+  -webkit-font-smoothing: antialiased !important;
+}

@@ -41,7 +41,9 @@ try
         {
             policy.WithOrigins(
                     "http://localhost:4200",  // Angular dev server
+                    "http://localhost:8080",  // PWA production build
                     "http://localhost:8100",  // Ionic/Capacitor dev server
+                    "http://192.168.100.240:8080", // PWA on network (mobile testing)
                     "capacitor://localhost",  // Capacitor iOS
                     "ionic://localhost",      // Capacitor Android
                     "http://localhost"        // Generic localhost

@@ -2,31 +2,46 @@
 
 .dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, $bg-secondary 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   padding-bottom: 80px; // Space for bottom nav
 }
 
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 20px;
-  background: $bg-primary;
-  border-bottom: 1px solid $border-color;
+.header {
+  background: linear-gradient(135deg, $primary 0%, $purple 100%);
+  color: white;
+  padding: 1.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(10px);
 
-  h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    background: linear-gradient(135deg, $primary 0%, $primary-light 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.5px;
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-icon {
+    font-size: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .header-title {
+    flex: 1;
+
+    h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 0.25rem 0 0;
+      opacity: 0.9;
+      font-size: 0.875rem;
+    }
   }
 
   .period-selector {
@@ -35,7 +50,7 @@
 
     ::ng-deep {
       .mat-mdc-text-field-wrapper {
-        background: $bg-tertiary;
+        background: rgba(255, 255, 255, 0.2);
         border-radius: 12px;
       }
 
@@ -48,9 +63,14 @@
         background-color: transparent;
       }
 
-      .mat-mdc-select-value {
-        color: $text-primary;
-        font-weight: 500;
+      .mat-mdc-select-value,
+      .mat-mdc-select-arrow {
+        color: white;
+      }
+
+      .mdc-line-ripple::before,
+      .mdc-line-ripple::after {
+        border-bottom-color: rgba(255, 255, 255, 0.5);
       }
     }
   }

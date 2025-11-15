@@ -1,7 +1,13 @@
 <div class="history-container">
   <!-- Header with Search -->
-  <div class="history-header">
-    <h1>Receipt History</h1>
+  <header class="header">
+    <div class="header-content">
+      <mat-icon class="header-icon">receipt_long</mat-icon>
+      <div class="header-title">
+        <h1>Receipt History</h1>
+        <p class="subtitle">Track all your receipts</p>
+      </div>
+    </div>
     
     <mat-form-field appearance="outline" class="search-field">
       <mat-icon matPrefix>search</mat-icon>
@@ -29,7 +35,7 @@
         This Month
       </mat-chip>
     </mat-chip-set>
-  </div>
+  </header>
 
   <!-- Loading State -->
   @if (isLoading()) {
