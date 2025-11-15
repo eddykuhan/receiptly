@@ -114,7 +114,7 @@ try
                 maxRetryDelay: TimeSpan.FromSeconds(5),
                 errorCodesToAdd: null);
         });
-        
+
         if (builder.Environment.IsDevelopment())
         {
             options.EnableSensitiveDataLogging();
@@ -128,24 +128,24 @@ try
     {
         var secretId = builder.Configuration["AWS:S3SecretId"] ?? "receiptly/s3/credentials";
         var region = builder.Configuration["AWS:Region"] ?? "ap-southeast-1";
-        
+
         Log.Information("Retrieving S3 credentials from Secrets Manager: {SecretId}", secretId);
-        
+
         using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
         var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
         {
             SecretId = secretId
         });
-        
+
         s3Config = JsonSerializer.Deserialize<S3SecretsConfig>(secretResponse.SecretString)
             ?? throw new InvalidOperationException("Failed to deserialize S3 credentials from Secrets Manager");
-        
+
         Log.Information("Successfully retrieved S3 credentials for bucket: {BucketName}", s3Config.BucketName);
     }
     catch (Exception ex)
     {
         Log.Error(ex, "Failed to retrieve S3 credentials from Secrets Manager. Falling back to configuration.");
-        
+
         // Fallback to appsettings.json/user secrets for local development
         s3Config = new S3SecretsConfig
         {
@@ -166,24 +166,24 @@ try
     {
         var secretId = builder.Configuration["AWS:OcrSecretId"] ?? "receiptly/ocr/service";
         var region = builder.Configuration["AWS:Region"] ?? "ap-southeast-1";
-        
+
         Log.Information("Retrieving OCR service configuration from Secrets Manager: {SecretId}", secretId);
-        
+
         using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
         var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
         {
             SecretId = secretId
         });
-        
+
         ocrConfig = JsonSerializer.Deserialize<OcrServiceSecretsConfig>(secretResponse.SecretString)
             ?? throw new InvalidOperationException("Failed to deserialize OCR service configuration from Secrets Manager");
-        
+
         Log.Information("Successfully retrieved OCR service configuration: {BaseUrl}", ocrConfig.BaseUrl);
     }
     catch (Exception ex)
     {
         Log.Error(ex, "Failed to retrieve OCR service configuration from Secrets Manager. Falling back to configuration.");
-        
+
         // Fallback to appsettings.json/user secrets for local development
         ocrConfig = new OcrServiceSecretsConfig
         {
@@ -197,7 +197,7 @@ try
 
     // Add File Validation Service
     builder.Services.AddScoped<FileValidationService>();
-    
+
     // Add Image Hash Service
     builder.Services.AddScoped<IImageHashService, ImageHashService>();
 
@@ -252,7 +252,7 @@ try
     // app.UseHttpsRedirection();
 
     // Enable CORS
-    if (app.Environment.IsDevelopment())
+    if (!app.Environment.IsProduction() )
     {
         app.UseCors("AllowAngularApp");
     }
