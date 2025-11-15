@@ -211,6 +211,13 @@ module "secrets" {
         region                = var.aws_region
       })
     }
+    "receiptly/azure/credentials" = {
+      description = "Azure Computer Vision credentials for Receiptly ${var.environment}"
+      value = jsonencode({
+        endpoint = var.azure_cv_endpoint
+        api_key  = var.azure_cv_api_key
+      })
+    }
   }
 
   recovery_window_days = 7
