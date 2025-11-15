@@ -34,6 +34,63 @@ provider "aws" {
 }
 
 # ==========================================
+# VPC for RDS and Future Services
+# ==========================================
+module "vpc" {
+  source = "../../modules/vpc"
+
+  project_name = var.project_name
+  environment  = var.environment
+  vpc_cidr     = "10.0.0.0/16"
+
+  # Use 2 AZs (minimum for RDS)
+  availability_zones = ["ap-southeast-1a", "ap-southeast-1b"]
+
+  public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnet_cidrs = ["10.0.101.0/24", "10.0.102.0/24"]
+
+  # NAT gateway not needed for free tier staging (RDS in private subnets, public access enabled)
+  enable_nat_gateway = false
+}
+
+# ==========================================
+# RDS PostgreSQL Database
+# ==========================================
+module "database" {
+  source = "../../modules/rds"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  # Network Configuration
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnet_ids
+
+  # Allow access from anywhere for staging (GitHub Actions, local dev)
+  # For production: restrict to specific IPs or VPC CIDR
+  allowed_cidr_blocks = ["0.0.0.0/0"]
+
+  # Free Tier Configuration
+  postgres_version  = "16.3"
+  instance_class    = "db.t3.micro" # Free tier eligible
+  allocated_storage = 20            # Free tier: up to 20GB
+
+  # Database Configuration
+  database_name   = "receiptly"
+  master_username = var.db_username
+
+  # Network
+  publicly_accessible = true # Required for GitHub Actions and local dev
+
+  # Backup (free tier: 7 days max)
+  backup_retention_period = 7
+
+  # For staging: no final snapshot or deletion protection
+  skip_final_snapshot = true
+  deletion_protection = false
+}
+
+# ==========================================
 # S3 Bucket for Receipt Storage
 # ==========================================
 module "receipts_bucket" {
@@ -106,18 +163,22 @@ resource "aws_iam_user_policy" "s3_access" {
 # Secrets Manager - All Credentials
 # ==========================================
 
-# Generate secure random password for database
-resource "random_password" "db_password" {
-  length           = 32
-  special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
-}
-
 # Store all credentials in AWS Secrets Manager
 module "secrets" {
   source = "../../modules/secrets"
 
   secrets = {
+    "receiptly/database/credentials" = {
+      description = "PostgreSQL database credentials for Receiptly ${var.environment}"
+      value = jsonencode({
+        username = module.database.db_username
+        password = module.database.db_password
+        host     = module.database.db_instance_address
+        port     = module.database.db_instance_port
+        database = module.database.db_name
+        engine   = "postgres"
+      })
+    }
     "receiptly/s3/credentials" = {
       description = "S3 access credentials for Receiptly ${var.environment}"
       value = jsonencode({

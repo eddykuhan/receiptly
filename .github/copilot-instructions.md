@@ -146,12 +146,23 @@ async def analyze_receipt(
 
 ## Integration Points
 
-1. **Azure Services**
-   - Azure Computer Vision: OCR processing (configured in `.env`)
-   - AWS S3: Receipt image storage
-   - PostgreSQL: Main database (AWS RDS in production)
+1. **AWS Services**
+   - **RDS PostgreSQL**: Main database (free tier: db.t3.micro, 20GB storage)
+     - Database name: `receiptly`
+     - Credentials stored in AWS Secrets Manager: `receiptly/database/credentials`
+     - Contains: username, password, host, port, database, engine
+   - **S3**: Receipt image storage
+     - Bucket: `receiptly-{environment}-receipts`
+     - Credentials stored in AWS Secrets Manager: `receiptly/s3/credentials`
+     - Contains: aws_access_key_id, aws_secret_access_key, bucket_name, region
+   - **Secrets Manager**: Centralized credential storage
+     - .NET API retrieves credentials on startup
+     - Uses AWS credential chain (environment vars → ~/.aws/credentials → IAM role)
 
-2. **Service Communication**
+2. **Azure Services**
+   - Azure Computer Vision: OCR processing (configured in `.env`)
+
+3. **Service Communication**
    - REST APIs with JSON payloads
    - Standard receipt format:
    ```json
@@ -165,6 +176,45 @@ async def analyze_receipt(
      }]
    }
    ```
+
+## AWS Secrets Manager Integration
+
+### Secret Retrieval Pattern
+```csharp
+// Retrieve credentials on application startup
+using var secretsClient = new AmazonSecretsManagerClient(
+    Amazon.RegionEndpoint.GetBySystemName(region)
+);
+
+var response = await secretsClient.GetSecretValueAsync(
+    new GetSecretValueRequest { SecretId = "receiptly/database/credentials" }
+);
+
+var config = JsonSerializer.Deserialize<DatabaseSecretsConfig>(response.SecretString);
+```
+
+### Configuration Classes
+- `DatabaseSecretsConfig`: Maps receiptly/database/credentials JSON
+- `S3SecretsConfig`: Maps receiptly/s3/credentials JSON
+
+### Fallback Strategy
+- Production: Uses Secrets Manager with IAM role authentication
+- Local Development: Falls back to appsettings.json/user secrets if Secrets Manager unavailable
+
+## Infrastructure (Terraform)
+
+### Staging Environment Resources
+- **VPC**: 10.0.0.0/16 with public/private subnets in 2 AZs
+- **RDS PostgreSQL**: Free tier (db.t3.micro, 20GB, publicly accessible for GitHub Actions)
+- **S3 Bucket**: Receipt storage with versioning, encryption, lifecycle rules
+- **Secrets Manager**: Database and S3 credentials
+- **IAM**: Dedicated S3 user with scoped permissions
+
+### Terraform Modules
+- `modules/vpc`: VPC, subnets, route tables
+- `modules/rds`: PostgreSQL RDS instance with security groups
+- `modules/s3`: S3 bucket with versioning and lifecycle
+- `modules/secrets`: Secrets Manager secrets
 
 ## Common Tasks
 
