@@ -7,6 +7,27 @@
   <!-- PWA Install Prompt -->
   <app-pwa-install-prompt></app-pwa-install-prompt>
 
+  <!-- Floating Camera Button -->
+  <button 
+    mat-fab 
+    class="camera-fab"
+    (click)="onCameraClick()"
+    aria-label="Open Camera">
+    <mat-icon>photo_camera</mat-icon>
+  </button>
+
+  <!-- Floating Ask AI Button -->
+  @if (!isOnAskAIPage()) {
+    <button 
+      mat-raised-button
+      class="ai-fab"
+      (click)="onAskAIClick()"
+      aria-label="Ask AI">
+      <mat-icon>auto_awesome</mat-icon>
+      <span>Ask AI</span>
+    </button>
+  }
+
   <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <mat-tab-group 
@@ -18,8 +39,8 @@
       
       <mat-tab>
         <ng-template mat-tab-label>
-          <mat-icon>photo_camera</mat-icon>
-          <span>Camera</span>
+          <mat-icon>dashboard</mat-icon>
+          <span>Dashboard</span>
         </ng-template>
       </mat-tab>
       
@@ -27,13 +48,6 @@
         <ng-template mat-tab-label>
           <mat-icon>receipt_long</mat-icon>
           <span>History</span>
-        </ng-template>
-      </mat-tab>
-      
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>dashboard</mat-icon>
-          <span>Dashboard</span>
         </ng-template>
       </mat-tab>
     </mat-tab-group>
