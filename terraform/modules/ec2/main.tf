@@ -176,6 +176,9 @@ locals {
     mkdir -p /opt/receiptly/api
     mkdir -p /opt/receiptly/ocr
     
+    # Create Docker network for inter-service communication
+    docker network create receiptly_default 2>/dev/null || true
+    
     # Create systemd service for .NET API
     cat > /etc/systemd/system/receiptly-api.service <<'EOF'
     [Unit]
@@ -188,7 +191,7 @@ locals {
     WorkingDirectory=/opt/receiptly/api
     ExecStartPre=-/usr/bin/docker stop receiptly-api
     ExecStartPre=-/usr/bin/docker rm receiptly-api
-    ExecStart=/usr/bin/docker run --name receiptly-api -p 5000:5000 --env-file /opt/receiptly/api/.env receiptly-api:latest
+    ExecStart=/usr/bin/docker run --name receiptly-api --network receiptly_default -p 5000:5000 --env-file /opt/receiptly/api/.env receiptly-api:latest
     ExecStop=/usr/bin/docker stop receiptly-api
     Restart=always
     
@@ -208,7 +211,7 @@ locals {
     WorkingDirectory=/opt/receiptly/ocr
     ExecStartPre=-/usr/bin/docker stop receiptly-ocr
     ExecStartPre=-/usr/bin/docker rm receiptly-ocr
-    ExecStart=/usr/bin/docker run --name receiptly-ocr -p 8000:8000 --env-file /opt/receiptly/ocr/.env python-ocr:latest
+    ExecStart=/usr/bin/docker run --name receiptly-ocr --network receiptly_default -p 8000:8000 --env-file /opt/receiptly/ocr/.env python-ocr:latest
     ExecStop=/usr/bin/docker stop receiptly-ocr
     Restart=always
     

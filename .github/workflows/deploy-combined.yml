@@ -152,6 +152,8 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
               "set -e",
+              "echo \"=== Creating Docker network ===\"",
+              "docker network create receiptly_default 2>/dev/null || echo \"Network already exists\"",
               "echo \"=== Downloading .NET API image ===\"",
               "cd /opt/receiptly/api",
               "aws s3 cp s3://receiptly-terraform-state/deployments/api-image.tar.gz .",
