@@ -104,12 +104,12 @@ jobs:
       - name: Build .NET API Docker image
         run: |
           cd dotnet-api
-          docker build -t receiptly-api:latest .
+          docker build --platform linux/amd64 -t receiptly-api:latest .
 
       - name: Build Python OCR Docker image
         run: |
           cd python-ocr
-          docker build -t python-ocr:latest .
+          docker build --platform linux/amd64 -t python-ocr:latest .
 
       - name: Save Docker images
         run: |
@@ -129,6 +129,7 @@ jobs:
           AWS__Region=${{ env.AWS_REGION }}
           ASPNETCORE_ENVIRONMENT=Production
           ASPNETCORE_URLS=http://+:5000
+          Swagger__Enabled=true
           EOF
           
           # Create .env for OCR

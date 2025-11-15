@@ -206,7 +206,9 @@ try
     }
 
     // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
+    // Enable Swagger in non-production environments, or if explicitly enabled via configuration
+    // TODO: Add authentication for Swagger in production
+    if (!app.Environment.IsProduction() || app.Configuration.GetValue<bool>("Swagger:Enabled", false))
     {
         app.UseSwagger();
         app.UseSwaggerUI();
