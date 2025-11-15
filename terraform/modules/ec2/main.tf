@@ -253,3 +253,17 @@ resource "aws_instance" "ocr_service" {
     create_before_destroy = true
   }
 }
+
+# Elastic IP for static public IP address
+resource "aws_eip" "ocr_service" {
+  domain   = "vpc"
+  instance = aws_instance.ocr_service.id
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-eip"
+    Environment = var.environment
+    Project     = var.project_name
+  }
+
+  depends_on = [aws_instance.ocr_service]
+}
