@@ -1,0 +1,124 @@
+<div class="history-container">
+  <!-- Header with Search -->
+  <div class="history-header">
+    <h1>Receipt History</h1>
+    
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput
+             placeholder="Search receipts..."
+             [value]="searchQuery()"
+             (input)="onSearchChange($any($event.target).value)">
+    </mat-form-field>
+
+    <!-- Filter Chips -->
+    <mat-chip-set class="filter-chips">
+      <mat-chip 
+        [highlighted]="selectedFilter() === 'all'"
+        (click)="onFilterChange('all')">
+        All Time
+      </mat-chip>
+      <mat-chip 
+        [highlighted]="selectedFilter() === 'week'"
+        (click)="onFilterChange('week')">
+        This Week
+      </mat-chip>
+      <mat-chip 
+        [highlighted]="selectedFilter() === 'month'"
+        (click)="onFilterChange('month')">
+        This Month
+      </mat-chip>
+    </mat-chip-set>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading receipts...</p>
+    </div>
+  }
+  <!-- Empty State -->
+  @else if (filteredReceipts().length === 0 && searchQuery() === '') {
+    <div class="empty-state">
+      <mat-icon>receipt_long</mat-icon>
+      <h2>No Receipts Yet</h2>
+      <p>Start scanning receipts to build your history</p>
+    </div>
+  }
+  <!-- No Search Results -->
+  @else if (filteredReceipts().length === 0) {
+    <div class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <h2>No Results Found</h2>
+      <p>Try adjusting your search or filters</p>
+    </div>
+  }
+  <!-- Receipts List -->
+  @else {
+    <div class="receipts-list">
+      @for (receipt of filteredReceipts(); track receipt.id) {
+        <mat-card class="receipt-card">
+          <mat-card-content>
+            <div class="receipt-main">
+              <!-- Store Icon -->
+              <div class="store-icon">
+                <mat-icon>store</mat-icon>
+              </div>
+
+              <!-- Receipt Info -->
+              <div class="receipt-info">
+                <h3>{{ receipt.storeName }}</h3>
+                @if (receipt.storeAddress) {
+                  <p class="address">{{ receipt.storeAddress }}</p>
+                }
+                <div class="meta">
+                  <span class="date">
+                    <mat-icon>calendar_today</mat-icon>
+                    {{ receipt.purchaseDate | date:'MMM d, y' }}
+                  </span>
+                  <span class="items">
+                    <mat-icon>shopping_basket</mat-icon>
+                    {{ getItemCount(receipt) }} items
+                  </span>
+                </div>
+              </div>
+
+              <!-- Amount -->
+              <div class="receipt-amount">
+                <span class="amount">{{ getTotalAmount(receipt) | myr }}</span>
+                @if (receipt.isValidReceipt) {
+                  <mat-icon class="verified">check_circle</mat-icon>
+                }
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="receipt-actions">
+              <button mat-icon-button color="primary" [routerLink]="['/receipt', receipt.id]">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteReceipt(receipt)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    <!-- Summary Footer -->
+    <div class="summary-footer">
+      <div class="summary-item">
+        <span class="label">Total Receipts:</span>
+        <span class="value">{{ filteredReceipts().length }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="label">Total Amount:</span>
+        <span class="value">
+          {{ getTotalSpent() | myr }}
+        </span>
+      </div>
+    </div>
+  }
+</div>
