@@ -40,6 +40,24 @@ output "db_name" {
 }
 
 # ==========================================
+# EC2 Outputs
+# ==========================================
+output "ocr_instance_id" {
+  description = "Python OCR EC2 instance ID"
+  value       = module.ocr_service.instance_id
+}
+
+output "ocr_instance_public_ip" {
+  description = "Python OCR EC2 instance public IP"
+  value       = module.ocr_service.instance_public_ip
+}
+
+output "ocr_service_url" {
+  description = "Python OCR service URL"
+  value       = module.ocr_service.ocr_service_url
+}
+
+# ==========================================
 # S3 Bucket Outputs
 # ==========================================
 output "receipts_bucket_name" {

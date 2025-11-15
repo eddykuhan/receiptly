@@ -91,6 +91,29 @@ module "database" {
 }
 
 # ==========================================
+# EC2 Instance for Python OCR Service
+# ==========================================
+module "ocr_service" {
+  source = "../../modules/ec2"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  # Network Configuration - use existing VPC
+  vpc_id    = module.vpc.vpc_id
+  subnet_id = module.vpc.public_subnet_ids[0] # Deploy to first public subnet
+
+  # Free Tier Configuration
+  instance_type = "t3.micro" # Free tier eligible (or t2.micro)
+
+  # Allow access from anywhere for staging (API calls, SSH if needed)
+  allowed_cidr_blocks     = ["0.0.0.0/0"]
+  ssh_allowed_cidr_blocks = [] # No SSH access for security
+
+  aws_region = var.aws_region
+}
+
+# ==========================================
 # S3 Bucket for Receipt Storage
 # ==========================================
 module "receipts_bucket" {
