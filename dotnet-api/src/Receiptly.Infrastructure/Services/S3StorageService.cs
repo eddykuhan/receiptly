@@ -2,6 +2,8 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Receiptly.Infrastructure.Configuration;
 using System.Text;
 using System.Text.Json;
 
@@ -11,20 +13,22 @@ public class S3StorageService
 {
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
+    private readonly ILogger<S3StorageService> _logger;
 
-    public S3StorageService(IConfiguration configuration)
+    public S3StorageService(S3SecretsConfig s3Config, ILogger<S3StorageService> logger)
     {
-        var awsAccessKey = configuration["AWS:AccessKeyId"] ?? throw new ArgumentNullException("AWS:AccessKeyId");
-        var awsSecretKey = configuration["AWS:SecretAccessKey"] ?? throw new ArgumentNullException("AWS:SecretAccessKey");
-        var region = configuration["AWS:Region"] ?? "us-east-1";
-        _bucketName = configuration["AWS:S3BucketName"] ?? throw new ArgumentNullException("AWS:S3BucketName");
+        _logger = logger;
+        _bucketName = s3Config.BucketName;
 
         var config = new AmazonS3Config
         {
-            RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(region)
+            RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(s3Config.Region)
         };
 
-        _s3Client = new AmazonS3Client(awsAccessKey, awsSecretKey, config);
+        _s3Client = new AmazonS3Client(s3Config.AwsAccessKeyId, s3Config.AwsSecretAccessKey, config);
+        
+        _logger.LogInformation("S3StorageService initialized with bucket: {BucketName} in region: {Region}", 
+            _bucketName, s3Config.Region);
     }
 
     /// <summary>

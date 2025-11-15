@@ -3,10 +3,14 @@ using Receiptly.Core.Interfaces;
 using Receiptly.Infrastructure.Services;
 using Receiptly.Infrastructure.Repositories;
 using Receiptly.Infrastructure.Data;
+using Receiptly.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Polly;
 using Polly.Extensions.Http;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
+using System.Text.Json;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -39,10 +43,39 @@ try
             options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
         });
 
-    // Add PostgreSQL DbContext
+    // Retrieve database credentials from AWS Secrets Manager
+    string connectionString;
+    try
+    {
+        var dbSecretId = builder.Configuration["AWS:DatabaseSecretId"] ?? "receiptly/database/credentials";
+        var region = builder.Configuration["AWS:Region"] ?? "ap-southeast-1";
+
+        Log.Information("Retrieving database credentials from Secrets Manager: {SecretId}", dbSecretId);
+
+        using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
+        var dbSecretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+        {
+            SecretId = dbSecretId
+        });
+
+        var dbConfig = JsonSerializer.Deserialize<DatabaseSecretsConfig>(dbSecretResponse.SecretString)
+            ?? throw new InvalidOperationException("Failed to deserialize database credentials from Secrets Manager");
+
+        connectionString = dbConfig.ToConnectionString();
+        Log.Information("Successfully retrieved database credentials for: {Database}@{Host}", dbConfig.Database, dbConfig.Host);
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Failed to retrieve database credentials from Secrets Manager. Falling back to configuration.");
+
+        // Fallback to appsettings.json/user secrets for local development
+        connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("DefaultConnection not configured");
+    }
+
+    // Add PostgreSQL DbContext with retrieved connection string
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         options.UseNpgsql(connectionString, npgsqlOptions =>
         {
             npgsqlOptions.EnableRetryOnFailure(
@@ -58,7 +91,42 @@ try
         }
     });
 
-    // Add S3 Storage Service
+    // Retrieve S3 credentials from AWS Secrets Manager
+    S3SecretsConfig s3Config;
+    try
+    {
+        var secretId = builder.Configuration["AWS:S3SecretId"] ?? "receiptly/s3/credentials";
+        var region = builder.Configuration["AWS:Region"] ?? "ap-southeast-1";
+        
+        Log.Information("Retrieving S3 credentials from Secrets Manager: {SecretId}", secretId);
+        
+        using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
+        var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+        {
+            SecretId = secretId
+        });
+        
+        s3Config = JsonSerializer.Deserialize<S3SecretsConfig>(secretResponse.SecretString)
+            ?? throw new InvalidOperationException("Failed to deserialize S3 credentials from Secrets Manager");
+        
+        Log.Information("Successfully retrieved S3 credentials for bucket: {BucketName}", s3Config.BucketName);
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Failed to retrieve S3 credentials from Secrets Manager. Falling back to configuration.");
+        
+        // Fallback to appsettings.json/user secrets for local development
+        s3Config = new S3SecretsConfig
+        {
+            AwsAccessKeyId = builder.Configuration["AWS:AccessKeyId"] ?? throw new InvalidOperationException("AWS:AccessKeyId not configured"),
+            AwsSecretAccessKey = builder.Configuration["AWS:SecretAccessKey"] ?? throw new InvalidOperationException("AWS:SecretAccessKey not configured"),
+            BucketName = builder.Configuration["AWS:S3BucketName"] ?? throw new InvalidOperationException("AWS:S3BucketName not configured"),
+            Region = builder.Configuration["AWS:Region"] ?? "ap-southeast-1"
+        };
+    }
+
+    // Add S3 Storage Service with retrieved credentials
+    builder.Services.AddSingleton(s3Config);
     builder.Services.AddSingleton<S3StorageService>();
 
     // Add File Validation Service

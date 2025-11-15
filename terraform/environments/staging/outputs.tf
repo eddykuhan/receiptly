@@ -1,4 +1,45 @@
 # ==========================================
+# VPC Outputs
+# ==========================================
+output "vpc_id" {
+  description = "VPC ID"
+  value       = module.vpc.vpc_id
+}
+
+output "private_subnet_ids" {
+  description = "Private subnet IDs (used for RDS)"
+  value       = module.vpc.private_subnet_ids
+}
+
+output "public_subnet_ids" {
+  description = "Public subnet IDs"
+  value       = module.vpc.public_subnet_ids
+}
+
+# ==========================================
+# Database Outputs
+# ==========================================
+output "db_instance_endpoint" {
+  description = "RDS instance endpoint"
+  value       = module.database.db_instance_endpoint
+}
+
+output "db_instance_address" {
+  description = "RDS instance address (hostname)"
+  value       = module.database.db_instance_address
+}
+
+output "db_instance_port" {
+  description = "RDS instance port"
+  value       = module.database.db_instance_port
+}
+
+output "db_name" {
+  description = "Database name"
+  value       = module.database.db_name
+}
+
+# ==========================================
 # S3 Bucket Outputs
 # ==========================================
 output "receipts_bucket_name" {
@@ -55,7 +96,8 @@ output "setup_complete" {
   value       = <<-EOT
     ✅ Terraform setup complete!
     
-    📦 S3 Bucket: ${module.receipts_bucket.bucket_id}
+    �️  Database: ${module.database.db_instance_endpoint}
+    �📦 S3 Bucket: ${module.receipts_bucket.bucket_id}
     🔐 Database Secret: receiptly/database/credentials
     🔐 S3 Secret: receiptly/s3/credentials
     
@@ -66,5 +108,8 @@ output "setup_complete" {
     
     # S3 credentials
     aws secretsmanager get-secret-value --secret-id receiptly/s3/credentials --query SecretString --output text | jq
+    
+    # Connection string for local testing:
+    postgresql://$(aws secretsmanager get-secret-value --secret-id receiptly/database/credentials --query SecretString --output text | jq -r '.username'):$(aws secretsmanager get-secret-value --secret-id receiptly/database/credentials --query SecretString --output text | jq -r '.password')@${module.database.db_instance_address}:${module.database.db_instance_port}/${module.database.db_name}
   EOT
 }
