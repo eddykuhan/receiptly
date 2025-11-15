@@ -23,6 +23,11 @@ output "ocr_service_url" {
   value       = "http://${aws_instance.ocr_service.public_ip}:8000"
 }
 
+output "api_service_url" {
+  description = ".NET API service URL"
+  value       = "http://${aws_instance.ocr_service.public_ip}:5000"
+}
+
 output "instance_role_arn" {
   description = "IAM role ARN for EC2 instance"
   value       = aws_iam_role.ocr_instance.arn

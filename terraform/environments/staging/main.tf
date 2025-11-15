@@ -221,8 +221,8 @@ module "secrets" {
     "receiptly/ocr/service" = {
       description = "Python OCR service configuration for Receiptly ${var.environment}"
       value = jsonencode({
-        base_url = "http://${module.ocr_service.instance_public_ip}:8000"
-        health_check_url = "http://${module.ocr_service.instance_public_ip}:8000/health"
+        base_url = "http://localhost:8000"
+        health_check_url = "http://localhost:8000/health"
       })
     }
   }
