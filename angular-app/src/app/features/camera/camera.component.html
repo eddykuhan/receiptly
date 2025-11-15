@@ -1,0 +1,157 @@
+<div class="camera-container">
+  <!-- Header -->
+  <div class="camera-header">
+    <h1>Scan Receipt</h1>
+  </div>
+
+  <!-- Camera Actions (when no image captured) -->
+  @if (!capturedImage()) {
+    <div class="camera-actions">
+      <div class="action-buttons">
+        <button mat-fab extended color="primary" class="camera-btn" (click)="takePhoto()">
+          <mat-icon>photo_camera</mat-icon>
+          Take Photo
+        </button>
+        
+        <button mat-fab extended color="accent" class="gallery-btn" (click)="selectFromGallery()">
+          <mat-icon>photo_library</mat-icon>
+          From Gallery
+        </button>
+      </div>
+      
+      <div class="instructions">
+        <mat-icon>info</mat-icon>
+        <p>Capture a clear photo of your receipt for best results</p>
+      </div>
+    </div>
+  }
+
+  <!-- Image Preview & Processing -->
+  @if (capturedImage()) {
+    <div class="image-preview-section">
+      <!-- Image Preview -->
+      <div class="image-preview">
+        <img [src]="capturedImage()" alt="Captured receipt" />
+        @if (!isUploading() && !processedReceipt()) {
+          <button mat-mini-fab color="warn" class="clear-btn" (click)="clearImage()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <!-- Upload Progress -->
+      @if (isUploading()) {
+        <mat-card class="upload-card">
+          <mat-card-content>
+            <div class="upload-progress">
+              <mat-spinner diameter="50"></mat-spinner>
+              <p>Processing receipt... {{ uploadProgress() }}%</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Processed Receipt Details -->
+      @if (processedReceipt(); as receipt) {
+        <mat-card class="receipt-details">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>receipt</mat-icon>
+              Receipt Details
+            </mat-card-title>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <!-- Store Info -->
+            <div class="detail-section">
+              <h3>{{ receipt.storeName }}</h3>
+              <p class="address">{{ receipt.storeAddress }}</p>
+              @if (receipt.storePhoneNumber) {
+                <p class="phone">
+                  <mat-icon>phone</mat-icon>
+                  {{ receipt.storePhoneNumber }}
+                </p>
+              }
+            </div>
+
+            <!-- Purchase Details -->
+            <div class="detail-section">
+              <div class="detail-row">
+                <span class="label">Date:</span>
+                <span class="value">{{ receipt.purchaseDate | date:'medium' }}</span>
+              </div>
+              @if (receipt.transactionId) {
+                <div class="detail-row">
+                  <span class="label">Transaction:</span>
+                  <span class="value">{{ receipt.transactionId }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Items List -->
+            @if (receipt.items && receipt.items.length > 0) {
+              <div class="detail-section items-section">
+                <h4>Items ({{ receipt.items.length }})</h4>
+                <div class="items-list">
+                  @for (item of receipt.items; track item.id) {
+                    <div class="item-row">
+                      <div class="item-info">
+                        <span class="item-name">{{ item.name }}</span>
+                        <span class="item-qty">x{{ item.quantity }}</span>
+                      </div>
+                      <span class="item-price">${{ item.price.toFixed(2) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Totals -->
+            <div class="detail-section totals-section">
+              @if (receipt.subtotalAmount) {
+                <div class="detail-row">
+                  <span class="label">Subtotal:</span>
+                  <span class="value">${{ receipt.subtotalAmount.toFixed(2) }}</span>
+                </div>
+              }
+              @if (receipt.taxAmount) {
+                <div class="detail-row">
+                  <span class="label">Tax:</span>
+                  <span class="value">${{ receipt.taxAmount.toFixed(2) }}</span>
+                </div>
+              }
+              @if (receipt.tipAmount) {
+                <div class="detail-row">
+                  <span class="label">Tip:</span>
+                  <span class="value">${{ receipt.tipAmount.toFixed(2) }}</span>
+                </div>
+              }
+              <div class="detail-row total-row">
+                <span class="label">Total:</span>
+                <span class="value">${{ receipt.totalAmount.toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <!-- Validation Status -->
+            <div class="detail-section status-section">
+              <div class="status-badge" [class.valid]="receipt.isValidReceipt" [class.invalid]="!receipt.isValidReceipt">
+                <mat-icon>{{ receipt.isValidReceipt ? 'check_circle' : 'warning' }}</mat-icon>
+                <span>{{ receipt.isValidReceipt ? 'Validated' : 'Needs Review' }}</span>
+              </div>
+              @if (receipt.ocrConfidence) {
+                <p class="confidence">Confidence: {{ (receipt.ocrConfidence * 100).toFixed(0) }}%</p>
+              }
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button mat-raised-button color="primary" (click)="clearImage()">
+              <mat-icon>add</mat-icon>
+              Scan Another
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

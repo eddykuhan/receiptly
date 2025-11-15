@@ -1,0 +1,343 @@
+@import '../../../styles/variables';
+
+.history-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, $bg-secondary 0%, #ffffff 100%);
+}
+
+.history-header {
+  padding: $spacing-lg;
+  background: $bg-primary;
+  box-shadow: $shadow-sm;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+
+  h1 {
+    margin: 0 0 $spacing-lg;
+    font-size: $font-size-2xl;
+    font-weight: 700;
+    background: linear-gradient(135deg, $primary 0%, $purple 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .search-field {
+    width: 100%;
+    margin: 0 0 $spacing-md;
+
+    mat-icon {
+      color: $text-secondary;
+    }
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    mat-chip {
+      cursor: pointer;
+      
+      &[highlighted="true"] {
+        background: #2196f3 !important;
+        color: white !important;
+      }
+    }
+  }
+}
+
+.loading-state,
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px $spacing-lg;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $text-tertiary;
+    margin-bottom: $spacing-lg;
+  }
+
+  h2 {
+    margin: 0 0 $spacing-sm;
+    font-size: $font-size-xl;
+    font-weight: 600;
+    color: $text-secondary;
+  }
+
+  p {
+    margin: $spacing-sm 0 0;
+    color: $text-tertiary;
+  }
+}
+
+.receipts-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .receipt-card {
+    background: $bg-primary;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-sm;
+    transition: all $transition-base;
+    
+    &:hover {
+      box-shadow: $shadow-md;
+      transform: translateY(-2px);
+    }
+
+    mat-card-content {
+      padding: $spacing-lg;
+      display: flex;
+      gap: $spacing-md;
+
+      .receipt-main {
+        flex: 1;
+        display: flex;
+        gap: $spacing-md;
+        align-items: flex-start;
+
+        .store-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 52px;
+          height: 52px;
+          border-radius: $radius-md;
+          background: linear-gradient(135deg, rgba($primary, 0.1) 0%, rgba($purple, 0.1) 100%);
+          flex-shrink: 0;
+
+          mat-icon {
+            color: $primary;
+            font-size: 26px;
+            width: 26px;
+            height: 26px;
+          }
+        }
+
+        .receipt-info {
+          flex: 1;
+          min-width: 0;
+
+          h3 {
+            margin: 0 0 4px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .address {
+            margin: 0 0 8px;
+            font-size: 12px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #999;
+
+            span {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+
+              mat-icon {
+                font-size: 14px;
+                width: 14px;
+                height: 14px;
+              }
+            }
+          }
+        }
+
+        .receipt-amount {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 4px;
+
+          .amount {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2196f3;
+          }
+
+          .verified {
+            color: #4caf50;
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
+
+      .receipt-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        button {
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+    }
+
+    &:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      transition: box-shadow 0.2s;
+    }
+  }
+}
+
+.summary-footer {
+  padding: 16px;
+  background: white;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  .summary-item {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+
+    .label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2196f3;
+    }
+  }
+}
+
+// Tablet and Desktop
+@media (min-width: 768px) {
+  .receipts-list {
+    .receipt-card {
+      mat-card-content {
+        .receipt-main {
+          .receipt-info {
+            h3 {
+              font-size: 18px;
+            }
+
+            .address {
+              font-size: 14px;
+            }
+          }
+
+          .receipt-amount {
+            .amount {
+              font-size: 20px;
+            }
+          }
+        }
+
+        .receipt-actions {
+          flex-direction: row;
+        }
+      }
+    }
+  }
+}
+
+// Mobile optimizations
+@media (max-width: 600px) {
+  .history-header {
+    h1 {
+      font-size: 20px;
+    }
+  }
+
+  .receipts-list {
+    .receipt-card {
+      mat-card-content {
+        padding: 12px;
+
+        .receipt-main {
+          .store-icon {
+            width: 40px;
+            height: 40px;
+
+            mat-icon {
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+            }
+          }
+
+          .receipt-info {
+            h3 {
+              font-size: 14px;
+            }
+
+            .meta {
+              gap: 12px;
+              font-size: 11px;
+            }
+          }
+
+          .receipt-amount {
+            .amount {
+              font-size: 16px;
+            }
+          }
+        }
+
+        .receipt-actions {
+          button {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+
+            mat-icon {
+              font-size: 18px;
+              width: 18px;
+              height: 18px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Safe area insets for iOS
+@supports (padding: env(safe-area-inset-bottom)) {
+  .summary-footer {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}

@@ -1,0 +1,41 @@
+<div class="app-container">
+  <!-- Main Content Area -->
+  <div class="content">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- PWA Install Prompt -->
+  <app-pwa-install-prompt></app-pwa-install-prompt>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <mat-tab-group 
+      [(selectedIndex)]="activeTabIndex"
+      (selectedIndexChange)="onTabChange($event)"
+      mat-stretch-tabs="false"
+      mat-align-tabs="center"
+      animationDuration="200ms">
+      
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>photo_camera</mat-icon>
+          <span>Camera</span>
+        </ng-template>
+      </mat-tab>
+      
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>receipt_long</mat-icon>
+          <span>History</span>
+        </ng-template>
+      </mat-tab>
+      
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>dashboard</mat-icon>
+          <span>Dashboard</span>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  </nav>
+</div>

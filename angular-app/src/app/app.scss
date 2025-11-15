@@ -1,0 +1,82 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bottom-nav {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+
+  ::ng-deep .mat-mdc-tab-group {
+    .mat-mdc-tab-header {
+      border-bottom: none;
+    }
+
+    .mat-mdc-tab-labels {
+      justify-content: space-around;
+    }
+
+    .mat-mdc-tab {
+      min-width: 80px;
+      height: 64px;
+      opacity: 0.6;
+      
+      &.mdc-tab--active {
+        opacity: 1;
+      }
+
+      .mdc-tab__content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: center;
+      }
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+
+      span {
+        font-size: 12px;
+        font-weight: 500;
+      }
+    }
+
+    .mat-mdc-tab-body-wrapper {
+      display: none; // Hide tab bodies since we're using router
+    }
+  }
+}
+
+// Safe area insets for iOS
+@supports (padding: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+// Mobile optimizations
+@media (max-width: 600px) {
+  .bottom-nav ::ng-deep .mat-mdc-tab {
+    min-width: 60px;
+    
+    span {
+      font-size: 11px;
+    }
+  }
+}

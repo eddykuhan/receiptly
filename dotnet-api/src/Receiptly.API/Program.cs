@@ -34,6 +34,35 @@ try
     // Add Serilog
     builder.Host.UseSerilog();
 
+    // Add CORS
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAngularApp", policy =>
+        {
+            policy.WithOrigins(
+                    "http://localhost:4200",  // Angular dev server
+                    "http://localhost:8100",  // Ionic/Capacitor dev server
+                    "capacitor://localhost",  // Capacitor iOS
+                    "ionic://localhost",      // Capacitor Android
+                    "http://localhost"        // Generic localhost
+                )
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
+
+        // Production CORS policy (configure with actual domain)
+        options.AddPolicy("Production", policy =>
+        {
+            policy.WithOrigins(
+                    builder.Configuration["CORS:AllowedOrigins"]?.Split(',') ?? Array.Empty<string>()
+                )
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
+    });
+
     // Add services to the container.
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
@@ -219,6 +248,16 @@ try
 
     // Only use HTTPS redirection in production with proper certificates
     // app.UseHttpsRedirection();
+
+    // Enable CORS
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseCors("AllowAngularApp");
+    }
+    else
+    {
+        app.UseCors("Production");
+    }
 
     // Add Serilog request logging
     app.UseSerilogRequestLogging();

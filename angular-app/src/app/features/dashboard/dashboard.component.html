@@ -1,0 +1,131 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    
+    <!-- Period Selector -->
+    <mat-form-field appearance="outline" class="period-selector">
+      <mat-select [value]="selectedPeriod()" (selectionChange)="onPeriodChange($event.value)">
+        <mat-option value="all">All Time</mat-option>
+        <mat-option value="week">Last Week</mat-option>
+        <mat-option value="month">Last Month</mat-option>
+        <mat-option value="3months">Last 3 Months</mat-option>
+        <mat-option value="year">Last Year</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <p>Loading dashboard...</p>
+    </div>
+  } @else {
+    <!-- Summary Cards -->
+    @if (receiptCount() > 0) {
+      <div class="summary-cards">
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>attach_money</mat-icon>
+          </div>
+          <div class="card-info">
+            <span class="card-label">Total Spent</span>
+            <span class="card-value">{{ totalSpent() | myr }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>receipt</mat-icon>
+          </div>
+          <div class="card-info">
+            <span class="card-label">Receipts</span>
+            <span class="card-value">{{ receiptCount() }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>show_chart</mat-icon>
+          </div>
+          <div class="card-info">
+            <span class="card-label">Average</span>
+            <span class="card-value">{{ averagePerReceipt() | myr }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="summary-card">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>store</mat-icon>
+          </div>
+          <div class="card-info">
+            <span class="card-label">Top Store</span>
+            <span class="card-value">{{ topStore() }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    }
+
+    <!-- Charts (always visible) -->
+    <div class="charts-section">
+      <!-- Spending Over Time Chart -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>timeline</mat-icon>
+            Spending Over Time
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas #spendingChart></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Spending by Store Chart -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>pie_chart</mat-icon>
+            Top 5 Stores
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas #storeChart></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Monthly Comparison Chart -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>bar_chart</mat-icon>
+            Monthly Comparison
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="chart-container">
+            <canvas #monthlyChart></canvas>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    @if (receiptCount() === 0) {
+      <div class="empty-state" style="margin-top: 2rem;">
+        <mat-icon>receipt_long</mat-icon>
+        <p>No receipt data to display yet. Start scanning receipts!</p>
+      </div>
+    }
+  }
+</div>

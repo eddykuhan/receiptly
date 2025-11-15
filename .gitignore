@@ -1,9 +1,12 @@
 # macOS
 .DS_Store
 
-# Node.js
+# Node.js & Angular
 node_modules/
 *.log
+angular-app/.angular/
+angular-app/dist/
+angular-app/.vscode/
 
 # Service management
 .service-pids
