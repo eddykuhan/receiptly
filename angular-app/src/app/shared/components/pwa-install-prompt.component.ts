@@ -17,7 +17,7 @@ import { PwaService } from '../../core/services/pwa.service';
             <mat-icon>get_app</mat-icon>
           </div>
           <div class="install-text">
-            <h3>Install Receiptly</h3>
+            <h3>Install resit la!</h3>
             <p>Install our app for a better experience</p>
           </div>
         </div>
@@ -59,7 +59,7 @@ import { PwaService } from '../../core/services/pwa.service';
       border-radius: 16px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
       padding: 20px;
-      z-index: 1000;
+      z-index: 10002;
       animation: slideUp 0.3s ease-out;
 
       &.ios-prompt {
