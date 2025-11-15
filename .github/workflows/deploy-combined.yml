@@ -129,6 +129,7 @@ jobs:
           AWS__Region=${{ env.AWS_REGION }}
           ASPNETCORE_ENVIRONMENT=Production
           ASPNETCORE_URLS=http://+:5000
+          Swagger__Enabled=true
           EOF
           
           # Create .env for OCR
