@@ -166,6 +166,9 @@ try
 
     // Add File Validation Service
     builder.Services.AddScoped<FileValidationService>();
+    
+    // Add Image Hash Service
+    builder.Services.AddScoped<IImageHashService, ImageHashService>();
 
     // Add Repository
     builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
