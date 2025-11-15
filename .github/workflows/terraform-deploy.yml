@@ -27,11 +27,13 @@ env:
 
 jobs:
   terraform-plan:
-    name: Terraform Plan
+    name: Terraform Plan - ${{ matrix.environment }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
-        environment: [staging, production]
+        environment: [staging]
+      fail-fast: false
     
     permissions:
       contents: read
@@ -110,6 +112,7 @@ jobs:
   terraform-apply-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: terraform-plan
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
@@ -159,56 +162,58 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "View bucket: [S3 Console](https://s3.console.aws.amazon.com/s3/buckets/${{ steps.outputs.outputs.bucket_name }})" >> $GITHUB_STEP_SUMMARY
 
-  terraform-apply-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: terraform-plan
-    if: |
-      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
-    environment:
-      name: production
-      url: https://console.aws.amazon.com/s3/buckets/receiptly-production-receipts
-    
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform/environments/production
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: ./terraform/environments/production
-
-      - name: Get Outputs
-        id: outputs
-        run: |
-          echo "bucket_name=$(terraform output -raw receipts_bucket_name)" >> $GITHUB_OUTPUT
-          echo "s3_secret=$(terraform output -raw s3_secret_name)" >> $GITHUB_OUTPUT
-        working-directory: ./terraform/environments/production
-
-      - name: Deployment Summary
-        run: |
-          echo "### Production Deployment Complete! 🎉" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**S3 Bucket:** ${{ steps.outputs.outputs.bucket_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**S3 Credentials Secret:** ${{ steps.outputs.outputs.s3_secret }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View bucket: [S3 Console](https://s3.console.aws.amazon.com/s3/buckets/${{ steps.outputs.outputs.bucket_name }})" >> $GITHUB_STEP_SUMMARY
+  # Production deployment - Uncomment when ready to deploy to production
+  # terraform-apply-production:
+  #   name: Deploy to Production
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 20
+  #   needs: terraform-plan
+  #   if: |
+  #     (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+  #     (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+  #   environment:
+  #     name: production
+  #     url: https://console.aws.amazon.com/s3/buckets/receiptly-production-receipts
+  #   
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+  #
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
+  #
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: ${{ env.TERRAFORM_VERSION }}
+  #
+  #     - name: Terraform Init
+  #       run: terraform init
+  #       working-directory: ./terraform/environments/production
+  #
+  #     - name: Terraform Apply
+  #       run: terraform apply -auto-approve
+  #       working-directory: ./terraform/environments/production
+  #
+  #     - name: Get Outputs
+  #       id: outputs
+  #       run: |
+  #         echo "bucket_name=$(terraform output -raw receipts_bucket_name)" >> $GITHUB_OUTPUT
+  #         echo "s3_secret=$(terraform output -raw s3_secret_name)" >> $GITHUB_OUTPUT
+  #       working-directory: ./terraform/environments/production
+  #
+  #     - name: Deployment Summary
+  #       run: |
+  #         echo "### Production Deployment Complete! 🎉" >> $GITHUB_STEP_SUMMARY
+  #         echo "" >> $GITHUB_STEP_SUMMARY
+  #         echo "**S3 Bucket:** ${{ steps.outputs.outputs.bucket_name }}" >> $GITHUB_STEP_SUMMARY
+  #         echo "**S3 Credentials Secret:** ${{ steps.outputs.outputs.s3_secret }}" >> $GITHUB_STEP_SUMMARY
+  #         echo "" >> $GITHUB_STEP_SUMMARY
+  #         echo "View bucket: [S3 Console](https://s3.console.aws.amazon.com/s3/buckets/${{ steps.outputs.outputs.bucket_name }})" >> $GITHUB_STEP_SUMMARY
