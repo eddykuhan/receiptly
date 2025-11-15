@@ -59,7 +59,9 @@ env/
 **/.terraform.tfstate.lock.info
 ENV/
 venv*/
-env*/
+# Only ignore Python virtual env directories, not terraform/environments
+**/env/
+!terraform/environments/
 ## JetBrains Rider
 .idea/
 *.sln.iml
