@@ -91,6 +91,18 @@ public class ReceiptsController : ControllerBase
             var receiptDto = _mapper.Map<ReceiptDto>(receipt);
             return Ok(receiptDto);
         }
+        catch (Receiptly.Domain.Exceptions.DuplicateReceiptException ex)
+        {
+            _logger.LogWarning("Duplicate receipt detected. ExistingReceiptId: {ExistingReceiptId}, ImageHash: {ImageHash}", 
+                ex.ExistingReceiptId, ex.ImageHash);
+            return Conflict(new 
+            { 
+                error = "Duplicate receipt",
+                message = "A receipt with the same image has already been uploaded",
+                existingReceiptId = ex.ExistingReceiptId,
+                imageHash = ex.ImageHash
+            });
+        }
         catch (OperationCanceledException)
         {
             _logger.LogWarning("Receipt upload cancelled. FileName: {FileName}", file?.FileName);
