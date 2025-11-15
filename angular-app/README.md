@@ -32,6 +32,8 @@ To build the project run:
 
 ```bash
 ng build
+npm run build -- --configuration production
+npx http-server dist/angular-app/browser -p 8080
 ```
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
