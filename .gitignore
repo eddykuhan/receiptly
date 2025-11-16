@@ -12,6 +12,10 @@ angular-app/.vscode/
 .service-pids
 logs/
 
+# Documentation and scripts (anywhere in repo)
+**/docs/
+**/scripts/
+
 # Environment files
 .env
 .env.local
