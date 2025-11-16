@@ -175,6 +175,13 @@ public static class ServiceCollectionExtensions
                 
                 services.AddSingleton(ocrConfig);
                 services.AddHttpClient<PythonOcrClient>()
+                    .ConfigureHttpClient(client =>
+                    {
+                        // Increase timeout for OCR processing from mobile devices
+                        // Mobile uploads can be large (5-10MB) and OCR involves:
+                        // 1. S3 upload, 2. Image download, 3. Cropping, 4. Tesseract, 5. Azure processing
+                        client.Timeout = TimeSpan.FromMinutes(5); // 300 seconds
+                    })
                     .AddPolicyHandler(GetRetryPolicy());
 
                 return services;
@@ -214,6 +221,13 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(ocrConfig);
         services.AddHttpClient<PythonOcrClient>()
+            .ConfigureHttpClient(client =>
+            {
+                // Increase timeout for OCR processing from mobile devices
+                // Mobile uploads can be large (5-10MB) and OCR involves:
+                // 1. S3 upload, 2. Image download, 3. Cropping, 4. Tesseract, 5. Azure processing
+                client.Timeout = TimeSpan.FromMinutes(5); // 300 seconds
+            })
             .AddPolicyHandler(GetRetryPolicy());
 
         return services;
