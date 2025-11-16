@@ -47,3 +47,21 @@ variable "log_retention_days" {
   type        = number
   default     = 7 # Free tier includes 5GB ingestion
 }
+
+variable "domain_name" {
+  description = "Domain name for SSL certificate (e.g., api.receiptly.com)"
+  type        = string
+  default     = ""
+}
+
+variable "letsencrypt_email" {
+  description = "Email address for Let's Encrypt SSL certificate notifications"
+  type        = string
+  default     = ""
+}
+
+variable "enable_https" {
+  description = "Enable HTTPS with Nginx and Let's Encrypt"
+  type        = bool
+  default     = false
+}

@@ -42,6 +42,24 @@ resource "aws_security_group" "ocr_service" {
     cidr_blocks = var.allowed_cidr_blocks
   }
 
+  # Allow HTTPS access (port 443)
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_cidr_blocks
+  }
+
+  # Allow HTTP access (port 80) for Let's Encrypt validation
+  ingress {
+    description = "HTTP for Let's Encrypt"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_cidr_blocks
+  }
+
   # Allow SSH access (optional, for debugging)
   ingress {
     description = "SSH access"
@@ -267,6 +285,111 @@ locals {
     
     # Reload systemd
     systemctl daemon-reload
+    
+    ${var.enable_https ? <<-HTTPS
+    # ==========================================
+    # Configure Nginx with Let's Encrypt SSL
+    # ==========================================
+    
+    # Install Nginx and Certbot
+    dnf install -y nginx certbot python3-certbot-nginx
+    
+    # Create Nginx configuration for reverse proxy
+    cat > /etc/nginx/conf.d/receiptly.conf <<'NGINXEOF'
+    # HTTP server - redirect to HTTPS
+    server {
+        listen 80;
+        server_name ${var.domain_name};
+        
+        # Let's Encrypt challenge location
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+        
+        # Redirect all other HTTP traffic to HTTPS
+        location / {
+            return 301 https://$server_name$request_uri;
+        }
+    }
+    
+    # HTTPS server
+    server {
+        listen 443 ssl http2;
+        server_name ${var.domain_name};
+        
+        # SSL certificate paths (will be configured by certbot)
+        ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
+        
+        # SSL configuration
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+        
+        # API endpoints
+        location /api/ {
+            proxy_pass http://localhost:5000/api/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_cache_bypass $http_upgrade;
+            proxy_read_timeout 90;
+        }
+        
+        # OCR endpoints
+        location /ocr/ {
+            proxy_pass http://localhost:8000/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_cache_bypass $http_upgrade;
+            proxy_read_timeout 300;
+            client_max_body_size 10M;
+        }
+        
+        # Health check endpoint
+        location /health {
+            return 200 'OK';
+            add_header Content-Type text/plain;
+        }
+    }
+    NGINXEOF
+    
+    # Create directory for Let's Encrypt challenges
+    mkdir -p /var/www/certbot
+    
+    # Start and enable Nginx
+    systemctl start nginx
+    systemctl enable nginx
+    
+    # Wait for services to be ready
+    sleep 10
+    
+    # Obtain SSL certificate from Let's Encrypt
+    certbot certonly --nginx \
+      --non-interactive \
+      --agree-tos \
+      --email ${var.letsencrypt_email} \
+      -d ${var.domain_name} \
+      --redirect
+    
+    # Reload Nginx to apply SSL certificate
+    systemctl reload nginx
+    
+    # Set up automatic certificate renewal
+    echo "0 12 * * * root certbot renew --quiet --post-hook 'systemctl reload nginx'" > /etc/cron.d/certbot-renew
+    
+    echo "HTTPS configuration complete for ${var.domain_name}"
+    HTTPS
+    : ""}
     
     # Note: Initial deployment will be done via GitHub Actions
     echo "EC2 instance ready for deployment with CloudWatch Logs" > /opt/receiptly/status.txt

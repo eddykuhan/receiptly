@@ -111,6 +111,11 @@ module "ocr_service" {
   ssh_allowed_cidr_blocks = [] # No SSH access for security
 
   aws_region = var.aws_region
+
+  # HTTPS Configuration
+  enable_https      = var.enable_https
+  domain_name       = var.domain_name
+  letsencrypt_email = var.letsencrypt_email
 }
 
 # ==========================================
