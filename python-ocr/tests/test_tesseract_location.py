@@ -20,11 +20,11 @@ async def test_location_extraction():
     print("=" * 60)
     
     # Initialize service
-    tesseract_service = TesseractOCRService()
+    tesseract_service = TesseractOCRService(debug_mode=True)
     print("✓ Tesseract OCR Service initialized\n")
     
     # Test with a URL (sample receipt image)
-    test_image_url = "https://www.investopedia.com/thmb/YtYjnToyvhuX31xXGDyVxd7f5Z0=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/ReceiptENDOFYEAR-5c19aea146e0fb000160679a.jpg"
+    test_image_url = "https://receiptly-staging-receipts.s3.ap-southeast-1.amazonaws.com/users/default-user/receipts/2025/11/16/2674f091-e50b-40e5-adce-e87f21256dac/receipt_1763255767554.jpg?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA5ZJTSBRRPR56Z6XY%2F20251116%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20251116T012320Z&X-Amz-SignedHeaders=host&X-Amz-Signature=00d4fefec53fe4543399f09baa1b72f7d8ac18a8b651c2ecb617e021468338b0"
     
     print(f"Test Image URL: {test_image_url}\n")
     

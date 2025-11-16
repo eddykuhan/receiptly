@@ -3,6 +3,7 @@ from pydantic import BaseModel, HttpUrl
 from typing import Dict, Any
 from ..services.document_intelligence import DocumentIntelligenceService
 from ..services.tesseract_ocr import TesseractOCRService
+from ..services.receipt_detector import ReceiptDetector
 from ..utils.image_utils import download_image
 
 router = APIRouter()
@@ -12,6 +13,7 @@ class AnalyzeRequest(BaseModel):
     """Request model for receipt analysis."""
     image_url: HttpUrl
     extract_location: bool = True  # Flag to enable/disable location extraction
+    auto_crop: bool = True  # Flag to enable/disable automatic receipt cropping
 
 
 @router.post("/analyze")
@@ -24,6 +26,7 @@ async def analyze_receipt(
     Analyze a receipt image from a URL and return structured data with store location.
     
     Uses:
+    - Receipt boundary detection to crop to receipt area only (optional)
     - Azure Document Intelligence for structured receipt data extraction
     - Tesseract OCR for store location/address extraction
     
@@ -47,19 +50,26 @@ async def analyze_receipt(
         file_bytes = await download_image(str(request.image_url))
         print(f"Downloaded {len(file_bytes)} bytes")
         
-        # Step 2: Extract store location using Tesseract (if requested)
+        # Step 2: Auto-crop to receipt boundary (if enabled)
+        if request.auto_crop:
+            print("Detecting receipt boundary and cropping...")
+            detector = ReceiptDetector()
+            file_bytes = detector.detect_and_crop(file_bytes)
+            print(f"After cropping: {len(file_bytes)} bytes")
+        
+        # Step 3: Extract store location using Tesseract (if requested)
         location_data = None
         if request.extract_location:
             print("Extracting store location with Tesseract OCR...")
             location_data = tesseract_service.extract_location_from_bytes(file_bytes)
             print(f"Location extraction complete. Success: {location_data}")
         
-        # Step 3: Preprocess image for Azure
+        # Step 4: Preprocess image for Azure
         print("Preprocessing image...")
         processed_bytes = doc_service.preprocessor.process(file_bytes)
         print(f"Image preprocessing complete. Output: {len(processed_bytes)} bytes")
         
-        # Step 4: Send preprocessed image to Azure Document Intelligence
+        # Step 5: Send preprocessed image to Azure Document Intelligence
         print("Analyzing with Azure Document Intelligence...")
         receipt = await doc_service._analyze_document(processed_bytes)
         
@@ -73,7 +83,7 @@ async def analyze_receipt(
         # Convert to dict
         result = receipt.to_dict()
         
-        # Step 5: Override Azure's merchant data with Tesseract's more accurate location data
+        # Step 6: Override Azure's merchant data with Tesseract's more accurate location data
         if location_data and location_data.get('success'):
             result = override_merchant_data_with_tesseract(result, location_data)
             print("✓ Overridden Azure merchant data with Tesseract location data")
