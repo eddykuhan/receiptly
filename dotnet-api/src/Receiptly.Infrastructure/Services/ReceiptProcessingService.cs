@@ -325,10 +325,37 @@ public class ReceiptProcessingService : IReceiptProcessingService
             }
         }
 
-        // Extract merchant name (from Tesseract override)
+        // Extract merchant name (from Tesseract override or fallback)
         if (ocrResponse.Fields.TryGetValue("MerchantName", out var merchantName))
         {
             receipt.StoreName = merchantName.Value?.ToString() ?? string.Empty;
+            
+            // Check if this requires manual review (fallback couldn't find store name)
+            if (merchantName.RequiresManualReview == true)
+            {
+                receipt.Status = Receiptly.Domain.Enums.ReceiptStatus.PendingValidation;
+                _logger.LogWarning("Store name could not be detected - marked for manual review. ReceiptId: {ReceiptId}, Source: {Source}", 
+                    receipt.Id, merchantName.Source ?? "unknown");
+            }
+            
+            // Log the source of merchant name for debugging
+            if (!string.IsNullOrEmpty(merchantName.Source))
+            {
+                _logger.LogInformation("MerchantName extracted from: {Source}. ReceiptId: {ReceiptId}", 
+                    merchantName.Source, receipt.Id);
+            }
+            
+            // Log if we got "Unknown Store" placeholder
+            if (receipt.StoreName == "Unknown Store")
+            {
+                _logger.LogWarning("Receipt has unknown store name - may require manual review. ReceiptId: {ReceiptId}", receipt.Id);
+            }
+        }
+        else
+        {
+            // No merchant name at all - set empty string
+            receipt.StoreName = string.Empty;
+            _logger.LogWarning("No MerchantName field found in OCR response. ReceiptId: {ReceiptId}", receipt.Id);
         }
 
         // Extract merchant address (from Tesseract override)

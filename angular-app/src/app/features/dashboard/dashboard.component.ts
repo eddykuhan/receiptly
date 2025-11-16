@@ -442,6 +442,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   private getTotalAmount(receipt: Receipt): number {
-    return receipt.items?.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0) || 0;
+    // Use the totalAmount from the receipt (OCR data) instead of summing items
+    // Items may have missing prices/quantities, but totalAmount is the authoritative value
+    return receipt.totalAmount || 0;
   }
 }

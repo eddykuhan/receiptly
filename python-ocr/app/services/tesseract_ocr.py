@@ -321,15 +321,95 @@ class TesseractOCRService:
             if any(word in line.lower() for word in ['date', 'time', 'am', 'pm']):
                 continue
             
+            # Check if line is gibberish (too many special characters, random text)
+            if self._is_gibberish(line):
+                continue
+            
             # Clean up common OCR errors
             cleaned_line = self._clean_ocr_text(line)
+            
+            # Validate the cleaned line again
+            if self._is_gibberish(cleaned_line):
+                continue
             
             # If line has mostly letters (good sign for store name)
             letter_count = sum(c.isalpha() for c in cleaned_line)
             if letter_count >= 3:  # At least 3 letters
-                return cleaned_line
+                # Final length check - store names shouldn't be extremely long
+                if len(cleaned_line) <= 100:  # Reasonable max length
+                    return cleaned_line
         
         return None
+    
+    def _is_gibberish(self, text: str) -> bool:
+        """
+        Detect if text is likely gibberish/noise from bad OCR.
+        
+        Returns True if text appears to be gibberish.
+        """
+        if not text or len(text) < 3:
+            return True
+        
+        # Check for excessive length (gibberish tends to be very long)
+        if len(text) > 200:
+            return True
+        
+        # Count different character types
+        letter_count = sum(c.isalpha() for c in text)
+        digit_count = sum(c.isdigit() for c in text)
+        space_count = sum(c.isspace() for c in text)
+        special_count = sum(not c.isalnum() and not c.isspace() for c in text)
+        total_chars = len(text)
+        
+        # Calculate ratios
+        letter_ratio = letter_count / total_chars if total_chars > 0 else 0
+        special_ratio = special_count / total_chars if total_chars > 0 else 0
+        
+        # Gibberish indicators:
+        # 1. Less than 30% letters
+        if letter_ratio < 0.3:
+            return True
+        
+        # 2. More than 40% special characters (excluding spaces)
+        if special_ratio > 0.4:
+            return True
+        
+        # 3. Check for repeating patterns (noise often repeats)
+        # Split into words
+        words = text.split()
+        if len(words) > 5:
+            # Check if too many words are very short (1-2 chars) or very long (>15)
+            short_words = sum(1 for w in words if len(w) <= 2)
+            long_words = sum(1 for w in words if len(w) > 15)
+            
+            if short_words > len(words) * 0.5:  # More than 50% are 1-2 char words
+                return True
+            if long_words > len(words) * 0.3:  # More than 30% are very long
+                return True
+        
+        # 4. Check for excessive uppercase sequences (OCR noise pattern)
+        uppercase_sequences = re.findall(r'[A-Z]{10,}', text)
+        if len(uppercase_sequences) > 3:
+            return True
+        
+        # 5. Check for repeating character patterns
+        # e.g., "ee ee ee" or "aa aa aa"
+        if re.search(r'(\b\w{1,3}\b)(\s+\1){3,}', text):
+            return True
+        
+        # 6. Check for excessive mixed case (OCR artifact)
+        # Count transitions between upper and lower
+        case_transitions = 0
+        for i in range(len(text) - 1):
+            if text[i].isalpha() and text[i+1].isalpha():
+                if text[i].isupper() != text[i+1].isupper():
+                    case_transitions += 1
+        
+        # If more than 50% of letters are case transitions
+        if letter_count > 0 and case_transitions > letter_count * 0.5:
+            return True
+        
+        return False
     
     def _clean_ocr_text(self, text: str) -> str:
         """Clean up common OCR errors and noise."""
@@ -367,8 +447,16 @@ class TesseractOCRService:
             if not line:
                 continue
             
+            # Skip gibberish
+            if self._is_gibberish(line):
+                continue
+            
             # Clean common OCR errors in addresses
             line = self._clean_address_ocr(line)
+            
+            # Validate again after cleaning
+            if self._is_gibberish(line):
+                continue
             
             # Check if line contains address-like keywords
             if any(keyword in line.lower() for keyword in [
@@ -376,13 +464,23 @@ class TesseractOCRService:
                 'level', 'floor', 'unit', '#', 'bldg', 'building',
                 'mall', 'plaza', 'center', 'centre', 'jalan', 'jln'
             ]):
-                address_lines.append(line)
+                if len(line) <= 150:  # Reasonable address length
+                    address_lines.append(line)
             
             # Check for numbered addresses (e.g., "123 Main St")
             elif re.search(r'\b\d+[-\s]+[A-Za-z]', line):
-                address_lines.append(line)
+                if len(line) <= 150:
+                    address_lines.append(line)
         
-        return ' '.join(address_lines) if address_lines else None
+        # Combine address lines but limit total length
+        full_address = ' '.join(address_lines) if address_lines else None
+        
+        # Final validation - address shouldn't be too long
+        if full_address and len(full_address) > 300:
+            # Keep only first 300 characters
+            full_address = full_address[:300]
+        
+        return full_address
     
     def _clean_address_ocr(self, text: str) -> str:
         """Clean OCR errors specific to addresses."""
