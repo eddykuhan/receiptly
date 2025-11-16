@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     CORS_HEADERS: list = ["*"]
     CORS_METHODS: list = ["*"]
     
+    # Debug Settings
+    DEBUG_IMAGE_PROCESSING: bool = False
+    DEBUG_TESSERACT: bool = False
+    DEBUG_OUTPUT_DIR: str = "debug_ocr"
+    
     class Config:
         env_file = ".env"
 

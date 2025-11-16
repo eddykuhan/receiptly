@@ -7,8 +7,16 @@ from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
 from ..services.store_name_extractor import StoreNameExtractor
 from ..utils.image_utils import download_image
+from ..utils.debug import ImageDebugger, enable_debug, disable_debug
+from ..core.config import get_settings
 
 router = APIRouter()
+
+
+def get_tesseract_service() -> TesseractOCRService:
+    """Factory function to create TesseractOCRService with debug mode from settings."""
+    settings = get_settings()
+    return TesseractOCRService(debug_mode=settings.DEBUG_TESSERACT)
 
 
 class AnalyzeRequest(BaseModel):
@@ -23,7 +31,7 @@ class AnalyzeRequest(BaseModel):
 async def analyze_receipt(
     request: AnalyzeRequest,
     doc_service: DocumentIntelligenceService = Depends(DocumentIntelligenceService),
-    tesseract_service: TesseractOCRService = Depends(TesseractOCRService)
+    tesseract_service: TesseractOCRService = Depends(get_tesseract_service)
 ) -> Dict[str, Any]:
     """
     Analyze a receipt image from a URL and return structured data with store location.
@@ -49,10 +57,25 @@ async def analyze_receipt(
         print(f"Received analyze request. Image URL: {request.image_url}")
         print(f"Auto-crop: {request.auto_crop}, Method: {request.crop_method if request.auto_crop else 'N/A'}")
         
+        # Initialize debugger if enabled
+        settings = get_settings()
+        debug_enabled = settings.DEBUG_IMAGE_PROCESSING
+        debugger = ImageDebugger(enabled=debug_enabled) if debug_enabled else None
+        
+        if debugger:
+            debugger.start_session()
+            print(f"🐛 Debug mode enabled. Session: {debugger.session_id}")
+        
         # Step 1: Download image once
         print("Downloading image...")
         file_bytes = await download_image(str(request.image_url))
         print(f"Downloaded {len(file_bytes)} bytes")
+        print("Debugging output initialized.", debugger)
+        if debugger:
+            debugger.save_image(file_bytes, "01_original", {
+                "url": str(request.image_url),
+                "size_bytes": len(file_bytes)
+            })
         
         # Step 2: Auto-crop to receipt boundary (if enabled)
         boundary_info = None
@@ -63,17 +86,37 @@ async def analyze_receipt(
                     azure_detector = AzureReceiptDetector()
                     file_bytes, boundary_info = await azure_detector.detect_and_crop(file_bytes)
                     print(f"After Azure Layout cropping: {len(file_bytes)} bytes")
+                    
+                    if debugger:
+                        debugger.save_image(file_bytes, "02_cropped_azure", {
+                            "method": "azure_layout",
+                            "size_bytes": len(file_bytes),
+                            "boundary_info": boundary_info
+                        })
                 except Exception as e:
                     print(f"Azure Layout detection failed: {str(e)}")
                     print("Falling back to OpenCV detection...")
                     detector = ReceiptDetector()
                     file_bytes = detector.detect_and_crop(file_bytes)
                     print(f"After OpenCV cropping: {len(file_bytes)} bytes")
+                    
+                    if debugger:
+                        debugger.save_image(file_bytes, "02_cropped_opencv_fallback", {
+                            "method": "opencv_fallback",
+                            "size_bytes": len(file_bytes),
+                            "error": str(e)
+                        })
             else:
                 print("Using OpenCV for boundary detection...")
                 detector = ReceiptDetector()
                 file_bytes = detector.detect_and_crop(file_bytes)
                 print(f"After cropping: {len(file_bytes)} bytes")
+
+                if debugger:
+                    debugger.save_image(file_bytes, "02_cropped_opencv", {
+                        "method": "opencv",
+                        "size_bytes": len(file_bytes)
+                    })
         
         # Step 3: Extract store location using Tesseract (if requested)
         location_data = None
@@ -81,17 +124,32 @@ async def analyze_receipt(
             print("Extracting store location with Tesseract OCR...")
             location_data = tesseract_service.extract_location_from_bytes(file_bytes)
             print(f"Location extraction complete. Success: {location_data}")
+            
+            if debugger:
+                debugger.save_json(location_data, "03_location_extraction", {
+                    "tesseract_version": tesseract_service.__class__.__name__
+                })
+                if location_data and location_data.get('raw_text'):
+                    debugger.save_text(location_data['raw_text'], "03_location_raw_text")
         
         # Step 4: Preprocess image for Azure
         print("Preprocessing image...")
         processed_bytes = doc_service.preprocessor.process(file_bytes)
         print(f"Image preprocessing complete. Output: {len(processed_bytes)} bytes")
+
+        if debugger:
+            debugger.save_image(processed_bytes, "04_preprocessed_for_azure", {
+                "size_bytes": len(processed_bytes),
+                "preprocessor": doc_service.preprocessor.__class__.__name__
+            })
         
         # Step 5: Send preprocessed image to Azure Document Intelligence
         print("Analyzing with Azure Document Intelligence...")
         receipt = await doc_service._analyze_document(processed_bytes)
         
         if not receipt:
+            if debugger:
+                debugger.save_json({"error": "No receipt data found"}, "05_azure_result")
             return {
                 "success": False,
                 "error": "No receipt data found",
@@ -100,6 +158,12 @@ async def analyze_receipt(
         
         # Convert to dict
         result = receipt.to_dict()
+        
+        if debugger:
+            debugger.save_json(result, "05_azure_result", {
+                "merchant_name": result.get("merchant_name"),
+                "merchant_address": result.get("merchant_address")
+            })
         
         # Step 6: Override Azure's merchant data with Tesseract's more accurate location data
         # Pass original image bytes for fallback extraction if needed
@@ -110,10 +174,20 @@ async def analyze_receipt(
             # Even if Tesseract extraction was disabled/failed, try fallback if Azure has no merchant name
             result = override_merchant_data_with_tesseract(result, {'success': False}, file_bytes)
         
+        if debugger:
+            debugger.save_json(result, "06_final_result_after_override", {
+                "merchant_name": result.get("merchant_name"),
+                "merchant_address": result.get("merchant_address"),
+                "override_applied": location_data and location_data.get('success', False)
+            })
+        
         # Step 7: Validate if it's actually a receipt
         validation = validate_receipt_confidence(result)
         
         print(f"Analysis completed. Validation: {validation['is_valid_receipt']}, Confidence: {validation['confidence']}")
+        
+        if debugger:
+            debugger.save_json(validation, "07_validation_result")
         
         response = {
             "success": True,
@@ -125,10 +199,20 @@ async def analyze_receipt(
         if location_data:
             response["location"] = location_data
         
+        # Add debug session info
+        if debugger:
+            response["debug"] = {
+                "session_id": debugger.session_id,
+                "output_dir": debugger.output_dir
+            }
+            print(f"🐛 Debug files saved to: {debugger.output_dir}")
+        
         return response
         
     except Exception as e:
         print(f"Error in analyze_receipt: {str(e)}")
+        if debugger:
+            debugger.save_json({"error": str(e), "type": type(e).__name__}, "99_error")
         raise HTTPException(status_code=400, detail=str(e))
 
 

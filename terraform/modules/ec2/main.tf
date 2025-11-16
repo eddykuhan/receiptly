@@ -153,7 +153,7 @@ resource "aws_iam_instance_profile" "ocr_instance" {
   }
 }
 
-# User Data Script to install Docker for both services
+# User Data Script to install Docker and CloudWatch Agent
 locals {
   user_data = <<-EOT
     #!/bin/bash
@@ -163,7 +163,7 @@ locals {
     dnf update -y
     
     # Install Docker
-    dnf install -y docker
+    dnf install -y docker amazon-cloudwatch-agent
     
     # Start Docker service
     systemctl start docker
@@ -175,6 +175,50 @@ locals {
     # Create deployment directories
     mkdir -p /opt/receiptly/api
     mkdir -p /opt/receiptly/ocr
+    mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
+    
+    # Configure CloudWatch Agent
+    cat > /opt/aws/amazon-cloudwatch-agent/etc/config.json <<'CWEOF'
+    {
+      "logs": {
+        "logs_collected": {
+          "files": {
+            "collect_list": [
+              {
+                "file_path": "/var/log/messages",
+                "log_group_name": "/receiptly/${var.environment}/system",
+                "log_stream_name": "{instance_id}/messages",
+                "timestamp_format": "%b %d %H:%M:%S"
+              }
+            ]
+          }
+        },
+        "log_stream_name": "{instance_id}"
+      }
+    }
+    CWEOF
+    
+    # Start CloudWatch Agent
+    /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+      -a fetch-config \
+      -m ec2 \
+      -s \
+      -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json
+    
+    # Configure Docker daemon to use JSON file logging
+    cat > /etc/docker/daemon.json <<'DOCKEREOF'
+    {
+      "log-driver": "awslogs",
+      "log-opts": {
+        "awslogs-region": "${var.aws_region}",
+        "awslogs-group": "/receiptly/${var.environment}",
+        "tag": "{{.Name}}"
+      }
+    }
+    DOCKEREOF
+    
+    # Restart Docker to apply logging configuration
+    systemctl restart docker
     
     # Create Docker network for inter-service communication
     docker network create receiptly_default 2>/dev/null || true
@@ -191,7 +235,7 @@ locals {
     WorkingDirectory=/opt/receiptly/api
     ExecStartPre=-/usr/bin/docker stop receiptly-api
     ExecStartPre=-/usr/bin/docker rm receiptly-api
-    ExecStart=/usr/bin/docker run --name receiptly-api --network receiptly_default -p 5000:5000 --env-file /opt/receiptly/api/.env receiptly-api:latest
+    ExecStart=/usr/bin/docker run --name receiptly-api --network receiptly_default -p 5000:5000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/api --log-opt awslogs-stream=receiptly-api --env-file /opt/receiptly/api/.env receiptly-api:latest
     ExecStop=/usr/bin/docker stop receiptly-api
     Restart=always
     
@@ -211,7 +255,7 @@ locals {
     WorkingDirectory=/opt/receiptly/ocr
     ExecStartPre=-/usr/bin/docker stop receiptly-ocr
     ExecStartPre=-/usr/bin/docker rm receiptly-ocr
-    ExecStart=/usr/bin/docker run --name receiptly-ocr --network receiptly_default -p 8000:8000 --env-file /opt/receiptly/ocr/.env python-ocr:latest
+    ExecStart=/usr/bin/docker run --name receiptly-ocr --network receiptly_default -p 8000:8000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/ocr --log-opt awslogs-stream=receiptly-ocr --env-file /opt/receiptly/ocr/.env python-ocr:latest
     ExecStop=/usr/bin/docker stop receiptly-ocr
     Restart=always
     
@@ -219,8 +263,11 @@ locals {
     WantedBy=multi-user.target
     EOF
     
+    # Reload systemd
+    systemctl daemon-reload
+    
     # Note: Initial deployment will be done via GitHub Actions
-    echo "EC2 instance ready for deployment" > /opt/receiptly/status.txt
+    echo "EC2 instance ready for deployment with CloudWatch Logs" > /opt/receiptly/status.txt
   EOT
 }
 

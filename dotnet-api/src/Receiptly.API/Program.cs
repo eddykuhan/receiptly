@@ -10,11 +10,27 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    // Configure Kestrel for mobile uploads (large files, longer processing time)
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.Limits.MaxRequestBodySize = 15 * 1024 * 1024; // 15MB (mobile images can be large)
+        options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // 5 minutes
+        options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
+    });
+
     // Add Serilog
     builder.Host.UseSerilog();
 
     // Configure CORS policies
     builder.Services.AddCorsConfiguration(builder.Configuration);
+
+    // Configure form options for file uploads
+    builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+    {
+        options.MultipartBodyLengthLimit = 15 * 1024 * 1024; // 15MB
+        options.ValueLengthLimit = 15 * 1024 * 1024;
+        options.BufferBodyLengthLimit = 15 * 1024 * 1024;
+    });
 
     // Configure Controllers with JSON options
     builder.Services.AddControllers()

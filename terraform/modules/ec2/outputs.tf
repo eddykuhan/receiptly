@@ -37,3 +37,18 @@ output "instance_role_arn" {
   description = "IAM role ARN for EC2 instance"
   value       = aws_iam_role.ocr_instance.arn
 }
+
+output "cloudwatch_log_group_ocr" {
+  description = "CloudWatch Log Group for Python OCR service"
+  value       = aws_cloudwatch_log_group.ocr_service.name
+}
+
+output "cloudwatch_log_group_api" {
+  description = "CloudWatch Log Group for .NET API service"
+  value       = aws_cloudwatch_log_group.api_service.name
+}
+
+output "cloudwatch_log_group_system" {
+  description = "CloudWatch Log Group for system logs"
+  value       = aws_cloudwatch_log_group.system.name
+}

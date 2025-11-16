@@ -41,3 +41,9 @@ variable "aws_region" {
   type        = string
   default     = "ap-southeast-1"
 }
+
+variable "log_retention_days" {
+  description = "CloudWatch Logs retention period in days"
+  type        = number
+  default     = 7 # Free tier includes 5GB ingestion
+}
