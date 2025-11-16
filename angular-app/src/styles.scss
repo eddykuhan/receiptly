@@ -51,6 +51,41 @@ html, body {
   font-family: 'Inter', sans-serif !important;
 }
 
+// Snackbar overrides - ensure always on top of everything including FABs
+.cdk-overlay-container {
+  z-index: 10000 !important; // Higher than all other elements
+}
+
+.mat-mdc-snack-bar-container {
+  z-index: 10001 !important; // Even higher to be on top of overlay
+  
+  &.success-snackbar {
+    --mdc-snackbar-container-color: #10b981 !important;
+    --mat-snack-bar-button-color: #ffffff !important;
+    
+    .mdc-snackbar__surface {
+      background-color: #10b981 !important;
+    }
+    
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+    }
+  }
+  
+  &.error-snackbar {
+    --mdc-snackbar-container-color: #ef4444 !important;
+    --mat-snack-bar-button-color: #ffffff !important;
+    
+    .mdc-snackbar__surface {
+      background-color: #ef4444 !important;
+    }
+    
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+    }
+  }
+}
+
 // Fix for Material Icons to ensure ligatures work
 mat-icon {
   font-family: 'Material Icons' !important;

@@ -41,8 +41,8 @@ export class ReceiptService {
   uploadReceipt(imageFile: File | Blob, filename: string): Observable<UploadReceiptResponse> {
     const formData = new FormData();
     formData.append('file', imageFile, filename);
-    
-    return this.http.post<Receipt>(this.API_URL, formData).pipe(
+    const apiUrl = `${this.API_URL}/upload`;
+    return this.http.post<Receipt>(apiUrl, formData).pipe(
       map(receipt => ({
         success: true,
         receipt: this.parseReceiptDates(receipt)

@@ -11,6 +11,7 @@ class ImagePreprocessor:
     # Processing parameters
     TARGET_DPI = 300
     MIN_WIDTH = 800
+    MAX_FILE_SIZE_MB = 4  # Azure limit is 4MB for receipts
     CONTRAST_FACTOR = 1.3  # Reduced from 1.5 to be less aggressive
     SHARPNESS_FACTOR = 1.5  # Reduced from 2.0 to be less aggressive
     
@@ -44,6 +45,15 @@ class ImagePreprocessor:
                 print("PDF detected - skipping image preprocessing")
                 return image_bytes
             
+            # Check input size
+            input_size_mb = len(image_bytes) / 1024 / 1024
+            print(f"Input image size: {input_size_mb:.2f}MB")
+            
+            # If image is already close to the limit, skip preprocessing to avoid expansion
+            if input_size_mb > 3.5:
+                print(f"Image is large ({input_size_mb:.2f}MB), skipping preprocessing to avoid size expansion")
+                return image_bytes
+            
             # Convert bytes to BytesIO and ensure position is at start
             image_stream = io.BytesIO(image_bytes)
             image_stream.seek(0)
@@ -71,8 +81,12 @@ class ImagePreprocessor:
             if self.enable_binarization:
                 image = self._binarize(image)
             
-            # Convert back to bytes
-            return self._image_to_bytes(image)
+            # Convert back to bytes with compression
+            processed_bytes = self._image_to_bytes(image, max_size_mb=self.MAX_FILE_SIZE_MB)
+            processed_size_mb = len(processed_bytes) / 1024 / 1024
+            print(f"Output image size: {processed_size_mb:.2f}MB")
+            
+            return processed_bytes
         except Exception as e:
             print(f"Error during image preprocessing: {str(e)}")
             print(f"Image bytes length: {len(image_bytes) if image_bytes else 0}")
@@ -242,16 +256,42 @@ class ImagePreprocessor:
         return Image.fromarray(binary_rgb)
     
     @staticmethod
-    def _image_to_bytes(image: Image.Image) -> bytes:
+    def _image_to_bytes(image: Image.Image, max_size_mb: float = 4.0) -> bytes:
         """
-        Convert PIL Image to bytes.
+        Convert PIL Image to bytes with compression to stay under size limit.
         
         Args:
             image: PIL Image
+            max_size_mb: Maximum file size in megabytes (default 4MB for Azure)
             
         Returns:
-            Image as bytes in PNG format
+            Image as bytes in JPEG format with appropriate compression
         """
         output = io.BytesIO()
-        image.save(output, format='PNG', optimize=True)
+        
+        # Start with high quality JPEG compression
+        quality = 95
+        max_size_bytes = int(max_size_mb * 1024 * 1024)
+        
+        # Try different quality levels until we're under the size limit
+        while quality >= 60:
+            output.seek(0)
+            output.truncate()
+            
+            # Save as JPEG with current quality
+            image.save(output, format='JPEG', quality=quality, optimize=True)
+            
+            # Check size
+            size = output.tell()
+            if size <= max_size_bytes:
+                print(f"Image compressed to {size / 1024 / 1024:.2f}MB with quality={quality}")
+                break
+            
+            # Reduce quality for next iteration
+            quality -= 5
+            print(f"Image too large ({size / 1024 / 1024:.2f}MB), reducing quality to {quality}")
+        
+        if quality < 60:
+            print(f"Warning: Had to compress to quality={quality} to meet size limit")
+        
         return output.getvalue()

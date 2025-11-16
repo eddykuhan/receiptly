@@ -50,6 +50,9 @@ public class ReceiptProcessingService : IReceiptProcessingService
         CancellationToken cancellationToken = default)
     {
         var receiptId = Guid.NewGuid();
+        string? s3Key = null;
+        string? imageUrl = null;
+        
         _logger.LogInformation("Starting receipt processing. ReceiptId: {ReceiptId}, UserId: {UserId}, Filename: {Filename}", 
             receiptId, userId, filename);
 
@@ -76,20 +79,41 @@ public class ReceiptProcessingService : IReceiptProcessingService
 
             // Step 3: Upload image to S3 and get presigned URL
             _logger.LogInformation("Step 3/9: Uploading image to S3. ReceiptId: {ReceiptId}", receiptId);
-            var imageUrl = await _s3Storage.UploadReceiptImageAsync(
+            imageUrl = await _s3Storage.UploadReceiptImageAsync(
                 userId,
                 receiptId,
                 imageStream,
                 contentType,
                 filename);
-            _logger.LogInformation("Image uploaded to S3. PresignedUrl generated. ReceiptId: {ReceiptId}", receiptId);
+            
+            // Extract S3 key from URL for later use
+            var uri = new Uri(imageUrl);
+            s3Key = uri.LocalPath.TrimStart('/');
+            
+            _logger.LogInformation("Image uploaded to S3. PresignedUrl generated. ReceiptId: {ReceiptId}, S3Key: {S3Key}", 
+                receiptId, s3Key);
 
             // Check cancellation
             cancellationToken.ThrowIfCancellationRequested();
 
             // Step 4: Call Python OCR service with the image URL
             _logger.LogInformation("Step 4/9: Calling Python OCR service. ReceiptId: {ReceiptId}", receiptId);
-            var ocrResult = await _ocrClient.AnalyzeReceiptAsync(imageUrl);
+            OcrApiResponse ocrResult;
+            
+            try
+            {
+                ocrResult = await _ocrClient.AnalyzeReceiptAsync(imageUrl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "OCR service failed. ReceiptId: {ReceiptId}", receiptId);
+                throw new Receiptly.Domain.Exceptions.OcrProcessingException(
+                    receiptId, 
+                    "OCR service failed to process the receipt. The image may be unclear or not a valid receipt.", 
+                    ex,
+                    ex.Message);
+            }
+            
             _logger.LogInformation("OCR analysis completed. DocType: {DocType}, Confidence: {Confidence}, ReceiptId: {ReceiptId}", 
                 ocrResult.Data.DocType, ocrResult.Data.Confidence, receiptId);
 
@@ -103,6 +127,30 @@ public class ReceiptProcessingService : IReceiptProcessingService
             {
                 _logger.LogInformation("Validation: IsValid={IsValid}, Confidence={Confidence}, Message={Message}, ReceiptId: {ReceiptId}",
                     validation.IsValidReceipt, validation.Confidence, validation.Message, receiptId);
+                
+                // Check if receipt validation failed
+                if (!validation.IsValidReceipt)
+                {
+                    var errorMessage = validation.Message ?? "Receipt validation failed";
+                    _logger.LogWarning("Receipt is not valid. ReceiptId: {ReceiptId}, Reason: {Reason}", 
+                        receiptId, errorMessage);
+                    
+                    throw new Receiptly.Domain.Exceptions.InvalidReceiptException(
+                        receiptId,
+                        validation.Confidence,
+                        errorMessage);
+                }
+                
+                // Check if confidence is too low (below 0.5)
+                if (validation.Confidence < 0.5f)
+                {
+                    _logger.LogWarning("Receipt confidence too low. ReceiptId: {ReceiptId}, Confidence: {Confidence}", 
+                        receiptId, validation.Confidence);
+                    
+                    throw new Receiptly.Domain.Exceptions.PoorImageQualityException(
+                        receiptId,
+                        $"Image quality is too poor for reliable OCR processing (confidence: {validation.Confidence:P0})");
+                }
             }
 
             // Step 6: Save raw OCR response to S3
@@ -138,10 +186,103 @@ public class ReceiptProcessingService : IReceiptProcessingService
             _logger.LogInformation("Receipt processing completed successfully. ReceiptId: {ReceiptId}", receiptId);
             return receipt;
         }
+        catch (Receiptly.Domain.Exceptions.InvalidReceiptException ex)
+        {
+            _logger.LogWarning(ex, "Invalid receipt detected. ReceiptId: {ReceiptId}, Confidence: {Confidence}", 
+                ex.ReceiptId, ex.Confidence);
+            
+            // Move to failed folder if S3 upload was successful
+            if (!string.IsNullOrEmpty(s3Key))
+            {
+                await _s3Storage.MoveToFailedFolderAsync(userId, receiptId, s3Key, $"Invalid receipt: {ex.Message}");
+                await _s3Storage.SaveFailureDetailsAsync(userId, receiptId, $"Invalid receipt: {ex.Message}", null, ex);
+            }
+            
+            throw new Exception($"The uploaded image is not a valid receipt. {ex.Message}");
+        }
+        catch (Receiptly.Domain.Exceptions.PoorImageQualityException ex)
+        {
+            _logger.LogWarning(ex, "Poor image quality. ReceiptId: {ReceiptId}", ex.ReceiptId);
+            
+            // Move to failed folder if S3 upload was successful
+            if (!string.IsNullOrEmpty(s3Key))
+            {
+                await _s3Storage.MoveToFailedFolderAsync(userId, receiptId, s3Key, $"Poor quality: {ex.Message}");
+                await _s3Storage.SaveFailureDetailsAsync(userId, receiptId, $"Poor quality: {ex.Message}", null, ex);
+            }
+            
+            throw new Exception($"Image quality is too poor to read the receipt. Please take a clearer photo with good lighting.");
+        }
+        catch (Receiptly.Domain.Exceptions.OcrProcessingException ex)
+        {
+            _logger.LogError(ex, "OCR processing failed. ReceiptId: {ReceiptId}", ex.ReceiptId);
+            
+            // Move to failed folder if S3 upload was successful
+            if (!string.IsNullOrEmpty(s3Key))
+            {
+                await _s3Storage.MoveToFailedFolderAsync(userId, receiptId, s3Key, $"OCR failed: {ex.Message}");
+                await _s3Storage.SaveFailureDetailsAsync(userId, receiptId, $"OCR failed: {ex.Message}", ex.OcrResponse, ex);
+            }
+            
+            throw new Exception($"Failed to process receipt. The image may not contain a valid receipt or is too unclear to read.");
+        }
+        catch (Receiptly.Domain.Exceptions.MissingRequiredFieldsException ex)
+        {
+            _logger.LogWarning(ex, "Missing required fields. ReceiptId: {ReceiptId}, Fields: {Fields}", 
+                ex.ReceiptId, string.Join(", ", ex.MissingFields));
+            
+            // Move to failed folder if S3 upload was successful
+            if (!string.IsNullOrEmpty(s3Key))
+            {
+                await _s3Storage.MoveToFailedFolderAsync(userId, receiptId, s3Key, $"Missing fields: {ex.Message}");
+                await _s3Storage.SaveFailureDetailsAsync(userId, receiptId, $"Missing fields: {ex.Message}", null, ex);
+            }
+            
+            throw new Exception($"Receipt is missing required information: {string.Join(", ", ex.MissingFields)}. Please upload a complete receipt.");
+        }
+        catch (Receiptly.Domain.Exceptions.DuplicateReceiptException)
+        {
+            // Don't move to failed folder for duplicates, just re-throw
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Receipt processing cancelled. ReceiptId: {ReceiptId}", receiptId);
+            
+            // Clean up S3 file if upload was successful
+            if (!string.IsNullOrEmpty(s3Key))
+            {
+                try
+                {
+                    await _s3Storage.DeleteReceiptAsync(userId, receiptId);
+                }
+                catch (Exception cleanupEx)
+                {
+                    _logger.LogError(cleanupEx, "Failed to cleanup S3 after cancellation. ReceiptId: {ReceiptId}", receiptId);
+                }
+            }
+            
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to process receipt. ReceiptId: {ReceiptId}, UserId: {UserId}", receiptId, userId);
-            throw new Exception($"Failed to process receipt: {ex.Message}", ex);
+            _logger.LogError(ex, "Unexpected error processing receipt. ReceiptId: {ReceiptId}, UserId: {UserId}", receiptId, userId);
+            
+            // Move to failed folder for unexpected errors if S3 upload was successful
+            if (!string.IsNullOrEmpty(s3Key))
+            {
+                try
+                {
+                    await _s3Storage.MoveToFailedFolderAsync(userId, receiptId, s3Key, $"Unexpected error: {ex.Message}");
+                    await _s3Storage.SaveFailureDetailsAsync(userId, receiptId, $"Unexpected error: {ex.Message}", null, ex);
+                }
+                catch (Exception moveEx)
+                {
+                    _logger.LogError(moveEx, "Failed to move receipt to failed folder. ReceiptId: {ReceiptId}", receiptId);
+                }
+            }
+            
+            throw new Exception($"An unexpected error occurred while processing your receipt. Please try again or contact support if the problem persists.");
         }
     }
 
