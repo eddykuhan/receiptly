@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, HttpUrl
-from typing import Dict, Any
+from typing import Dict, Any, Literal
 from ..services.document_intelligence import DocumentIntelligenceService
 from ..services.tesseract_ocr import TesseractOCRService
 from ..services.receipt_detector import ReceiptDetector
+from ..services.azure_receipt_detector import AzureReceiptDetector
 from ..utils.image_utils import download_image
 
 router = APIRouter()
@@ -14,6 +15,7 @@ class AnalyzeRequest(BaseModel):
     image_url: HttpUrl
     extract_location: bool = True  # Flag to enable/disable location extraction
     auto_crop: bool = True  # Flag to enable/disable automatic receipt cropping
+    crop_method: Literal["opencv", "azure_layout"] = "azure_layout"  # Cropping method
 
 
 @router.post("/analyze")
@@ -26,7 +28,7 @@ async def analyze_receipt(
     Analyze a receipt image from a URL and return structured data with store location.
     
     Uses:
-    - Receipt boundary detection to crop to receipt area only (optional)
+    - Azure Layout model OR OpenCV for receipt boundary detection (optional)
     - Azure Document Intelligence for structured receipt data extraction
     - Tesseract OCR for store location/address extraction
     
@@ -44,6 +46,7 @@ async def analyze_receipt(
     """
     try:
         print(f"Received analyze request. Image URL: {request.image_url}")
+        print(f"Auto-crop: {request.auto_crop}, Method: {request.crop_method if request.auto_crop else 'N/A'}")
         
         # Step 1: Download image once
         print("Downloading image...")
@@ -51,11 +54,25 @@ async def analyze_receipt(
         print(f"Downloaded {len(file_bytes)} bytes")
         
         # Step 2: Auto-crop to receipt boundary (if enabled)
+        boundary_info = None
         if request.auto_crop:
-            print("Detecting receipt boundary and cropping...")
-            detector = ReceiptDetector()
-            file_bytes = detector.detect_and_crop(file_bytes)
-            print(f"After cropping: {len(file_bytes)} bytes")
+            if request.crop_method == "azure_layout":
+                print("Using Azure Document Intelligence Layout model for boundary detection...")
+                try:
+                    azure_detector = AzureReceiptDetector()
+                    file_bytes, boundary_info = await azure_detector.detect_and_crop(file_bytes)
+                    print(f"After Azure Layout cropping: {len(file_bytes)} bytes")
+                except Exception as e:
+                    print(f"Azure Layout detection failed: {str(e)}")
+                    print("Falling back to OpenCV detection...")
+                    detector = ReceiptDetector()
+                    file_bytes = detector.detect_and_crop(file_bytes)
+                    print(f"After OpenCV cropping: {len(file_bytes)} bytes")
+            else:
+                print("Using OpenCV for boundary detection...")
+                detector = ReceiptDetector()
+                file_bytes = detector.detect_and_crop(file_bytes)
+                print(f"After cropping: {len(file_bytes)} bytes")
         
         # Step 3: Extract store location using Tesseract (if requested)
         location_data = None

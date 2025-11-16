@@ -6,15 +6,15 @@ import cv2
 import numpy as np
 from PIL import Image
 import io
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 
 class ReceiptDetector:
     """Detects and crops receipt boundaries from images."""
     
     def __init__(self):
-        self.min_area_ratio = 0.1  # Minimum 10% of image should be receipt
-        self.max_area_ratio = 0.95  # Maximum 95% of image (avoid full image detection)
+        self.min_area_ratio = 0.05  # Minimum 5% of image should be receipt
+        self.max_area_ratio = 0.98  # Maximum 98% of image (allow mostly-filled images)
     
     def detect_and_crop(self, image_bytes: bytes) -> bytes:
         """
@@ -55,8 +55,28 @@ class ReceiptDetector:
                 print("Receipt detection validation failed, using original image")
                 return image_bytes
             
-            # Add padding to ensure we don't cut off edges
-            padding = 10
+            # Smart padding based on image size and detection confidence
+            # Smaller padding for high-confidence detections (centered, good size)
+            center_x = x + w / 2
+            center_y = y + h / 2
+            img_center_x = original_shape[1] / 2
+            img_center_y = original_shape[0] / 2
+            
+            dist_from_center = np.sqrt(
+                ((center_x - img_center_x) / original_shape[1]) ** 2 + 
+                ((center_y - img_center_y) / original_shape[0]) ** 2
+            )
+            
+            # Adaptive padding: less padding for centered, well-detected receipts
+            if dist_from_center < 0.1 and 0.3 <= area_ratio <= 0.9:
+                padding = 5  # High confidence
+            elif dist_from_center < 0.3 and 0.2 <= area_ratio <= 0.95:
+                padding = 10  # Medium confidence
+            else:
+                padding = 20  # Lower confidence, use more padding
+            
+            print(f"Using {padding}px padding (distance from center: {dist_from_center:.2f})")
+            
             x = max(0, x - padding)
             y = max(0, y - padding)
             w = min(original_shape[1] - x, w + 2*padding)
@@ -89,7 +109,7 @@ class ReceiptDetector:
     
     def _detect_receipt_contour(self, image: np.ndarray) -> Optional[np.ndarray]:
         """
-        Detect the main receipt contour in the image.
+        Detect the main receipt contour in the image using improved multi-method approach.
         
         Args:
             image: OpenCV image (BGR format)
@@ -97,47 +117,157 @@ class ReceiptDetector:
         Returns:
             Receipt contour or None if not found
         """
+        height, width = image.shape[:2]
+        
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
-        # Apply Gaussian blur to reduce noise
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        # Apply bilateral filter to reduce noise while preserving edges
+        filtered = cv2.bilateralFilter(gray, 9, 75, 75)
         
-        # Edge detection using multiple methods and combine results
+        # Try multiple edge detection strategies and combine results
+        all_contours = []
         
-        # Method 1: Canny edge detection
-        edges_canny = cv2.Canny(blurred, 50, 150)
+        # Strategy 1: Canny edge detection with multiple thresholds
+        for low, high in [(30, 100), (50, 150), (70, 200)]:
+            edges = cv2.Canny(filtered, low, high)
+            kernel = np.ones((3, 3), np.uint8)
+            dilated = cv2.dilate(edges, kernel, iterations=1)
+            contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            all_contours.extend(contours)
         
-        # Method 2: Adaptive thresholding
-        thresh = cv2.adaptiveThreshold(
-            blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+        # Strategy 2: Adaptive thresholding
+        adaptive = cv2.adaptiveThreshold(
+            filtered, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
             cv2.THRESH_BINARY, 11, 2
         )
-        edges_thresh = cv2.Canny(thresh, 50, 150)
+        # Invert if needed (receipt is usually white on dark background or vice versa)
+        if np.mean(adaptive) > 127:
+            adaptive = cv2.bitwise_not(adaptive)
         
-        # Combine edges
-        edges = cv2.bitwise_or(edges_canny, edges_thresh)
-        
-        # Dilate edges to close gaps
         kernel = np.ones((5, 5), np.uint8)
-        dilated = cv2.dilate(edges, kernel, iterations=2)
+        morph = cv2.morphologyEx(adaptive, cv2.MORPH_CLOSE, kernel, iterations=2)
+        contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        all_contours.extend(contours)
         
-        # Find contours
-        contours, _ = cv2.findContours(
-            dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
+        # Strategy 3: Color-based detection (receipts are often white/light colored)
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        # Detect bright areas (potential receipt)
+        _, saturation, value = cv2.split(hsv)
+        bright_mask = cv2.threshold(value, 180, 255, cv2.THRESH_BINARY)[1]
+        kernel = np.ones((7, 7), np.uint8)
+        bright_mask = cv2.morphologyEx(bright_mask, cv2.MORPH_CLOSE, kernel, iterations=3)
+        contours, _ = cv2.findContours(bright_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        all_contours.extend(contours)
         
+        if not all_contours:
+            return None
+        
+        # Filter contours by area and find the best candidate
+        min_area = (width * height) * 0.05  # At least 5% of image
+        valid_contours = [c for c in all_contours if cv2.contourArea(c) >= min_area]
+        
+        if not valid_contours:
+            return None
+        
+        # Find the best contour based on multiple criteria
+        best_contour = self._select_best_contour(valid_contours, width, height)
+        
+        if best_contour is None:
+            return None
+        
+        # Approximate the contour to get cleaner polygon
+        epsilon = 0.01 * cv2.arcLength(best_contour, True)
+        approx = cv2.approxPolyDP(best_contour, epsilon, True)
+        
+        return approx
+    
+    def _select_best_contour(self, contours: List[np.ndarray], img_width: int, img_height: int) -> Optional[np.ndarray]:
+        """
+        Select the best contour from candidates using scoring system.
+        
+        Args:
+            contours: List of candidate contours
+            img_width: Image width
+            img_height: Image height
+            
+        Returns:
+            Best contour or None
+        """
         if not contours:
             return None
         
-        # Find the largest contour by area
-        largest_contour = max(contours, key=cv2.contourArea)
+        img_area = img_width * img_height
+        scores = []
         
-        # Approximate the contour to reduce points
-        epsilon = 0.02 * cv2.arcLength(largest_contour, True)
-        approx = cv2.approxPolyDP(largest_contour, epsilon, True)
+        for contour in contours:
+            score = 0
+            area = cv2.contourArea(contour)
+            x, y, w, h = cv2.boundingRect(contour)
+            
+            # Score based on area (prefer substantial but not full-image contours)
+            area_ratio = area / img_area
+            if 0.1 <= area_ratio <= 0.85:
+                score += 100
+            elif 0.05 <= area_ratio < 0.1 or 0.85 < area_ratio <= 0.98:
+                score += 50
+            else:
+                score += 10
+            
+            # Score based on aspect ratio (receipts are typically vertical)
+            aspect = h / w if w > 0 else 0
+            if 1.2 <= aspect <= 4.0:  # Vertical receipt
+                score += 50
+            elif 0.25 <= aspect <= 1.2:  # Horizontal or square
+                score += 30
+            
+            # Score based on rectangularity (how close to a rectangle)
+            rect_area = w * h
+            if rect_area > 0:
+                rectangularity = area / rect_area
+                if rectangularity >= 0.8:
+                    score += 40
+                elif rectangularity >= 0.6:
+                    score += 20
+            
+            # Score based on position (receipts tend to be centered)
+            center_x = x + w / 2
+            center_y = y + h / 2
+            img_center_x = img_width / 2
+            img_center_y = img_height / 2
+            
+            dist_from_center = np.sqrt(
+                ((center_x - img_center_x) / img_width) ** 2 + 
+                ((center_y - img_center_y) / img_height) ** 2
+            )
+            
+            if dist_from_center < 0.2:  # Very centered
+                score += 30
+            elif dist_from_center < 0.4:  # Somewhat centered
+                score += 15
+            
+            # Penalize if touching image borders (likely background)
+            border_margin = 5
+            touches_border = (
+                x <= border_margin or 
+                y <= border_margin or 
+                x + w >= img_width - border_margin or 
+                y + h >= img_height - border_margin
+            )
+            if touches_border:
+                score -= 20
+            
+            scores.append((score, contour))
         
-        return approx
+        # Return contour with highest score
+        scores.sort(key=lambda x: x[0], reverse=True)
+        best_score, best_contour = scores[0]
+        
+        # Only return if score is reasonable
+        if best_score >= 50:
+            return best_contour
+        
+        return None
     
     def _validate_detection(self, area_ratio: float, width: int, height: int) -> bool:
         """
@@ -151,20 +281,28 @@ class ReceiptDetector:
         Returns:
             True if validation passes
         """
-        # Check area ratio
-        if area_ratio < self.min_area_ratio or area_ratio > self.max_area_ratio:
-            print(f"Area ratio {area_ratio:.2%} outside valid range "
-                  f"({self.min_area_ratio:.0%}-{self.max_area_ratio:.0%})")
+        # Check area ratio - be more lenient
+        if area_ratio < self.min_area_ratio:
+            print(f"Area ratio {area_ratio:.2%} too small (minimum {self.min_area_ratio:.0%})")
             return False
         
-        # Check minimum dimensions (receipts should be at least 200x200 pixels)
-        if width < 200 or height < 200:
-            print(f"Detected area too small: {width}x{height}")
+        # Allow near-full image if it's a well-captured receipt
+        if area_ratio > self.max_area_ratio:
+            print(f"Area ratio {area_ratio:.2%} exceeds maximum ({self.max_area_ratio:.0%})")
+            # Still return True if it's close to full image (likely a good receipt photo)
+            if area_ratio >= 0.95:
+                print("  But allowing it as it's likely a well-captured receipt")
+                return True
             return False
         
-        # Check aspect ratio (receipts are typically taller than wide, but not always)
+        # Check minimum dimensions (receipts should be at least 100x100 pixels)
+        if width < 100 or height < 100:
+            print(f"Detected area too small: {width}x{height} (minimum 100x100)")
+            return False
+        
+        # Check aspect ratio (receipts can vary, be more permissive)
         aspect_ratio = max(width, height) / min(width, height)
-        if aspect_ratio > 10:
+        if aspect_ratio > 15:
             print(f"Aspect ratio too extreme: {aspect_ratio:.1f}:1")
             return False
         
