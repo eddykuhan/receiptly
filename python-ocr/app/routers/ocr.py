@@ -5,6 +5,7 @@ from ..services.document_intelligence import DocumentIntelligenceService
 from ..services.tesseract_ocr import TesseractOCRService
 from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
+from ..services.store_name_extractor import StoreNameExtractor
 from ..utils.image_utils import download_image
 
 router = APIRouter()
@@ -101,11 +102,15 @@ async def analyze_receipt(
         result = receipt.to_dict()
         
         # Step 6: Override Azure's merchant data with Tesseract's more accurate location data
+        # Pass original image bytes for fallback extraction if needed
         if location_data and location_data.get('success'):
-            result = override_merchant_data_with_tesseract(result, location_data)
+            result = override_merchant_data_with_tesseract(result, location_data, file_bytes)
             print("✓ Overridden Azure merchant data with Tesseract location data")
+        else:
+            # Even if Tesseract extraction was disabled/failed, try fallback if Azure has no merchant name
+            result = override_merchant_data_with_tesseract(result, {'success': False}, file_bytes)
         
-        # Step 6: Validate if it's actually a receipt
+        # Step 7: Validate if it's actually a receipt
         validation = validate_receipt_confidence(result)
         
         print(f"Analysis completed. Validation: {validation['is_valid_receipt']}, Confidence: {validation['confidence']}")
@@ -175,18 +180,22 @@ def validate_receipt_confidence(azure_result: Dict[str, Any]) -> Dict[str, Any]:
 
 def override_merchant_data_with_tesseract(
     azure_result: Dict[str, Any],
-    tesseract_location: Dict[str, Any]
+    tesseract_location: Dict[str, Any],
+    image_bytes: bytes = None
 ) -> Dict[str, Any]:
     """
     Override Azure Document Intelligence merchant/store fields with Tesseract OCR data.
     Tesseract's location extraction is often more accurate for store names and addresses.
+    Validates extracted text before overriding to prevent gibberish.
+    Uses fallback extraction if both Azure and Tesseract fail.
     
     Args:
         azure_result: Azure Document Intelligence result dictionary
         tesseract_location: Tesseract location extraction result
+        image_bytes: Original image bytes for fallback extraction
         
     Returns:
-        Modified azure_result with overridden merchant data
+        Modified azure_result with overridden merchant data (only if valid)
     """
     if not tesseract_location.get('success') or not tesseract_location.get('location'):
         return azure_result
@@ -199,38 +208,135 @@ def override_merchant_data_with_tesseract(
     
     fields = azure_result['fields']
     
-    # Override MerchantName with Tesseract's store_name
-    if location.get('store_name'):
-        fields['MerchantName'] = {
-            'type': 'string',
-            'value': location['store_name'],
-            'content': location['store_name'],
-            'confidence': location.get('confidence', 0.0),
-            'source': 'tesseract'  # Mark source for debugging
-        }
-        print(f"  → Overriding MerchantName: {location['store_name']}")
+    # Helper function to validate text isn't gibberish
+    def is_valid_text(text: str, max_length: int = 200) -> bool:
+        """Check if text is valid (not gibberish or too long)."""
+        if not text or not isinstance(text, str):
+            return False
+        
+        # Length check
+        if len(text) > max_length:
+            return False
+        
+        # Check for reasonable letter ratio
+        letter_count = sum(c.isalpha() for c in text)
+        special_count = sum(not c.isalnum() and not c.isspace() for c in text)
+        total = len(text)
+        
+        if total == 0:
+            return False
+        
+        letter_ratio = letter_count / total
+        special_ratio = special_count / total
+        
+        # Text should be at least 30% letters and less than 40% special chars
+        if letter_ratio < 0.3 or special_ratio > 0.4:
+            return False
+        
+        # Check for words (should have at least one word of 3+ letters)
+        words = text.split()
+        valid_words = [w for w in words if len(w) >= 3 and any(c.isalpha() for c in w)]
+        if len(valid_words) == 0:
+            return False
+        
+        return True
     
-    # Override MerchantAddress with Tesseract's address
+    # Override MerchantName with Tesseract's store_name (only if valid)
+    merchant_name_set = False
+    
+    if location.get('store_name'):
+        store_name = location['store_name']
+        if is_valid_text(store_name, max_length=100):
+            fields['MerchantName'] = {
+                'type': 'string',
+                'value': store_name,
+                'content': store_name,
+                'confidence': location.get('confidence', 0.0),
+                'source': 'tesseract'  # Mark source for debugging
+            }
+            print(f"  → Overriding MerchantName: {store_name}")
+            merchant_name_set = True
+        else:
+            print(f"  ⚠️  Skipping MerchantName - invalid text detected (gibberish or too long)")
+            # Keep Azure's merchant name if Tesseract returned gibberish
+    
+    # Fallback: If both Azure and Tesseract failed to get merchant name, try full-image extraction
+    if not merchant_name_set and image_bytes:
+        # Check if Azure also doesn't have a valid merchant name
+        azure_merchant = fields.get('MerchantName', {})
+        azure_value = azure_merchant.get('value', '') if isinstance(azure_merchant, dict) else str(azure_merchant)
+        
+        if not azure_value or len(azure_value.strip()) < 2:
+            print("  ℹ️  Both Azure and Tesseract failed to detect store name, trying fallback extraction...")
+            try:
+                extractor = StoreNameExtractor()
+                fallback_result = extractor.extract_from_full_image(image_bytes)
+                
+                if fallback_result and fallback_result.get('store_name'):
+                    fallback_name = fallback_result['store_name']
+                    fallback_confidence = fallback_result.get('confidence', 0.0)
+                    fallback_method = fallback_result.get('method', 'unknown')
+                    
+                    fields['MerchantName'] = {
+                        'type': 'string',
+                        'value': fallback_name,
+                        'content': fallback_name,
+                        'confidence': fallback_confidence,
+                        'source': f'fallback_{fallback_method}'
+                    }
+                    print(f"  ✓ Fallback extraction successful: {fallback_name} (method: {fallback_method}, confidence: {fallback_confidence:.2f})")
+                    merchant_name_set = True
+                else:
+                    print("  ⚠️  Fallback extraction did not find a valid store name")
+            except Exception as e:
+                print(f"  ⚠️  Fallback extraction failed: {str(e)}")
+    
+    # If still no merchant name, set a placeholder for manual review
+    if not merchant_name_set:
+        azure_merchant = fields.get('MerchantName', {})
+        azure_value = azure_merchant.get('value', '') if isinstance(azure_merchant, dict) else str(azure_merchant)
+        
+        if not azure_value or len(azure_value.strip()) < 2:
+            fields['MerchantName'] = {
+                'type': 'string',
+                'value': 'Unknown Store',
+                'content': 'Unknown Store',
+                'confidence': 0.0,
+                'source': 'placeholder',
+                'requires_manual_review': True
+            }
+            print("  ⚠️  No store name detected - using 'Unknown Store' placeholder")
+
+    
+    # Override MerchantAddress with Tesseract's address (only if valid)
     if location.get('address'):
-        fields['MerchantAddress'] = {
-            'type': 'string',
-            'value': location['address'],
-            'content': location['address'],
-            'confidence': location.get('confidence', 0.0),
-            'source': 'tesseract'
-        }
-        print(f"  → Overriding MerchantAddress: {location['address']}")
+        address = location['address']
+        if is_valid_text(address, max_length=300):
+            fields['MerchantAddress'] = {
+                'type': 'string',
+                'value': address,
+                'content': address,
+                'confidence': location.get('confidence', 0.0),
+                'source': 'tesseract'
+            }
+            print(f"  → Overriding MerchantAddress: {address}")
+        else:
+            print(f"  ⚠️  Skipping MerchantAddress - invalid text detected (gibberish or too long)")
+            # Keep Azure's address if Tesseract returned gibberish
     
     # Add MerchantPhoneNumber if available and not already present
     if location.get('phone'):
-        fields['MerchantPhoneNumber'] = {
-            'type': 'phoneNumber',
-            'value': location['phone'],
-            'content': location['phone'],
-            'confidence': location.get('confidence', 0.0),
-            'source': 'tesseract'
-        }
-        print(f"  → Adding MerchantPhoneNumber: {location['phone']}")
+        phone = location['phone']
+        # Phone validation - should be mostly digits
+        if phone and len(phone.replace('+', '').replace('-', '').replace(' ', '')) >= 7:
+            fields['MerchantPhoneNumber'] = {
+                'type': 'phoneNumber',
+                'value': phone,
+                'content': phone,
+                'confidence': location.get('confidence', 0.0),
+                'source': 'tesseract'
+            }
+            print(f"  → Adding MerchantPhoneNumber: {phone}")
     
     # Add additional location metadata
     if 'metadata' not in azure_result:

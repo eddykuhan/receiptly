@@ -109,4 +109,10 @@ public class OcrField
     
     [JsonPropertyName("value_array")]
     public List<OcrField>? ValueArray { get; set; }
+    
+    [JsonPropertyName("source")]
+    public string? Source { get; set; }
+    
+    [JsonPropertyName("requires_manual_review")]
+    public bool? RequiresManualReview { get; set; }
 }
