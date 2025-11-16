@@ -162,12 +162,14 @@ locals {
     # Update system
     dnf update -y
     
-    # Install Docker
-    dnf install -y docker amazon-cloudwatch-agent
+    # Install Docker and CloudWatch Agent
+    dnf install -y docker amazon-cloudwatch-agent amazon-ssm-agent
     
-    # Start Docker service
+    # Start and enable services
     systemctl start docker
     systemctl enable docker
+    systemctl start amazon-ssm-agent
+    systemctl enable amazon-ssm-agent
     
     # Add ec2-user to docker group
     usermod -a -G docker ec2-user
