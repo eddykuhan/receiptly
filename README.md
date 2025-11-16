@@ -36,15 +36,25 @@ A smart receipt scanning and price comparison application that helps users find 
   - Receipt data parsing and structuring
   - AI/ML processing pipeline
   
+- `/angular-app` - Angular PWA Frontend
+  - Progressive Web App
+  - Receipt scanning UI
+  - Dashboard and analytics
+  
+- `/scripts` - Automation Scripts
+  - Service management (start/stop/check)
+  - Deployment scripts
+  - Log viewing utilities
+  
+- `/docs` - Documentation
+  - Setup guides
+  - Architecture documentation
+  - Deployment guides
+  
 - `/shared` - Shared Resources
   - API contracts
   - Common DTOs
   - Shared utilities
-  - Documentation
-
-- `/front-end` - Frontend Applications
-  - Web application
-  - Mobile app resources
 
 ## Tech Stack
 
@@ -135,6 +145,68 @@ A smart receipt scanning and price comparison application that helps users find 
 
 - .NET API: Use VS Code's built-in debugger (F5)
 - Python OCR: Use VS Code's Python debugger with the provided launch configurations
+
+## Monitoring & Logging
+
+### CloudWatch Logs (Production)
+
+View logs from AWS CloudWatch without SSM access:
+
+```bash
+# Interactive log viewer
+./scripts/view-cloudwatch-logs.sh staging
+
+# Real-time log streaming
+./scripts/tail-cloudwatch-logs.sh staging ocr
+
+# Search logs
+./scripts/search-cloudwatch-logs.sh staging ocr "error" 6
+```
+
+Log groups:
+- `/receiptly/{env}/ocr` - Python OCR service
+- `/receiptly/{env}/api` - .NET API service
+- `/receiptly/{env}/system` - System logs
+
+See [docs/CLOUDWATCH_LOGS.md](docs/CLOUDWATCH_LOGS.md) for detailed setup and usage.
+
+### EC2 Logs (via SSM)
+
+Alternative log access using AWS Systems Manager:
+
+```bash
+# Check service status and logs
+./scripts/check-ec2-logs.sh staging all
+
+# View logs interactively
+./scripts/view-ec2-logs.sh staging
+```
+
+See [docs/SSM_ACCESS_FIX.md](docs/SSM_ACCESS_FIX.md) for SSM setup.
+
+### Service Management Scripts
+
+```bash
+# Local development
+./scripts/start-services.sh   # Start all services
+./scripts/check-services.sh   # Check service status
+./scripts/stop-services.sh    # Stop all services
+```
+
+See [docs/SCRIPTS.md](docs/SCRIPTS.md) for all available scripts.
+
+## Documentation
+
+- [docs/CLOUDWATCH_LOGS.md](docs/CLOUDWATCH_LOGS.md) - CloudWatch Logs setup and usage
+- [docs/CLOUDWATCH_QUICK_REFERENCE.md](docs/CLOUDWATCH_QUICK_REFERENCE.md) - Quick command reference
+- [docs/SCRIPTS.md](docs/SCRIPTS.md) - Service management scripts
+- [docs/SSM_ACCESS_FIX.md](docs/SSM_ACCESS_FIX.md) - SSM access troubleshooting
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - AWS deployment guide
+- [docs/DOCKER.md](docs/DOCKER.md) - Docker setup and usage
+- [docs/CLOUDWATCH_IMPLEMENTATION.md](docs/CLOUDWATCH_IMPLEMENTATION.md) - CloudWatch implementation details
+- [docs/AWS_SECRETS_INTEGRATION.md](docs/AWS_SECRETS_INTEGRATION.md) - AWS Secrets Manager integration
+- [docs/ARCHITECTURE_MIGRATION.md](docs/ARCHITECTURE_MIGRATION.md) - Architecture evolution
+- [docs/PWA_TESTING_GUIDE.md](docs/PWA_TESTING_GUIDE.md) - PWA testing guide
 
 ## Contributing
 
