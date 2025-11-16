@@ -27,7 +27,12 @@ public class PythonOcrClient
             $"{_ocrServiceUrl}/api/v1/ocr/analyze",
             request);
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"OCR service returned {(int)response.StatusCode} ({response.StatusCode}). Error: {errorContent}");
+        }
 
         var result = await response.Content.ReadFromJsonAsync<OcrApiResponse>();
         

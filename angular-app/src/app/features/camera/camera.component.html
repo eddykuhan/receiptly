@@ -101,7 +101,7 @@
                         <span class="item-name">{{ item.name }}</span>
                         <span class="item-qty">x{{ item.quantity }}</span>
                       </div>
-                      <span class="item-price">${{ item.price.toFixed(2) }}</span>
+                      <span class="item-price">{{ item.price | myr }}</span>
                     </div>
                   }
                 </div>
@@ -113,24 +113,24 @@
               @if (receipt.subtotalAmount) {
                 <div class="detail-row">
                   <span class="label">Subtotal:</span>
-                  <span class="value">${{ receipt.subtotalAmount.toFixed(2) }}</span>
+                  <span class="value">{{ receipt.subtotalAmount | myr }}</span>
                 </div>
               }
               @if (receipt.taxAmount) {
                 <div class="detail-row">
                   <span class="label">Tax:</span>
-                  <span class="value">${{ receipt.taxAmount.toFixed(2) }}</span>
+                  <span class="value">{{ receipt.taxAmount | myr }}</span>
                 </div>
               }
               @if (receipt.tipAmount) {
                 <div class="detail-row">
                   <span class="label">Tip:</span>
-                  <span class="value">${{ receipt.tipAmount.toFixed(2) }}</span>
+                  <span class="value">{{ receipt.tipAmount | myr }}</span>
                 </div>
               }
               <div class="detail-row total-row">
                 <span class="label">Total:</span>
-                <span class="value">${{ receipt.totalAmount.toFixed(2) }}</span>
+                <span class="value">{{ receipt.totalAmount | myr }}</span>
               </div>
             </div>
 

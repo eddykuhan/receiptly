@@ -153,10 +153,35 @@ public static class ServiceCollectionExtensions
 
     public static async Task<IServiceCollection> AddOcrService(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
-        // Retrieve OCR service configuration from AWS Secrets Manager
         OcrServiceSecretsConfig ocrConfig;
+
+        // In Development mode, prioritize appsettings configuration
+        if (environment.IsDevelopment())
+        {
+            var configuredBaseUrl = configuration["PythonOcr:BaseUrl"];
+            
+            if (!string.IsNullOrEmpty(configuredBaseUrl))
+            {
+                Log.Information("Development mode: Using OCR service URL from configuration: {BaseUrl}", configuredBaseUrl);
+                
+                ocrConfig = new OcrServiceSecretsConfig
+                {
+                    BaseUrl = configuredBaseUrl,
+                    HealthCheckUrl = configuration["PythonOcr:HealthCheckUrl"] ?? $"{configuredBaseUrl}/health"
+                };
+                
+                services.AddSingleton(ocrConfig);
+                services.AddHttpClient<PythonOcrClient>()
+                    .AddPolicyHandler(GetRetryPolicy());
+
+                return services;
+            }
+        }
+
+        // Retrieve OCR service configuration from AWS Secrets Manager (Production)
         try
         {
             var secretId = configuration["AWS:OcrSecretId"] ?? "receiptly/ocr/service";

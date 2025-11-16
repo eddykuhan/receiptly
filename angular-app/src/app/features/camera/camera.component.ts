@@ -8,6 +8,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CameraService } from '../../core/services/camera.service';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { Receipt } from '../../core/models/receipt.model';
+import { MyrPipe } from '../../core/pipes/myr.pipe';
 
 @Component({
   selector: 'app-camera',
@@ -18,7 +19,8 @@ import { Receipt } from '../../core/models/receipt.model';
     MatIconModule,
     MatCardModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MyrPipe
   ],
   templateUrl: './camera.component.html',
   styleUrl: './camera.component.scss'
