@@ -19,6 +19,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/ask-ai/ask-ai.component').then(m => m.AskAiComponent)
   },
   {
+    path: 'price-map',
+    loadComponent: () => import('./features/price-map/price-map.component').then(m => m.PriceMapComponent)
+  },
+  {
+    path: 'rewards',
+    loadComponent: () => import('./features/rewards/rewards.component').then(m => m.RewardsComponent)
+  },
+  {
     path: 'camera',
     loadComponent: () => import('./features/camera/camera.component').then(m => m.CameraComponent)
   },

@@ -1,0 +1,145 @@
+<div class="min-h-screen bg-base-200 p-4 pb-24 lg:pb-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-6">
+            <div class="p-3 bg-primary/10 rounded-xl text-primary">
+                <span class="material-icons text-3xl">card_giftcard</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold">Rewards</h1>
+                <p class="text-base-content/60">Upload receipts, earn rewards!</p>
+            </div>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="card-title text-primary">
+                    <span class="material-icons">trending_up</span>
+                    Your Progress
+                </h2>
+
+                <!-- Circular Progress -->
+                <div class="flex flex-col items-center py-6">
+                    <div class="relative w-48 h-48">
+                        <!-- Background circle -->
+                        <svg class="w-full h-full transform -rotate-90">
+                            <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="none"
+                                class="text-base-300" />
+                            <!-- Progress circle -->
+                            <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="none"
+                                class="text-primary transition-all duration-1000 ease-out" [attr.stroke-dasharray]="553"
+                                [attr.stroke-dashoffset]="553 - (553 * progress() / 100)" stroke-linecap="round" />
+                        </svg>
+                        <!-- Center text -->
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <div class="text-4xl font-bold text-primary">{{ receiptCount() }}</div>
+                            <div class="text-sm text-base-content/60">/ 100 receipts</div>
+                        </div>
+                    </div>
+
+                    @if (!isComplete()) {
+                    <div class="mt-4 text-center">
+                        <p class="text-lg font-semibold">{{ remaining() }} more to go!</p>
+                        <p class="text-sm text-base-content/60">Keep uploading to unlock your reward</p>
+                    </div>
+                    } @else {
+                    <div class="mt-4 text-center">
+                        <p class="text-lg font-semibold text-success">🎉 Goal Achieved!</p>
+                        <p class="text-sm text-base-content/60">You've unlocked your Touch 'n Go voucher!</p>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Milestones -->
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="card-title text-primary">
+                    <span class="material-icons">emoji_events</span>
+                    Milestones
+                </h2>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                    @for (milestone of milestones(); track milestone.count) {
+                    <div class="flex flex-col items-center p-4 rounded-lg transition-all"
+                        [class.bg-primary/10]="milestone.unlocked" [class.bg-base-200]="!milestone.unlocked">
+                        <span class="material-icons text-4xl mb-2" [class.text-primary]="milestone.unlocked"
+                            [class.text-base-content/30]="!milestone.unlocked">
+                            {{ milestone.unlocked ? milestone.icon : 'lock' }}
+                        </span>
+                        <div class="text-center">
+                            <div class="font-bold" [class.text-primary]="milestone.unlocked">{{ milestone.count }}</div>
+                            <div class="text-xs text-base-content/60">{{ milestone.label }}</div>
+                        </div>
+                        @if (milestone.unlocked) {
+                        <span class="badge badge-success badge-sm mt-2">Unlocked</span>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Voucher Card -->
+        <div class="card bg-gradient-to-br from-primary to-secondary shadow-xl">
+            <div class="card-body text-primary-content">
+                <h2 class="card-title">
+                    <span class="material-icons">local_activity</span>
+                    Touch 'n Go Reward
+                </h2>
+
+                @if (!isComplete()) {
+                <!-- Locked State -->
+                <div class="text-center py-8">
+                    <span class="material-icons text-6xl mb-4 opacity-50">lock</span>
+                    <p class="text-lg font-semibold mb-2">Voucher Locked</p>
+                    <p class="opacity-80">Upload {{ remaining() }} more receipts to unlock!</p>
+                </div>
+                } @else if (!voucherRevealed()) {
+                <!-- Unlocked but not revealed -->
+                <div class="text-center py-8">
+                    <span class="material-icons text-6xl mb-4">card_giftcard</span>
+                    <p class="text-lg font-semibold mb-4">Your reward is ready!</p>
+                    <button class="btn btn-accent btn-lg" (click)="revealVoucher()">
+                        <span class="material-icons">visibility</span>
+                        Reveal Voucher Code
+                    </button>
+                </div>
+                } @else {
+                <!-- Revealed State -->
+                <div class="text-center py-6">
+                    <p class="text-sm opacity-80 mb-2">Your Touch 'n Go Voucher Code</p>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4 mb-4">
+                        <div class="font-mono text-2xl font-bold tracking-wider">{{ voucherCode }}</div>
+                    </div>
+                    <button class="btn btn-accent" (click)="copyVoucherCode()">
+                        <span class="material-icons">content_copy</span>
+                        {{ showCopiedMessage() ? 'Copied!' : 'Copy Code' }}
+                    </button>
+                    <p class="text-xs opacity-70 mt-4">Valid until Dec 31, 2024 • RM10 reload credit</p>
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- Demo Controls (Remove in production) -->
+        <div class="card bg-base-100 shadow-xl mt-6 border-2 border-warning">
+            <div class="card-body">
+                <h3 class="card-title text-warning">
+                    <span class="material-icons">science</span>
+                    Demo Controls
+                </h3>
+                <p class="text-sm text-base-content/60">Test different receipt counts</p>
+                <div class="flex gap-2 flex-wrap mt-2">
+                    <button class="btn btn-sm btn-outline" (click)="setReceiptCount(25)">25 Receipts</button>
+                    <button class="btn btn-sm btn-outline" (click)="setReceiptCount(50)">50 Receipts</button>
+                    <button class="btn btn-sm btn-outline" (click)="setReceiptCount(73)">73 Receipts</button>
+                    <button class="btn btn-sm btn-outline" (click)="setReceiptCount(99)">99 Receipts</button>
+                    <button class="btn btn-sm btn-success" (click)="setReceiptCount(100)">100 Receipts ✨</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

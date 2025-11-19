@@ -49,6 +49,14 @@
         <span class="material-icons">receipt_long</span>
         <span class="btm-nav-label text-xs">History</span>
       </button>
+      <button (click)="onTabChange(2)" [class.active]="activeTabIndex === 2" class="text-primary">
+        <span class="material-icons">map</span>
+        <span class="btm-nav-label text-xs">Map</span>
+      </button>
+      <button (click)="onTabChange(3)" [class.active]="activeTabIndex === 3" class="text-primary">
+        <span class="material-icons">card_giftcard</span>
+        <span class="btm-nav-label text-xs">Rewards</span>
+      </button>
     </div>
   </div>
 
@@ -80,6 +88,18 @@
         <a (click)="onCameraClick()" class="gap-4 py-3">
           <span class="material-icons">photo_camera</span>
           Scan Receipt
+        </a>
+      </li>
+      <li>
+        <a (click)="onPriceMapClick()" class="gap-4 py-3">
+          <span class="material-icons">map</span>
+          Price Map
+        </a>
+      </li>
+      <li>
+        <a (click)="onRewardsClick()" class="gap-4 py-3">
+          <span class="material-icons">card_giftcard</span>
+          Rewards
         </a>
       </li>
       <li>

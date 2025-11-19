@@ -25,6 +25,10 @@ export class App {
         this.activeTabIndex = 0;
       } else if (event.url.includes('/history')) {
         this.activeTabIndex = 1;
+      } else if (event.url.includes('/price-map')) {
+        this.activeTabIndex = 2;
+      } else if (event.url.includes('/rewards')) {
+        this.activeTabIndex = 3;
       }
 
       // Check if on Ask AI page
@@ -33,7 +37,7 @@ export class App {
   }
 
   onTabChange(index: number) {
-    const routes = ['/dashboard', '/history'];
+    const routes = ['/dashboard', '/history', '/price-map', '/rewards'];
     this.router.navigate([routes[index]]);
   }
 
@@ -43,5 +47,13 @@ export class App {
 
   onAskAIClick() {
     this.router.navigate(['/ask-ai']);
+  }
+
+  onPriceMapClick() {
+    this.router.navigate(['/price-map']);
+  }
+
+  onRewardsClick() {
+    this.router.navigate(['/rewards']);
   }
 }

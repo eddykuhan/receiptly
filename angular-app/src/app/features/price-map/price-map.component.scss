@@ -1,0 +1,29 @@
+@import 'leaflet/dist/leaflet.css';
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+// Leaflet popup customization
+:host ::ng-deep {
+    .leaflet-popup-content-wrapper {
+        border-radius: 0.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        padding: 0;
+    }
+
+    .leaflet-popup-content {
+        margin: 0;
+    }
+
+    .leaflet-popup-close-button {
+        color: rgba(31, 41, 55, 0.6);
+        font-size: 20px;
+        padding: 4px 8px;
+
+        &:hover {
+            color: rgba(31, 41, 55, 1);
+        }
+    }
+}
