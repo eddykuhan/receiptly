@@ -40,12 +40,10 @@ export class CameraComponent {
   optimizeSize = signal(false);
 
   async ngOnInit() {
-    // OpenCV.js is disabled by default to prevent UI freezing
-    // Uncomment below to enable client-side image processing
-
-    // setTimeout(() => {
-    //   this.loadOpenCV();
-    // }, 1000);
+    // OpenCV.js is loaded after a short delay to prevent UI freezing
+    setTimeout(() => {
+      this.loadOpenCV();
+    }, 1000);
   }
 
   private async loadOpenCV() {
