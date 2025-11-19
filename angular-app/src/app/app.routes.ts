@@ -27,6 +27,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/rewards/rewards.component').then(m => m.RewardsComponent)
   },
   {
+    path: 'profile',
+    loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
+  },
+  {
     path: 'camera',
     loadComponent: () => import('./features/camera/camera.component').then(m => m.CameraComponent)
   },

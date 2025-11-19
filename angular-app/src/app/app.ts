@@ -56,4 +56,8 @@ export class App {
   onRewardsClick() {
     this.router.navigate(['/rewards']);
   }
+
+  onProfileClick() {
+    this.router.navigate(['/profile']);
+  }
 }

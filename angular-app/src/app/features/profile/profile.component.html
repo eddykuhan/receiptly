@@ -1,0 +1,373 @@
+<div class="min-h-screen bg-base-200 p-4 pb-24 lg:pb-4">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-6">
+            <div class="p-3 bg-primary/10 rounded-xl text-primary">
+                <span class="material-icons text-3xl">account_circle</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold">Profile</h1>
+                <p class="text-base-content/60">Manage your account and preferences</p>
+            </div>
+        </div>
+
+        @if (showSaveMessage()) {
+        <div class="alert alert-success mb-4">
+            <span class="material-icons">check_circle</span>
+            <span>Profile updated successfully!</span>
+        </div>
+        }
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Profile & Stats -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Profile Card -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body items-center text-center">
+                        <!-- Avatar -->
+                        <div class="relative">
+                            <div class="avatar">
+                                <div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                                    @if (profile().avatar) {
+                                    <img [src]="profile().avatar" alt="Profile" />
+                                    } @else {
+                                    <div class="bg-primary/10 flex items-center justify-center">
+                                        <span class="material-icons text-5xl text-primary">person</span>
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                            <label class="absolute bottom-0 right-0 btn btn-circle btn-primary btn-sm cursor-pointer">
+                                <span class="material-icons text-sm">photo_camera</span>
+                                <input type="file" class="hidden" accept="image/*" (change)="onAvatarChange($event)" />
+                            </label>
+                        </div>
+
+                        <h2 class="card-title mt-4">{{ profile().name }}</h2>
+                        <p class="text-sm text-base-content/60">{{ profile().email }}</p>
+                        <div class="badge badge-outline mt-2">
+                            <span class="material-icons text-xs mr-1">schedule</span>
+                            Member for {{ getMemberDuration() }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Card -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">
+                            <span class="material-icons">bar_chart</span>
+                            Your Statistics
+                        </h3>
+
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div class="stat bg-base-200 rounded-lg p-4">
+                                <div class="stat-figure text-primary">
+                                    <span class="material-icons text-3xl">receipt_long</span>
+                                </div>
+                                <div class="stat-value text-2xl">{{ profile().stats.totalReceipts }}</div>
+                                <div class="stat-desc">Receipts</div>
+                            </div>
+
+                            <div class="stat bg-base-200 rounded-lg p-4">
+                                <div class="stat-figure text-success">
+                                    <span class="material-icons text-3xl">savings</span>
+                                </div>
+                                <div class="stat-value text-2xl">{{ profile().stats.totalSaved.toFixed(0) }}</div>
+                                <div class="stat-desc">RM Saved</div>
+                            </div>
+
+                            <div class="stat bg-base-200 rounded-lg p-4">
+                                <div class="stat-figure text-secondary">
+                                    <span class="material-icons text-3xl">store</span>
+                                </div>
+                                <div class="stat-value text-2xl">{{ profile().stats.uniqueStores }}</div>
+                                <div class="stat-desc">Stores</div>
+                            </div>
+
+                            <div class="stat bg-base-200 rounded-lg p-4">
+                                <div class="stat-figure text-accent">
+                                    <span class="material-icons text-3xl">trending_up</span>
+                                </div>
+                                <div class="stat-value text-2xl">{{ profile().stats.avgReceiptValue.toFixed(0) }}</div>
+                                <div class="stat-desc">Avg Value</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Settings -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Account Settings -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <div class="flex items-center justify-between">
+                            <h3 class="card-title text-primary">
+                                <span class="material-icons">settings</span>
+                                Account Settings
+                            </h3>
+                            @if (!editMode()) {
+                            <button class="btn btn-sm btn-outline btn-primary" (click)="toggleEditMode()">
+                                <span class="material-icons text-sm">edit</span>
+                                Edit
+                            </button>
+                            }
+                        </div>
+
+                        <div class="form-control mt-4">
+                            <label class="label">
+                                <span class="label-text">Full Name</span>
+                            </label>
+                            <input type="text" [(ngModel)]="profile().name" [disabled]="!editMode()"
+                                class="input input-bordered" />
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Email</span>
+                            </label>
+                            <input type="email" [value]="profile().email" disabled class="input input-bordered" />
+                            <label class="label">
+                                <span class="label-text-alt text-base-content/60">Managed by {{ profile().authProvider
+                                    === 'google' ? 'Google' : 'Apple' }}</span>
+                            </label>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Phone (Optional)</span>
+                            </label>
+                            <input type="tel" [(ngModel)]="profile().phone" [disabled]="!editMode()"
+                                class="input input-bordered" />
+                        </div>
+
+                        @if (editMode()) {
+                        <div class="card-actions justify-end mt-4">
+                            <button class="btn btn-ghost" (click)="toggleEditMode()">Cancel</button>
+                            <button class="btn btn-primary" (click)="saveProfile()">
+                                <span class="material-icons text-sm">save</span>
+                                Save Changes
+                            </button>
+                        </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">
+                            <span class="material-icons">palette</span>
+                            Preferences
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Theme</span>
+                                </label>
+                                <button class="btn btn-outline" (click)="toggleTheme()">
+                                    @if (profile().preferences.theme === 'light') {
+                                    <span class="material-icons">light_mode</span>
+                                    Light
+                                    } @else {
+                                    <span class="material-icons">dark_mode</span>
+                                    Dark
+                                    }
+                                </button>
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Language</span>
+                                </label>
+                                <select class="select select-bordered" [(ngModel)]="profile().preferences.language">
+                                    <option value="en">English</option>
+                                    <option value="ms">Bahasa Malaysia</option>
+                                    <option value="zh">中文</option>
+                                </select>
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Currency</span>
+                                </label>
+                                <select class="select select-bordered" [(ngModel)]="profile().preferences.currency">
+                                    <option value="MYR">MYR (RM)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="SGD">SGD (S$)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Date Format</span>
+                                </label>
+                                <select class="select select-bordered" [(ngModel)]="profile().preferences.dateFormat">
+                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">
+                            <span class="material-icons">notifications</span>
+                            Notifications
+                        </h3>
+
+                        <div class="space-y-4 mt-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Email Notifications</div>
+                                    <div class="text-sm text-base-content/60">Receive updates via email</div>
+                                </div>
+                                <input type="checkbox" class="toggle toggle-primary"
+                                    [checked]="profile().notifications.email" (change)="toggleNotification('email')" />
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Price Drop Alerts</div>
+                                    <div class="text-sm text-base-content/60">Get notified when prices drop</div>
+                                </div>
+                                <input type="checkbox" class="toggle toggle-primary"
+                                    [checked]="profile().notifications.priceDrops"
+                                    (change)="toggleNotification('priceDrops')" />
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Weekly Summary</div>
+                                    <div class="text-sm text-base-content/60">Receive weekly spending reports</div>
+                                </div>
+                                <input type="checkbox" class="toggle toggle-primary"
+                                    [checked]="profile().notifications.weeklySummary"
+                                    (change)="toggleNotification('weeklySummary')" />
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">Reward Milestones</div>
+                                    <div class="text-sm text-base-content/60">Get notified about achievements</div>
+                                </div>
+                                <input type="checkbox" class="toggle toggle-primary"
+                                    [checked]="profile().notifications.rewards"
+                                    (change)="toggleNotification('rewards')" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OAuth Accounts -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">
+                            <span class="material-icons">lock</span>
+                            Connected Accounts
+                        </h3>
+
+                        <div class="space-y-4 mt-4">
+                            <!-- Google Account -->
+                            @if (profile().linkedAccounts.google) {
+                            <div class="card bg-base-200">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                                            <span class="text-2xl">🔵</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">Google</div>
+                                            <div class="text-sm text-base-content/60">{{
+                                                profile().linkedAccounts.google!.email }}</div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            @if (profile().linkedAccounts.google!.isPrimary) {
+                                            <span class="badge badge-primary badge-sm">Primary</span>
+                                            }
+                                            <span class="badge badge-success badge-sm">Connected</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            }
+
+                            <!-- Apple Account -->
+                            @if (profile().linkedAccounts.apple) {
+                            <div class="card bg-base-200">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+                                            <span class="text-2xl">🍎</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">Apple</div>
+                                            <div class="text-sm text-base-content/60">{{
+                                                profile().linkedAccounts.apple!.email }}</div>
+                                        </div>
+                                        <span class="badge badge-success badge-sm">Connected</span>
+                                    </div>
+                                </div>
+                            </div>
+                            } @else {
+                            <div class="card bg-base-200 border-2 border-dashed">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+                                            <span class="text-2xl">🍎</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium">Apple</div>
+                                            <div class="text-sm text-base-content/60">Not connected</div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline" (click)="linkAppleAccount()">
+                                            <span class="material-icons text-sm">add</span>
+                                            Connect
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data & Privacy -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">
+                            <span class="material-icons">shield</span>
+                            Data & Privacy
+                        </h3>
+
+                        <div class="space-y-3 mt-4">
+                            <button class="btn btn-outline w-full justify-start" (click)="exportData()">
+                                <span class="material-icons">download</span>
+                                Export My Data
+                                <span class="ml-auto text-xs text-base-content/60">GDPR Compliant</span>
+                            </button>
+
+                            <button class="btn btn-outline btn-error w-full justify-start" (click)="deleteAccount()">
+                                <span class="material-icons">delete_forever</span>
+                                Delete Account
+                                <span class="ml-auto text-xs text-error/60">Permanent</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

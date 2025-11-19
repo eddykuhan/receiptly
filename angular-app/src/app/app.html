@@ -8,6 +8,9 @@
         <a class="btn btn-ghost text-xl text-primary font-bold">Cheapsy</a>
       </div>
       <div class="flex-none">
+        <button class="btn btn-ghost btn-circle" (click)="onProfileClick()">
+          <span class="material-icons">account_circle</span>
+        </button>
       </div>
     </div>
 
@@ -100,6 +103,15 @@
         <a (click)="onRewardsClick()" class="gap-4 py-3">
           <span class="material-icons">card_giftcard</span>
           Rewards
+        </a>
+      </li>
+
+      <div class="divider"></div>
+
+      <li>
+        <a (click)="onProfileClick()" class="gap-4 py-3">
+          <span class="material-icons">account_circle</span>
+          Profile
         </a>
       </li>
       <li>
