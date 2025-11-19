@@ -15,12 +15,16 @@ export class App {
   activeTabIndex = 0;
   isOnAskAIPage = signal(false);
   fabOpen = signal(false);
+  currentRoute = signal('');
 
   constructor(private router: Router) {
     // Update active tab based on route
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
+      // Update current route signal
+      this.currentRoute.set(event.url);
+
       if (event.url.includes('/dashboard')) {
         this.activeTabIndex = 0;
       } else if (event.url.includes('/history')) {
@@ -34,6 +38,9 @@ export class App {
       // Check if on Ask AI page
       this.isOnAskAIPage.set(event.url.includes('/ask-ai'));
     });
+
+    // Set initial route
+    this.currentRoute.set(this.router.url);
   }
 
   onTabChange(index: number) {
@@ -59,5 +66,9 @@ export class App {
 
   onProfileClick() {
     this.router.navigate(['/profile']);
+  }
+
+  isRouteActive(route: string): boolean {
+    return this.currentRoute().includes(route);
   }
 }

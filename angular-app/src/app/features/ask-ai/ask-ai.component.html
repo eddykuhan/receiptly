@@ -1,63 +1,216 @@
-<div class="flex flex-col h-[calc(100vh-64px)] lg:h-full relative">
-  <!-- Header -->
-  <header class="flex-none p-4 border-b border-base-200 bg-base-100 z-10">
-    <div class="flex items-center gap-3">
-      <div class="p-3 bg-accent/10 rounded-xl text-accent">
-        <span class="material-icons text-3xl">auto_awesome</span>
+<div class="flex flex-col h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pb-16 lg:pb-0">
+  <!-- Gradient Header with Glass Effect -->
+  <header class="flex-none bg-gradient-to-r from-primary to-secondary p-6 shadow-lg relative overflow-hidden">
+    <!-- Animated background pattern -->
+    <div class="absolute inset-0 opacity-10">
+      <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
       </div>
-      <div>
-        <h1 class="text-2xl font-bold">Ask AI</h1>
-        <p class="text-base-content/60">Your intelligent receipt assistant</p>
+      <div class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2">
       </div>
+    </div>
+
+    <div class="relative flex items-center gap-4">
+      <div class="p-4 bg-white/20 backdrop-blur-sm rounded-2xl shadow-xl">
+        <span class="material-icons text-4xl text-white">auto_awesome</span>
+      </div>
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold text-white mb-1">Cheapsy AI</h1>
+        <p class="text-white/90 text-sm">Your intelligent shopping assistant</p>
+      </div>
+      <button class="btn btn-circle btn-ghost text-white lg:hidden" (click)="clearChat()">
+        <span class="material-icons">refresh</span>
+      </button>
     </div>
   </header>
 
-  <!-- Chat Messages -->
-  <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-    @for (message of messages; track message.timestamp) {
-    <div class="chat" [class.chat-end]="message.isUser" [class.chat-start]="!message.isUser">
-      <div class="chat-image avatar">
-        <div class="w-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/70">
-          <span class="material-icons">{{ message.isUser ? 'person' : 'smart_toy' }}</span>
+  <!-- Chat Messages Container -->
+  <div class="flex-1 overflow-y-auto p-4 space-y-6" #chatContainer>
+    <!-- Welcome Message (Only show when no messages) -->
+    @if (messages.length === 0 && !isTyping) {
+    <div class="flex flex-col items-center justify-center h-full text-center px-4 animate-fade-in">
+      <!-- Animated AI Icon -->
+      <div class="relative mb-6">
+        <div class="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse"></div>
+        <div class="relative p-8 bg-gradient-to-br from-primary to-secondary rounded-full shadow-2xl">
+          <span class="material-icons text-6xl text-white">psychology</span>
         </div>
       </div>
-      <div class="chat-header opacity-50 text-xs mb-1">
-        {{ message.isUser ? 'You' : 'Cheapsy AI' }}
-        <time class="text-xs opacity-50 ml-1">{{ message.timestamp | date:'shortTime' }}</time>
-      </div>
-      <div class="chat-bubble" [class.chat-bubble-primary]="message.isUser"
-        [class.chat-bubble-secondary]="!message.isUser">
-        {{ message.text }}
+
+      <h2 class="text-2xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        How can I help you today?
+      </h2>
+      <p class="text-base-content/60 max-w-md mb-8">
+        I can analyze your spending, find the best deals, and answer questions about your receipts.
+      </p>
+
+      <!-- Quick Action Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
+        <button
+          class="group card bg-base-100 hover:bg-primary/5 border-2 border-base-200 hover:border-primary transition-all duration-300 cursor-pointer"
+          (click)="quickQuestion('How much did I spend this month?')">
+          <div class="card-body p-4 flex-row items-center gap-3">
+            <div class="p-3 bg-success/10 rounded-xl group-hover:bg-success/20 transition-colors">
+              <span class="material-icons text-success">account_balance_wallet</span>
+            </div>
+            <div class="text-left flex-1">
+              <div class="font-semibold text-sm">Monthly Spending</div>
+              <div class="text-xs text-base-content/60">View your expenses</div>
+            </div>
+            <span
+              class="material-icons text-base-content/30 group-hover:text-primary transition-colors">arrow_forward</span>
+          </div>
+        </button>
+
+        <button
+          class="group card bg-base-100 hover:bg-primary/5 border-2 border-base-200 hover:border-primary transition-all duration-300 cursor-pointer"
+          (click)="quickQuestion('Which store is cheapest for milk?')">
+          <div class="card-body p-4 flex-row items-center gap-3">
+            <div class="p-3 bg-warning/10 rounded-xl group-hover:bg-warning/20 transition-colors">
+              <span class="material-icons text-warning">local_offer</span>
+            </div>
+            <div class="text-left flex-1">
+              <div class="font-semibold text-sm">Best Prices</div>
+              <div class="text-xs text-base-content/60">Find cheapest stores</div>
+            </div>
+            <span
+              class="material-icons text-base-content/30 group-hover:text-primary transition-colors">arrow_forward</span>
+          </div>
+        </button>
+
+        <button
+          class="group card bg-base-100 hover:bg-primary/5 border-2 border-base-200 hover:border-primary transition-all duration-300 cursor-pointer"
+          (click)="quickQuestion('Show my recent receipts')">
+          <div class="card-body p-4 flex-row items-center gap-3">
+            <div class="p-3 bg-info/10 rounded-xl group-hover:bg-info/20 transition-colors">
+              <span class="material-icons text-info">receipt_long</span>
+            </div>
+            <div class="text-left flex-1">
+              <div class="font-semibold text-sm">Recent Receipts</div>
+              <div class="text-xs text-base-content/60">View your history</div>
+            </div>
+            <span
+              class="material-icons text-base-content/30 group-hover:text-primary transition-colors">arrow_forward</span>
+          </div>
+        </button>
+
+        <button
+          class="group card bg-base-100 hover:bg-primary/5 border-2 border-base-200 hover:border-primary transition-all duration-300 cursor-pointer"
+          (click)="quickQuestion('How can I save more money?')">
+          <div class="card-body p-4 flex-row items-center gap-3">
+            <div class="p-3 bg-error/10 rounded-xl group-hover:bg-error/20 transition-colors">
+              <span class="material-icons text-error">savings</span>
+            </div>
+            <div class="text-left flex-1">
+              <div class="font-semibold text-sm">Savings Tips</div>
+              <div class="text-xs text-base-content/60">Get recommendations</div>
+            </div>
+            <span
+              class="material-icons text-base-content/30 group-hover:text-primary transition-colors">arrow_forward</span>
+          </div>
+        </button>
       </div>
     </div>
     }
 
-    @if (isTyping) {
-    <div class="chat chat-start">
-      <div class="chat-image avatar">
-        <div class="w-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/70">
-          <span class="material-icons">smart_toy</span>
+    <!-- Chat Messages -->
+    @for (message of messages; track message.timestamp) {
+    <div class="flex gap-3 animate-slide-up" [class.flex-row-reverse]="message.isUser">
+      <!-- Avatar -->
+      <div class="flex-none">
+        <div class="avatar">
+          <div class="w-10 h-10 rounded-full" [class.bg-gradient-to-br]="!message.isUser"
+            [class.from-primary]="!message.isUser" [class.to-secondary]="!message.isUser"
+            [class.bg-base-300]="message.isUser">
+            <div class="flex items-center justify-center w-full h-full">
+              <span class="material-icons text-white" [class.text-base-content]="message.isUser">
+                {{ message.isUser ? 'person' : 'psychology' }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="chat-bubble chat-bubble-secondary">
-        <span class="loading loading-dots loading-sm"></span>
+
+      <!-- Message Bubble -->
+      <div class="flex-1 max-w-[85%] lg:max-w-[70%]">
+        <div class="flex items-center gap-2 mb-1" [class.justify-end]="message.isUser">
+          <span class="text-xs font-medium text-base-content/60">
+            {{ message.isUser ? 'You' : 'Cheapsy AI' }}
+          </span>
+          <span class="text-xs text-base-content/40">
+            {{ message.timestamp | date:'shortTime' }}
+          </span>
+        </div>
+
+        <div class="rounded-2xl px-4 py-3 shadow-sm" [class.bg-gradient-to-br]="message.isUser"
+          [class.from-primary]="message.isUser" [class.to-secondary]="message.isUser"
+          [class.text-white]="message.isUser" [class.bg-base-100]="!message.isUser" [class.border]="!message.isUser"
+          [class.border-base-200]="!message.isUser">
+          <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ message.text }}</p>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Typing Indicator -->
+    @if (isTyping) {
+    <div class="flex gap-3 animate-slide-up">
+      <div class="flex-none">
+        <div class="avatar">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary">
+            <div class="flex items-center justify-center w-full h-full">
+              <span class="material-icons text-white">psychology</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-base-100 border border-base-200 rounded-2xl px-6 py-4 shadow-sm">
+        <div class="flex gap-1">
+          <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+          <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+          <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+        </div>
       </div>
     </div>
     }
   </div>
 
-  <!-- Input Area -->
-  <div class="flex-none p-4 bg-base-100 border-t border-base-200 absolute bottom-0 left-0 right-0 lg:relative">
-    <div class="join w-full shadow-sm">
-      <div class="relative w-full">
-        <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40">chat</span>
-        <input type="text" class="input input-bordered w-full pl-10 join-item focus:outline-none"
-          [(ngModel)]="userInput" (keypress)="handleKeyPress($event)" placeholder="Ask about your receipts..."
-          autocomplete="off" />
+  <!-- Input Area - Sticky at bottom with glass effect -->
+  <div
+    class="flex-none p-4 pr-20 lg:pr-4 bg-base-100/80 backdrop-blur-lg border-t border-base-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40">chat_bubble</span>
+          <input type="text"
+            class="input input-bordered w-full pl-12 pr-4 h-12 rounded-full focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            [(ngModel)]="userInput" (keypress)="handleKeyPress($event)"
+            placeholder="Ask me anything about your receipts..." autocomplete="off" />
+        </div>
+        <button class="btn btn-primary btn-circle h-12 w-12 shadow-lg hover:shadow-xl transition-shadow"
+          (click)="sendMessage()" [disabled]="!userInput.trim()">
+          <span class="material-icons">send</span>
+        </button>
       </div>
-      <button class="btn btn-primary join-item" (click)="sendMessage()" [disabled]="!userInput.trim()">
-        <span class="material-icons">send</span>
-      </button>
+
+      <!-- Suggested Questions (show when input is empty) -->
+      @if (!userInput && messages.length > 0) {
+      <div class="flex gap-2 mt-3 overflow-x-auto pb-2">
+        <button class="btn btn-sm btn-outline rounded-full whitespace-nowrap"
+          (click)="quickQuestion('Show spending trends')">
+          <span class="material-icons text-sm">trending_up</span>
+          Spending trends
+        </button>
+        <button class="btn btn-sm btn-outline rounded-full whitespace-nowrap"
+          (click)="quickQuestion('Compare store prices')">
+          <span class="material-icons text-sm">compare_arrows</span>
+          Compare prices
+        </button>
+        <button class="btn btn-sm btn-outline rounded-full whitespace-nowrap" (click)="quickQuestion('Budget tips')">
+          <span class="material-icons text-sm">lightbulb</span>
+          Budget tips
+        </button>
+      </div>
+      }
     </div>
   </div>
 </div>

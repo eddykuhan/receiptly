@@ -88,19 +88,19 @@
       <div class="divider"></div>
 
       <li>
-        <a (click)="onCameraClick()" class="gap-4 py-3">
+        <a (click)="onCameraClick()" [class.active]="isRouteActive('/camera')" class="gap-4 py-3">
           <span class="material-icons">photo_camera</span>
           Scan Receipt
         </a>
       </li>
       <li>
-        <a (click)="onPriceMapClick()" class="gap-4 py-3">
+        <a (click)="onPriceMapClick()" [class.active]="isRouteActive('/price-map')" class="gap-4 py-3">
           <span class="material-icons">map</span>
           Price Map
         </a>
       </li>
       <li>
-        <a (click)="onRewardsClick()" class="gap-4 py-3">
+        <a (click)="onRewardsClick()" [class.active]="isRouteActive('/rewards')" class="gap-4 py-3">
           <span class="material-icons">card_giftcard</span>
           Rewards
         </a>
@@ -109,13 +109,13 @@
       <div class="divider"></div>
 
       <li>
-        <a (click)="onProfileClick()" class="gap-4 py-3">
+        <a (click)="onProfileClick()" [class.active]="isRouteActive('/profile')" class="gap-4 py-3">
           <span class="material-icons">account_circle</span>
           Profile
         </a>
       </li>
       <li>
-        <a (click)="onAskAIClick()" class="gap-4 py-3">
+        <a (click)="onAskAIClick()" [class.active]="isRouteActive('/ask-ai')" class="gap-4 py-3">
           <span class="material-icons">auto_awesome</span>
           Ask AI
         </a>
