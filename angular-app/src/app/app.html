@@ -18,19 +18,20 @@
 
     <!-- FAB Speed Dial (Mobile) -->
     <div class="fixed bottom-20 right-4 z-20 lg:hidden dropdown dropdown-top dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-circle btn-primary btn-lg shadow-lg">
-        <span class="material-icons text-3xl">add</span>
+      <div tabindex="0" role="button" class="btn btn-circle btn-primary btn-lg shadow-lg"
+        (click)="fabOpen.set(!fabOpen())" (blur)="fabOpen.set(false)">
+        <span class="material-icons text-3xl">{{ fabOpen() ? 'close' : 'add' }}</span>
       </div>
       <ul tabindex="0"
         class="dropdown-content z-[1] menu p-2 shadow-xl bg-base-100 rounded-box w-auto mb-2 gap-1 border border-base-200">
         <li>
-          <a (click)="onCameraClick()" class="py-3">
+          <a (click)="onCameraClick(); fabOpen.set(false)" class="py-3">
             <span class="material-icons text-secondary text-xl">photo_camera</span>
           </a>
         </li>
         @if (!isOnAskAIPage()) {
         <li>
-          <a (click)="onAskAIClick()" class="py-3">
+          <a (click)="onAskAIClick(); fabOpen.set(false)" class="py-3">
             <span class="material-icons text-primary text-xl">auto_awesome</span>
           </a>
         </li>

@@ -14,6 +14,7 @@ import { PwaInstallPromptComponent } from './shared/components/pwa-install-promp
 export class App {
   activeTabIndex = 0;
   isOnAskAIPage = signal(false);
+  fabOpen = signal(false);
 
   constructor(private router: Router) {
     // Update active tab based on route
