@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Platform } from '@angular/cdk/platform';
-import { BehaviorSubject, fromEvent, merge } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +9,7 @@ export class PwaService {
   private isStandalone$ = new BehaviorSubject<boolean>(false);
   private canInstall$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private platform: Platform) {
+  constructor() {
     this.checkStandalone();
     this.listenForInstallPrompt();
     this.listenForAppInstalled();
@@ -21,11 +19,11 @@ export class PwaService {
    * Check if app is running in standalone mode (installed)
    */
   private checkStandalone(): void {
-    const isStandalone = 
+    const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone ||
       document.referrer.includes('android-app://');
-    
+
     this.isStandalone$.next(isStandalone);
   }
 
@@ -64,7 +62,7 @@ export class PwaService {
     try {
       this.promptEvent.prompt();
       const { outcome } = await this.promptEvent.userChoice;
-      
+
       if (outcome === 'accepted') {
         console.log('PWA: User accepted install');
         this.canInstall$.next(false);
@@ -113,14 +111,14 @@ export class PwaService {
    * Check if device is iOS
    */
   get isIos(): boolean {
-    return this.platform.IOS;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   }
 
   /**
    * Check if device is Android
    */
   get isAndroid(): boolean {
-    return this.platform.ANDROID;
+    return /android/i.test(navigator.userAgent);
   }
 
   /**

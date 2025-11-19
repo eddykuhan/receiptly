@@ -1,158 +1,80 @@
-import { Component, inject, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { PwaService } from '../../core/services/pwa.service';
 
 @Component({
   selector: 'app-pwa-install-prompt',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatSnackBarModule],
+  imports: [CommonModule],
   template: `
     @if (showPrompt && !dismissed) {
-      <div class="install-prompt">
-        <div class="install-content">
-          <div class="install-icon">
-            <mat-icon>get_app</mat-icon>
+      <div class="fixed bottom-20 left-4 right-4 z-[10002] animate-[slideUp_0.3s_ease-out]">
+        <div class="card bg-base-100 shadow-xl border border-base-200">
+          <div class="card-body p-4 flex-row items-center gap-4">
+            <div class="p-3 bg-primary/10 rounded-xl text-primary shrink-0">
+              <span class="material-icons text-2xl">get_app</span>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-bold text-base">Install Cheapsy</h3>
+              <p class="text-sm text-base-content/60">Install our app for a better experience</p>
+            </div>
           </div>
-          <div class="install-text">
-            <h3>Install resit la!</h3>
-            <p>Install our app for a better experience</p>
+          <div class="card-actions justify-end p-4 pt-0">
+            <button class="btn btn-ghost btn-sm" (click)="dismiss()">
+              Not now
+            </button>
+            <button class="btn btn-primary btn-sm" (click)="install()">
+              Install
+            </button>
           </div>
-        </div>
-        <div class="install-actions">
-          <button mat-button (click)="dismiss()">
-            Not now
-          </button>
-          <button mat-raised-button color="primary" (click)="install()">
-            Install
-          </button>
         </div>
       </div>
     }
 
     @if (showIosPrompt && !dismissed) {
-      <div class="install-prompt ios-prompt">
-        <div class="install-content">
-          <div class="install-icon">
-            <mat-icon>ios_share</mat-icon>
+      <div class="fixed bottom-4 left-4 right-4 z-[10002] animate-[slideUp_0.3s_ease-out]">
+        <div class="alert bg-base-100 shadow-xl border border-base-200 items-start">
+          <div class="p-2 bg-primary/10 rounded-lg text-primary shrink-0 mt-1">
+            <span class="material-icons">ios_share</span>
           </div>
-          <div class="install-text">
-            <h3>Add to Home Screen</h3>
-            <p>{{ pwaService.getIosInstallInstructions() }}</p>
+          <div class="flex-1">
+            <h3 class="font-bold">Add to Home Screen</h3>
+            <div class="text-sm text-base-content/60 mt-1">
+              {{ pwaService.getIosInstallInstructions() }}
+            </div>
           </div>
+          <button class="btn btn-circle btn-ghost btn-sm" (click)="dismiss()">
+            <span class="material-icons">close</span>
+          </button>
         </div>
-        <button mat-icon-button (click)="dismiss()" class="close-btn">
-          <mat-icon>close</mat-icon>
-        </button>
+      </div>
+    }
+    
+    @if (toastMessage()) {
+      <div class="toast toast-bottom toast-center z-[10003]">
+        <div class="alert alert-success">
+          <span class="material-icons text-white">check_circle</span>
+          <span class="text-white">{{ toastMessage() }}</span>
+        </div>
       </div>
     }
   `,
   styles: [`
-    .install-prompt {
-      position: fixed;
-      bottom: 80px;
-      left: 16px;
-      right: 16px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      padding: 20px;
-      z-index: 10002;
-      animation: slideUp 0.3s ease-out;
-
-      &.ios-prompt {
-        bottom: 16px;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-
-        .close-btn {
-          flex-shrink: 0;
-          margin-left: 8px;
-        }
-      }
-    }
-
     @keyframes slideUp {
-      from {
-        transform: translateY(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .install-content {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 16px;
-
-      .ios-prompt & {
-        margin-bottom: 0;
-        flex: 1;
-      }
-    }
-
-    .install-icon {
-      width: 48px;
-      height: 48px;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      mat-icon {
-        color: #6366f1;
-        font-size: 28px;
-        width: 28px;
-        height: 28px;
-      }
-    }
-
-    .install-text {
-      flex: 1;
-
-      h3 {
-        margin: 0 0 4px;
-        font-size: 16px;
-        font-weight: 600;
-        color: #111827;
-      }
-
-      p {
-        margin: 0;
-        font-size: 13px;
-        color: #6b7280;
-        line-height: 1.4;
-      }
-    }
-
-    .install-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-
-      button {
-        font-weight: 600;
-        border-radius: 8px;
-      }
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
   `]
 })
 export class PwaInstallPromptComponent implements OnInit {
   pwaService = inject(PwaService);
-  private snackBar = inject(MatSnackBar);
   private cdr = inject(ChangeDetectorRef);
-  
+
   dismissed = false;
   showPrompt = false;
   showIosPrompt = false;
+
+  toastMessage = signal<string | null>(null);
 
   ngOnInit() {
     // Check if previously dismissed
@@ -178,15 +100,11 @@ export class PwaInstallPromptComponent implements OnInit {
 
   async install() {
     const installed = await this.pwaService.installApp();
-    
+
     if (installed) {
-      this.snackBar.open('App installed successfully!', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom'
-      });
+      this.showToast('App installed successfully!');
     }
-    
+
     this.dismissed = true;
   }
 
@@ -196,5 +114,10 @@ export class PwaInstallPromptComponent implements OnInit {
     const dismissUntil = new Date();
     dismissUntil.setDate(dismissUntil.getDate() + 7);
     localStorage.setItem('pwa-install-dismissed', dismissUntil.toISOString());
+  }
+
+  private showToast(message: string) {
+    this.toastMessage.set(message);
+    setTimeout(() => this.toastMessage.set(null), 3000);
   }
 }

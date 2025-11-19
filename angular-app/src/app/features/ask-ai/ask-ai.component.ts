@@ -1,9 +1,5 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 
 interface Message {
@@ -14,12 +10,9 @@ interface Message {
 
 @Component({
   selector: 'app-ask-ai',
+  standalone: true,
   imports: [
     CommonModule,
-    MatIconModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
     FormsModule
   ],
   templateUrl: './ask-ai.component.html',
@@ -28,12 +21,12 @@ interface Message {
 export class AskAiComponent {
   messages: Message[] = [
     {
-      text: "Hello! I'm your Receiptly AI assistant. I can help you analyze your spending, find receipts, and answer questions about your purchases. How can I help you today?",
+      text: "Hello! I'm your Cheapsy AI assistant. I can help you analyze your spending, find receipts, and answer questions about your purchases. How can I help you today?",
       isUser: false,
       timestamp: new Date()
     }
   ];
-  
+
   userInput = '';
   isTyping = false;
 
@@ -65,7 +58,7 @@ export class AskAiComponent {
   private getAiResponse(question: string): string {
     // Placeholder responses - integrate with actual AI service
     const lowerQuestion = question.toLowerCase();
-    
+
     if (lowerQuestion.includes('spending') || lowerQuestion.includes('spent')) {
       return "Based on your receipts, you've spent RM 234.50 this month. Your top categories are groceries (RM 120.30) and dining (RM 89.20).";
     } else if (lowerQuestion.includes('receipt')) {

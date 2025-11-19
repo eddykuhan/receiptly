@@ -1,21 +1,20 @@
 import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { filter } from 'rxjs';
 import { PwaInstallPromptComponent } from './shared/components/pwa-install-prompt.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MatTabsModule, MatIconModule, MatButtonModule, PwaInstallPromptComponent],
+  standalone: true,
+  imports: [CommonModule, RouterOutlet, PwaInstallPromptComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
   activeTabIndex = 0;
   isOnAskAIPage = signal(false);
-  
+
   constructor(private router: Router) {
     // Update active tab based on route
     this.router.events.pipe(
@@ -26,12 +25,12 @@ export class App {
       } else if (event.url.includes('/history')) {
         this.activeTabIndex = 1;
       }
-      
+
       // Check if on Ask AI page
       this.isOnAskAIPage.set(event.url.includes('/ask-ai'));
     });
   }
-  
+
   onTabChange(index: number) {
     const routes = ['/dashboard', '/history'];
     this.router.navigate([routes[index]]);

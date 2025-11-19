@@ -1,130 +1,136 @@
-<div class="history-container">
+<div class="p-4 pb-24 space-y-6">
   <!-- Header with Search -->
-  <header class="header">
-    <div class="header-content">
-      <mat-icon class="header-icon">receipt_long</mat-icon>
-      <div class="header-title">
-        <h1>History</h1>
-        <p class="subtitle">Track all your receipts</p>
+  <header class="space-y-4">
+    <div class="flex items-center gap-3">
+      <div class="p-3 bg-primary/10 rounded-xl text-primary">
+        <span class="material-icons text-3xl">receipt_long</span>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold">History</h1>
+        <p class="text-base-content/60">Track all your receipts</p>
       </div>
     </div>
-    
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-icon matPrefix>search</mat-icon>
-      <input matInput
-             placeholder="Search receipts..."
-             [value]="searchQuery()"
-             (input)="onSearchChange($any($event.target).value)">
-    </mat-form-field>
+
+    <div class="form-control">
+      <div class="relative">
+        <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40">search</span>
+        <input type="text" placeholder="Search receipts..." class="input input-bordered w-full pl-10"
+          [value]="searchQuery()" (input)="onSearchChange($any($event.target).value)" />
+      </div>
+    </div>
 
     <!-- Filter Chips -->
-    <mat-chip-set class="filter-chips">
-      <mat-chip 
-        [highlighted]="selectedFilter() === 'all'"
-        (click)="onFilterChange('all')">
+    <div class="flex gap-2 overflow-x-auto pb-2">
+      <button class="btn btn-sm rounded-full" [class.btn-primary]="selectedFilter() === 'all'"
+        [class.btn-ghost]="selectedFilter() !== 'all'" (click)="onFilterChange('all')">
         All Time
-      </mat-chip>
-      <mat-chip 
-        [highlighted]="selectedFilter() === 'week'"
-        (click)="onFilterChange('week')">
+      </button>
+      <button class="btn btn-sm rounded-full" [class.btn-primary]="selectedFilter() === 'week'"
+        [class.btn-ghost]="selectedFilter() !== 'week'" (click)="onFilterChange('week')">
         This Week
-      </mat-chip>
-      <mat-chip 
-        [highlighted]="selectedFilter() === 'month'"
-        (click)="onFilterChange('month')">
+      </button>
+      <button class="btn btn-sm rounded-full" [class.btn-primary]="selectedFilter() === 'month'"
+        [class.btn-ghost]="selectedFilter() !== 'month'" (click)="onFilterChange('month')">
         This Month
-      </mat-chip>
-    </mat-chip-set>
+      </button>
+    </div>
   </header>
 
   <!-- Loading State -->
   @if (isLoading()) {
-    <div class="loading-state">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p>Loading receipts...</p>
-    </div>
+  <div class="flex flex-col items-center justify-center py-20 space-y-4">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+    <p class="text-base-content/60">Loading receipts...</p>
+  </div>
   }
   <!-- Empty State -->
   @else if (filteredReceipts().length === 0 && searchQuery() === '') {
-    <div class="empty-state">
-      <mat-icon>receipt_long</mat-icon>
-      <h2>No Receipts Yet</h2>
-      <p>Start scanning receipts to build your history</p>
+  <div class="hero bg-base-200 rounded-box p-8">
+    <div class="hero-content text-center">
+      <div class="max-w-md">
+        <span class="material-icons text-6xl text-base-content/20 mb-4">receipt_long</span>
+        <h2 class="text-2xl font-bold">No Receipts Yet</h2>
+        <p class="py-6">Start scanning receipts to build your history</p>
+      </div>
     </div>
+  </div>
   }
   <!-- No Search Results -->
   @else if (filteredReceipts().length === 0) {
-    <div class="empty-state">
-      <mat-icon>search_off</mat-icon>
-      <h2>No Results Found</h2>
-      <p>Try adjusting your search or filters</p>
+  <div class="hero bg-base-200 rounded-box p-8">
+    <div class="hero-content text-center">
+      <div class="max-w-md">
+        <span class="material-icons text-6xl text-base-content/20 mb-4">search_off</span>
+        <h2 class="text-2xl font-bold">No Results Found</h2>
+        <p class="py-6">Try adjusting your search or filters</p>
+      </div>
     </div>
+  </div>
   }
   <!-- Receipts List -->
   @else {
-    <div class="receipts-list">
-      @for (receipt of filteredReceipts(); track receipt.id) {
-        <mat-card class="receipt-card">
-          <mat-card-content>
-            <div class="receipt-main">
-              <!-- Store Icon -->
-              <div class="store-icon">
-                <mat-icon>store</mat-icon>
-              </div>
-
-              <!-- Receipt Info -->
-              <div class="receipt-info">
-                <h3>{{ receipt.storeName }}</h3>
-                @if (receipt.storeAddress) {
-                  <p class="address">{{ receipt.storeAddress }}</p>
-                }
-                <div class="meta">
-                  <span class="date">
-                    <mat-icon>calendar_today</mat-icon>
-                    {{ receipt.purchaseDate | date:'MMM d, y' }}
-                  </span>
-                  <span class="items">
-                    <mat-icon>shopping_basket</mat-icon>
-                    {{ getItemCount(receipt) }} items
-                  </span>
-                </div>
-              </div>
-
-              <!-- Amount -->
-              <div class="receipt-amount">
-                <span class="amount">{{ getTotalAmount(receipt) | myr }}</span>
-                @if (receipt.isValidReceipt) {
-                  <mat-icon class="verified">check_circle</mat-icon>
-                }
+  <div class="space-y-3 md:space-y-4">
+    @for (receipt of filteredReceipts(); track receipt.id) {
+    <div class="card bg-base-100 shadow-sm md:shadow-md hover:shadow-lg transition-shadow">
+      <div class="card-body p-3 md:p-4">
+        <div class="flex justify-between items-start">
+          <div class="flex gap-3">
+            <div class="p-2 bg-base-200 rounded-lg h-fit">
+              <span class="material-icons text-base-content/60 text-[20px] md:text-[24px]">store</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-base md:text-lg">{{ receipt.storeName }}</h3>
+              @if (receipt.storeAddress) {
+              <p class="text-xs md:text-sm text-base-content/60 line-clamp-1">{{ receipt.storeAddress }}</p>
+              }
+              <div class="flex items-center gap-3 mt-1 text-[10px] md:text-xs text-base-content/60">
+                <span class="flex items-center gap-1">
+                  <span class="material-icons text-[12px] md:text-[14px]">calendar_today</span>
+                  {{ receipt.purchaseDate | date:'MMM d, y' }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="material-icons text-[12px] md:text-[14px]">shopping_basket</span>
+                  {{ getItemCount(receipt) }} items
+                </span>
               </div>
             </div>
+          </div>
 
-            <!-- Actions -->
-            <div class="receipt-actions">
-              <button mat-icon-button color="primary" [routerLink]="['/receipt', receipt.id]">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="deleteReceipt(receipt)">
-                <mat-icon>delete</mat-icon>
-              </button>
+          <div class="text-right">
+            <div class="font-mono font-bold text-base md:text-lg">{{ getTotalAmount(receipt) | myr }}</div>
+            @if (receipt.isValidReceipt) {
+            <div class="flex items-center justify-end gap-1 text-success text-[10px] md:text-xs mt-1">
+              <span class="material-icons text-[12px] md:text-[14px]">check_circle</span>
+              <span>Verified</span>
             </div>
-          </mat-card-content>
-        </mat-card>
-      }
-    </div>
+            }
+          </div>
+        </div>
 
-    <!-- Summary Footer -->
-    <div class="summary-footer">
-      <div class="summary-item">
-        <span class="label">Total Receipts:</span>
-        <span class="value">{{ filteredReceipts().length }}</span>
-      </div>
-      <div class="summary-item">
-        <span class="label">Total Amount:</span>
-        <span class="value">
-          {{ getTotalSpent() | myr }}
-        </span>
+        <!-- Actions -->
+        <div class="card-actions justify-end mt-3 md:mt-4 pt-3 md:pt-4 border-t border-base-200">
+          <button class="btn btn-ghost btn-xs md:btn-sm text-error" (click)="deleteReceipt(receipt)">
+            <span class="material-icons text-base md:text-lg">delete</span>
+          </button>
+          <button class="btn btn-ghost btn-xs md:btn-sm text-primary" [routerLink]="['/receipt', receipt.id]">
+            <span class="material-icons text-base md:text-lg">visibility</span>
+            View Details
+          </button>
+        </div>
       </div>
     </div>
+    }
+  </div>
+
+  <!-- Summary Footer -->
+  <div class="fixed bottom-[80px] left-4 right-4 lg:left-auto lg:right-8 lg:bottom-8 lg:w-80">
+    <div class="stats shadow w-full bg-base-100">
+      <div class="stat p-3 md:p-4">
+        <div class="stat-title text-xs md:text-sm">Total Amount</div>
+        <div class="stat-value text-primary text-xl md:text-2xl">{{ getTotalSpent() | myr }}</div>
+        <div class="stat-desc text-xs md:text-sm">{{ filteredReceipts().length }} receipts</div>
+      </div>
+    </div>
+  </div>
   }
 </div>

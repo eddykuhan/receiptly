@@ -1,68 +1,62 @@
-<div class="ask-ai-container">
+<div class="flex flex-col h-[calc(100vh-64px)] lg:h-full relative">
   <!-- Header -->
-  <header class="header">
-    <div class="header-content">
-      <mat-icon class="header-icon">auto_awesome</mat-icon>
+  <header class="flex-none p-4 border-b border-base-200 bg-base-100 z-10">
+    <div class="flex items-center gap-3">
+      <div class="p-3 bg-accent/10 rounded-xl text-accent">
+        <span class="material-icons text-3xl">auto_awesome</span>
+      </div>
       <div>
-        <h1>Ask AI</h1>
-        <p class="subtitle">Your intelligent receipt assistant</p>
+        <h1 class="text-2xl font-bold">Ask AI</h1>
+        <p class="text-base-content/60">Your intelligent receipt assistant</p>
       </div>
     </div>
   </header>
 
   <!-- Chat Messages -->
-  <div class="messages-container">
-    <div class="messages">
-      @for (message of messages; track message.timestamp) {
-        <div class="message" [class.user-message]="message.isUser" [class.ai-message]="!message.isUser">
-          <div class="message-avatar">
-            <mat-icon>{{ message.isUser ? 'person' : 'smart_toy' }}</mat-icon>
-          </div>
-          <div class="message-content">
-            <div class="message-bubble">
-              {{ message.text }}
-            </div>
-            <span class="message-time">{{ message.timestamp | date:'shortTime' }}</span>
-          </div>
+  <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+    @for (message of messages; track message.timestamp) {
+    <div class="chat" [class.chat-end]="message.isUser" [class.chat-start]="!message.isUser">
+      <div class="chat-image avatar">
+        <div class="w-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/70">
+          <span class="material-icons">{{ message.isUser ? 'person' : 'smart_toy' }}</span>
         </div>
-      }
-      
-      @if (isTyping) {
-        <div class="message ai-message">
-          <div class="message-avatar">
-            <mat-icon>smart_toy</mat-icon>
-          </div>
-          <div class="message-content">
-            <div class="message-bubble typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          </div>
-        </div>
-      }
+      </div>
+      <div class="chat-header opacity-50 text-xs mb-1">
+        {{ message.isUser ? 'You' : 'Cheapsy AI' }}
+        <time class="text-xs opacity-50 ml-1">{{ message.timestamp | date:'shortTime' }}</time>
+      </div>
+      <div class="chat-bubble" [class.chat-bubble-primary]="message.isUser"
+        [class.chat-bubble-secondary]="!message.isUser">
+        {{ message.text }}
+      </div>
     </div>
+    }
+
+    @if (isTyping) {
+    <div class="chat chat-start">
+      <div class="chat-image avatar">
+        <div class="w-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/70">
+          <span class="material-icons">smart_toy</span>
+        </div>
+      </div>
+      <div class="chat-bubble chat-bubble-secondary">
+        <span class="loading loading-dots loading-sm"></span>
+      </div>
+    </div>
+    }
   </div>
 
   <!-- Input Area -->
-  <div class="input-area">
-    <div class="input-container">
-      <mat-form-field appearance="outline" class="message-input">
-        <mat-icon matPrefix>chat</mat-icon>
-        <input 
-          matInput 
-          [(ngModel)]="userInput"
-          (keypress)="handleKeyPress($event)"
-          placeholder="Ask about your receipts..."
-          autocomplete="off">
-      </mat-form-field>
-      <button 
-        mat-fab 
-        color="primary" 
-        (click)="sendMessage()"
-        [disabled]="!userInput.trim()"
-        class="send-button">
-        <mat-icon>send</mat-icon>
+  <div class="flex-none p-4 bg-base-100 border-t border-base-200 absolute bottom-0 left-0 right-0 lg:relative">
+    <div class="join w-full shadow-sm">
+      <div class="relative w-full">
+        <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40">chat</span>
+        <input type="text" class="input input-bordered w-full pl-10 join-item focus:outline-none"
+          [(ngModel)]="userInput" (keypress)="handleKeyPress($event)" placeholder="Ask about your receipts..."
+          autocomplete="off" />
+      </div>
+      <button class="btn btn-primary join-item" (click)="sendMessage()" [disabled]="!userInput.trim()">
+        <span class="material-icons">send</span>
       </button>
     </div>
   </div>

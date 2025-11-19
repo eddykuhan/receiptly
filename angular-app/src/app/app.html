@@ -1,55 +1,97 @@
-<div class="app-container">
-  <!-- Main Content Area -->
-  <div class="content">
-    <router-outlet></router-outlet>
+<div class="drawer lg:drawer-open">
+  <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+
+  <div class="drawer-content flex flex-col bg-base-200 min-h-screen relative">
+    <!-- Navbar (Mobile only) -->
+    <div class="navbar bg-base-100 lg:hidden shadow-sm z-10">
+      <div class="flex-1">
+        <a class="btn btn-ghost text-xl text-primary font-bold">Cheapsy</a>
+      </div>
+      <div class="flex-none">
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-4 pb-24 lg:pb-4 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </div>
+
+    <!-- FAB Speed Dial (Mobile) -->
+    <div class="fixed bottom-20 right-4 z-20 lg:hidden dropdown dropdown-top dropdown-end">
+      <div tabindex="0" role="button" class="btn btn-circle btn-primary btn-lg shadow-lg">
+        <span class="material-icons text-3xl">add</span>
+      </div>
+      <ul tabindex="0"
+        class="dropdown-content z-[1] menu p-2 shadow-xl bg-base-100 rounded-box w-48 mb-2 gap-1 border border-base-200">
+        <li>
+          <a (click)="onCameraClick()" class="gap-3 py-3 font-medium">
+            <span class="material-icons text-secondary">photo_camera</span>
+            Scan Receipt
+          </a>
+        </li>
+        @if (!isOnAskAIPage()) {
+        <li>
+          <a (click)="onAskAIClick()" class="gap-3 py-3 font-medium">
+            <span class="material-icons text-primary">auto_awesome</span>
+            Ask AI
+          </a>
+        </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <div class="btm-nav lg:hidden z-30 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+      <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
+        <span class="material-icons">dashboard</span>
+        <span class="btm-nav-label text-xs">Dashboard</span>
+      </button>
+      <button (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="text-primary">
+        <span class="material-icons">receipt_long</span>
+        <span class="btm-nav-label text-xs">History</span>
+      </button>
+    </div>
   </div>
 
-  <!-- PWA Install Prompt -->
-  <app-pwa-install-prompt></app-pwa-install-prompt>
+  <!-- Sidebar (Desktop) -->
+  <div class="drawer-side z-40">
+    <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
+    <ul class="menu p-4 w-80 min-h-full bg-base-100 text-base-content shadow-xl">
+      <!-- Sidebar Content -->
+      <li class="mb-8">
+        <a class="text-2xl font-bold text-primary px-4 hover:bg-transparent">Cheapsy</a>
+      </li>
 
-  <!-- Floating Camera Button -->
-  <button 
-    mat-fab 
-    class="camera-fab"
-    (click)="onCameraClick()"
-    aria-label="Open Camera">
-    <mat-icon>photo_camera</mat-icon>
-  </button>
+      <li>
+        <a (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="gap-4 py-3">
+          <span class="material-icons">dashboard</span>
+          Dashboard
+        </a>
+      </li>
+      <li>
+        <a (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="gap-4 py-3">
+          <span class="material-icons">receipt_long</span>
+          History
+        </a>
+      </li>
 
-  <!-- Floating Ask AI Button -->
-  @if (!isOnAskAIPage()) {
-    <button 
-      mat-raised-button
-      class="ai-fab"
-      (click)="onAskAIClick()"
-      aria-label="Ask AI">
-      <mat-icon>auto_awesome</mat-icon>
-      <span>Ask AI</span>
-    </button>
-  }
+      <div class="divider"></div>
 
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <mat-tab-group 
-      [(selectedIndex)]="activeTabIndex"
-      (selectedIndexChange)="onTabChange($event)"
-      mat-stretch-tabs="false"
-      mat-align-tabs="center"
-      animationDuration="200ms">
-      
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>dashboard</mat-icon>
-          <span>Dashboard</span>
-        </ng-template>
-      </mat-tab>
-      
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>receipt_long</mat-icon>
-          <span>History</span>
-        </ng-template>
-      </mat-tab>
-    </mat-tab-group>
-  </nav>
+      <li>
+        <a (click)="onCameraClick()" class="gap-4 py-3">
+          <span class="material-icons">photo_camera</span>
+          Scan Receipt
+        </a>
+      </li>
+      <li>
+        <a (click)="onAskAIClick()" class="gap-4 py-3">
+          <span class="material-icons">auto_awesome</span>
+          Ask AI
+        </a>
+      </li>
+    </ul>
+
+  </div>
 </div>
+
+<app-pwa-install-prompt></app-pwa-install-prompt>

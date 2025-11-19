@@ -1,13 +1,6 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormsModule } from '@angular/forms';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { Receipt } from '../../core/models/receipt.model';
@@ -19,13 +12,6 @@ import { MyrPipe } from '../../core/pipes/myr.pipe';
   imports: [
     CommonModule,
     RouterLink,
-    MatCardModule,
-    MatIconModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
     FormsModule,
     MyrPipe,
   ],
@@ -48,7 +34,7 @@ export class HistoryComponent implements OnInit {
   loadReceipts() {
     this.isLoading.set(true);
     this.receiptService.receipts$.subscribe(receipts => {
-      const sorted = [...receipts].sort((a, b) => 
+      const sorted = [...receipts].sort((a, b) =>
         new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()
       );
       this.allReceipts.set(sorted);

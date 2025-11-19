@@ -1,10 +1,6 @@
 import { Component, signal, computed, inject, OnInit, ViewChild, ElementRef, AfterViewInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
+import { FormsModule } from '@angular/forms';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { Receipt } from '../../core/models/receipt.model';
@@ -18,11 +14,7 @@ Chart.register(...registerables);
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatIconModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
+    FormsModule,
     MyrPipe,
   ],
   templateUrl: './dashboard.component.html',
@@ -243,7 +235,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { 
+          legend: {
             position: 'bottom',
             labels: {
               padding: 16,
@@ -398,7 +390,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       dailyTotals.set(date, (dailyTotals.get(date) || 0) + total);
     });
 
-    return new Map([...dailyTotals.entries()].sort((a, b) => 
+    return new Map([...dailyTotals.entries()].sort((a, b) =>
       new Date(a[0]).getTime() - new Date(b[0]).getTime()
     ));
   }

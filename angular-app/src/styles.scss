@@ -1,32 +1,12 @@
-// Include theming for Angular Material
-@use '@angular/material' as mat;
-
-html {
-  @include mat.theme((
-    color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
-    ),
-    typography: 'Inter',
-    density: 0,
-  ));
-  
-  // Override Material colors with our indigo palette using CSS custom properties
-  --mat-sys-primary: #6366f1;
-  --mat-sys-on-primary: #ffffff;
-  --mat-sys-primary-container: #e0e7ff;
-  --mat-sys-on-primary-container: #4338ca;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 // Import Inter font from Google Fonts
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-// Global base styles
-* {
-  box-sizing: border-box;
-}
-
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
@@ -34,71 +14,21 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-// Material overrides
-.mat-mdc-card {
-  border-radius: 16px !important;
-}
-
-.mat-mdc-button,
-.mat-mdc-raised-button,
-.mat-mdc-flat-button {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 600 !important;
-  border-radius: 12px !important;
-}
-
-.mat-mdc-form-field {
-  font-family: 'Inter', sans-serif !important;
-}
-
-// Snackbar overrides - ensure always on top of everything including FABs
-.cdk-overlay-container {
-  z-index: 10000 !important; // Higher than all other elements
-}
-
-.mat-mdc-snack-bar-container {
-  z-index: 10001 !important; // Even higher to be on top of overlay
-  
-  &.success-snackbar {
-    --mdc-snackbar-container-color: #10b981 !important;
-    --mat-snack-bar-button-color: #ffffff !important;
-    
-    .mdc-snackbar__surface {
-      background-color: #10b981 !important;
-    }
-    
-    .mat-mdc-snack-bar-label {
-      color: white !important;
-    }
-  }
-  
-  &.error-snackbar {
-    --mdc-snackbar-container-color: #ef4444 !important;
-    --mat-snack-bar-button-color: #ffffff !important;
-    
-    .mdc-snackbar__surface {
-      background-color: #ef4444 !important;
-    }
-    
-    .mat-mdc-snack-bar-label {
-      color: white !important;
-    }
-  }
-}
-
-// Fix for Material Icons to ensure ligatures work
-mat-icon {
-  font-family: 'Material Icons' !important;
-  font-weight: normal !important;
-  font-style: normal !important;
-  line-height: 1 !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  display: inline-block !important;
-  white-space: nowrap !important;
-  word-wrap: normal !important;
-  direction: ltr !important;
-  -webkit-font-feature-settings: 'liga' !important;
-  font-feature-settings: 'liga' !important;
-  -webkit-font-smoothing: antialiased !important;
+// Material Icons
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
 }

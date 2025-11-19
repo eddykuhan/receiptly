@@ -1,0 +1,28 @@
+# Staging Environment Configuration Example
+# Copy this file to terraform.tfvars and update with your values
+
+# AWS Configuration
+aws_region = "ap-southeast-1"
+
+# Project Configuration
+project_name = "receiptly"
+environment  = "staging"
+
+# Database Configuration
+db_username = "postgres"
+
+# HTTPS Configuration (Optional)
+# To enable HTTPS with Let's Encrypt:
+# 1. Register a domain name (e.g., from Route 53, Namecheap, etc.)
+# 2. Create an A record pointing to your EC2 instance's Elastic IP
+# 3. Set enable_https = true
+# 4. Provide your domain name and email
+
+enable_https      = false # Set to true to enable HTTPS
+domain_name       = ""    # e.g., "api.receiptly.com"
+letsencrypt_email = ""    # e.g., "admin@example.com"
+
+# Example with HTTPS enabled:
+# enable_https      = true
+# domain_name       = "api.receiptly.com"
+# letsencrypt_email = "admin@example.com"
