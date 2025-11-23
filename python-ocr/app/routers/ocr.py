@@ -325,9 +325,22 @@ def override_merchant_data_with_tesseract(
         
         return True
     
-    # Override MerchantName with Tesseract's store_name (only if valid)
+    # Initialize StoreNameExtractor for fallback and fuzzy matching
+    extractor = StoreNameExtractor()
+    fallback_result = None
+    
+    # Run full-image extraction only if needed for fallback later (lazy loading would be better but we need it for fallback)
+    if image_bytes:
+        try:
+            # We don't prioritize this anymore, but we keep it for fallback
+            fallback_result = extractor.extract_from_full_image(image_bytes)
+        except Exception as e:
+            print(f"  ⚠️  Store name extraction failed: {str(e)}")
+
+    # Override MerchantName
     merchant_name_set = False
     
+    # Priority 1: Tesseract Location Extraction (if valid)
     if location.get('store_name'):
         store_name = location['store_name']
         if is_valid_text(store_name, max_length=100):
@@ -336,60 +349,73 @@ def override_merchant_data_with_tesseract(
                 'value': store_name,
                 'content': store_name,
                 'confidence': location.get('confidence', 0.0),
-                'source': 'tesseract'  # Mark source for debugging
+                'source': 'tesseract'
             }
-            print(f"  → Overriding MerchantName: {store_name}")
+            print(f"  → Overriding MerchantName with Tesseract: {store_name}")
             merchant_name_set = True
         else:
-            print(f"  ⚠️  Skipping MerchantName - invalid text detected (gibberish or too long)")
-            # Keep Azure's merchant name if Tesseract returned gibberish
-    
-    # Fallback: If both Azure and Tesseract failed to get merchant name, try full-image extraction
-    if not merchant_name_set and image_bytes:
-        # Check if Azure also doesn't have a valid merchant name
-        azure_merchant = fields.get('MerchantName', {})
-        azure_value = azure_merchant.get('value', '') if isinstance(azure_merchant, dict) else str(azure_merchant)
-        
-        if not azure_value or len(azure_value.strip()) < 2:
-            print("  ℹ️  Both Azure and Tesseract failed to detect store name, trying fallback extraction...")
-            try:
-                extractor = StoreNameExtractor()
-                fallback_result = extractor.extract_from_full_image(image_bytes)
-                
-                if fallback_result and fallback_result.get('store_name'):
-                    fallback_name = fallback_result['store_name']
-                    fallback_confidence = fallback_result.get('confidence', 0.0)
-                    fallback_method = fallback_result.get('method', 'unknown')
-                    
-                    fields['MerchantName'] = {
-                        'type': 'string',
-                        'value': fallback_name,
-                        'content': fallback_name,
-                        'confidence': fallback_confidence,
-                        'source': f'fallback_{fallback_method}'
-                    }
-                    print(f"  ✓ Fallback extraction successful: {fallback_name} (method: {fallback_method}, confidence: {fallback_confidence:.2f})")
-                    merchant_name_set = True
-                else:
-                    print("  ⚠️  Fallback extraction did not find a valid store name")
-            except Exception as e:
-                print(f"  ⚠️  Fallback extraction failed: {str(e)}")
-    
-    # If still no merchant name, set a placeholder for manual review
+            print(f"  ⚠️  Skipping Tesseract MerchantName - invalid text detected")
+
+    # Priority 2: Keep Azure's result (if it exists and is valid)
     if not merchant_name_set:
         azure_merchant = fields.get('MerchantName', {})
         azure_value = azure_merchant.get('value', '') if isinstance(azure_merchant, dict) else str(azure_merchant)
         
-        if not azure_value or len(azure_value.strip()) < 2:
+        if azure_value and len(azure_value.strip()) >= 2:
+            # Azure found something, and we didn't find a better match
+            merchant_name_set = True
+            
+    # Priority 3: Fallback Heuristics (Position, Capitalization, etc.) from StoreNameExtractor
+    if not merchant_name_set and fallback_result and fallback_result.get('store_name'):
+        fallback_name = fallback_result['store_name']
+        fallback_confidence = fallback_result.get('confidence', 0.0)
+        fallback_method = fallback_result.get('method', 'unknown')
+        
+        fields['MerchantName'] = {
+            'type': 'string',
+            'value': fallback_name,
+            'content': fallback_name,
+            'confidence': fallback_confidence,
+            'source': f'fallback_{fallback_method}'
+        }
+        print(f"  ✓ Fallback extraction successful: {fallback_name} (method: {fallback_method})")
+        merchant_name_set = True
+    
+    # FINAL STEP: Fuzzy Match Correction
+    # Regardless of source (Tesseract, Azure, or Fallback), try to match the detected name against known chains
+    # This fixes issues like "APOIN" -> "Mydin"
+    current_merchant = fields.get('MerchantName', {})
+    current_value = current_merchant.get('value', '') if isinstance(current_merchant, dict) else str(current_merchant)
+    
+    if current_value and len(current_value.strip()) >= 2:
+        print(f"  🔍 Checking '{current_value}' against known chains...")
+        fuzzy_match = extractor.find_best_match(current_value)
+        
+        if fuzzy_match:
+            canonical_name = fuzzy_match['store_name']
+            confidence = fuzzy_match['confidence']
+            print(f"  ✨ Fuzzy match found! Correcting '{current_value}' -> '{canonical_name}' (confidence: {confidence:.2f})")
+            
             fields['MerchantName'] = {
                 'type': 'string',
-                'value': 'Unknown Store',
-                'content': 'Unknown Store',
-                'confidence': 0.0,
-                'source': 'placeholder',
-                'requires_manual_review': True
+                'value': canonical_name,
+                'content': canonical_name,
+                'confidence': max(current_merchant.get('confidence', 0.0), confidence),
+                'source': f"{current_merchant.get('source', 'unknown')}_fuzzy_corrected"
             }
-            print("  ⚠️  No store name detected - using 'Unknown Store' placeholder")
+            merchant_name_set = True
+    
+    # If still no merchant name, set a placeholder for manual review
+    if not merchant_name_set:
+        fields['MerchantName'] = {
+            'type': 'string',
+            'value': 'Unknown Store',
+            'content': 'Unknown Store',
+            'confidence': 0.0,
+            'source': 'placeholder',
+            'requires_manual_review': True
+        }
+        print("  ⚠️  No store name detected - using 'Unknown Store' placeholder")
 
     
     # Override MerchantAddress with Tesseract's address (only if valid)

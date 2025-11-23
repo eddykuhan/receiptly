@@ -4,10 +4,11 @@ Used when Azure and Tesseract both fail to detect the merchant name.
 """
 
 import re
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from PIL import Image
 import pytesseract
 import io
+from thefuzz import fuzz, process
 
 
 class StoreNameExtractor:
@@ -17,13 +18,92 @@ class StoreNameExtractor:
     """
     
     # Common retail chains and patterns (expandable)
+    # Dictionary mapping Canonical Name -> List of variations/keywords to match
     KNOWN_CHAINS = {
-        'walmart', 'target', 'costco', 'safeway', 'kroger', 'whole foods',
-        'trader joe', 'aldi', 'publix', 'wegmans', 'cvs', 'walgreens',
-        'rite aid', 'shell', 'chevron', 'bp', 'exxon', 'mobil',
-        'mcdonald', 'burger king', 'wendy', 'subway', 'starbucks',
-        'dunkin', 'chipotle', 'taco bell', 'kfc', 'pizza hut',
-        'home depot', 'lowe', 'best buy', 'staples', 'office depot'
+        # Supermarkets / Hypermarkets
+        'Aeon': ['aeon', 'aeon co', 'aeon retail'],
+        'Aeon Big': ['aeon big'],
+        'Lotus\'s': ['lotus', 'tesco', 'lotus store', 'lotuss'],
+        'Giant': ['giant', 'giant hypermarket', 'giant superstore'],
+        'Jaya Grocer': ['jaya grocer', 'trendcell'],
+        'Village Grocer': ['village grocer'],
+        'Mydin': ['mydin', 'mydin mohamed holdings', 'mydin hypermarket'],
+        'Econsave': ['econsave', 'econsave cash & carry'],
+        'Hero Market': ['hero market', 'hero supermarket'],
+        'Cold Storage': ['cold storage'],
+        'Mercato': ['mercato'],
+        'B.I.G': ['b.i.g', 'ben\'s independent grocer'],
+        'NSK': ['nsk', 'nsk trade city', 'nsk grocer'],
+        'Checkers': ['checkers', 'checkers hypermarket'],
+        'The Store': ['the store'],
+        'Pacific': ['pacific', 'pacific hypermarket'],
+        'Billion': ['billion', 'billion shopping centre'],
+        
+        # Convenience Stores
+        '7-Eleven': ['7-eleven', '7 eleven', '7-11', 'seven eleven'],
+        'FamilyMart': ['familymart', 'family mart'],
+        'MyNews': ['mynews', 'my news'],
+        'KK Super Mart': ['kk super mart', 'kk mart', 'kk supermart'],
+        '99 Speedmart': ['99 speedmart', '99 speed mart', '99speedmart'],
+        'CU': ['cu', 'cu convenience store'],
+        'Potboy': ['potboy', 'potboy mart'],
+        
+        # Pharmacies / Health & Beauty
+        'Watsons': ['watsons', 'watson\'s', 'watsons personal care'],
+        'Guardian': ['guardian', 'guardian health and beauty'],
+        'Caring': ['caring', 'caring pharmacy'],
+        'Big Pharmacy': ['big pharmacy'],
+        'Alpro': ['alpro', 'alpro pharmacy'],
+        'Health Lane': ['health lane', 'health lane family pharmacy'],
+        'AA Pharmacy': ['aa pharmacy'],
+        'Sephora': ['sephora'],
+        'Sasa': ['sasa'],
+        
+        # F&B
+        'McDonald\'s': ['mcdonald', 'mcdonald\'s', 'gerbang alaf restaurants'],
+        'KFC': ['kfc', 'kentucky fried chicken', 'qsr stores'],
+        'Pizza Hut': ['pizza hut'],
+        'Domino\'s': ['domino', 'domino\'s pizza'],
+        'Burger King': ['burger king', 'cosmo restaurants'],
+        'Subway': ['subway'],
+        'Starbucks': ['starbucks', 'berjaya starbucks'],
+        'Coffee Bean': ['coffee bean', 'the coffee bean & tea leaf'],
+        'Tealive': ['tealive', 'loob holding'],
+        'Chatime': ['chatime'],
+        'Gong Cha': ['gong cha'],
+        'OldTown': ['oldtown', 'oldtown white coffee'],
+        'PappaRich': ['papparich'],
+        'Secret Recipe': ['secret recipe'],
+        'Nando\'s': ['nando', 'nando\'s', 'nando\'s chickenland'],
+        'Texas Chicken': ['texas chicken'],
+        'Marrybrown': ['marrybrown'],
+        'A&W': ['a&w'],
+        'Sushi King': ['sushi king'],
+        'Sakae Sushi': ['sakae sushi'],
+        
+        # Retail / Department Stores
+        'Parkson': ['parkson'],
+        'Isetan': ['isetan'],
+        'Sogo': ['sogo'],
+        'Harvey Norman': ['harvey norman'],
+        'Senheng': ['senheng', 'senheng electric'],
+        'SenQ': ['senq', 'senq digital station'],
+        'MR DIY': ['mr diy', 'mr. diy', 'mrdiy'],
+        'Daiso': ['daiso'],
+        'Uniqlo': ['uniqlo'],
+        'H&M': ['h&m', 'hennes & mauritz'],
+        'Padini': ['padini', 'padini concept store'],
+        'Brands Outlet': ['brands outlet'],
+        'Decathlon': ['decathlon'],
+        'IKEA': ['ikea', 'ikano'],
+        'Popular': ['popular', 'popular book'],
+        
+        # Petrol Stations
+        'Petronas': ['petronas', 'petronas dagangan'],
+        'Shell': ['shell', 'shell malaysia'],
+        'Petron': ['petron'],
+        'Caltex': ['caltex'],
+        'BHPetrol': ['bhpetrol', 'boustead petroleum']
     }
     
     def __init__(self):
@@ -72,9 +152,61 @@ class StoreNameExtractor:
             print(f"Error in fallback store name extraction: {str(e)}")
             return None
     
+    def find_best_match(self, text: str) -> Optional[Dict[str, Any]]:
+        """
+        Find the best matching known chain for a single string.
+        
+        Args:
+            text: Text to match against known chains
+            
+        Returns:
+            Dictionary with match details or None
+        """
+        if not text:
+            return None
+            
+        text_lower = text.lower()
+        best_match = None
+        best_score = 0
+        
+        for canonical_name, variations in self.KNOWN_CHAINS.items():
+            for variation in variations:
+                # Exact match check (fast path)
+                if variation in text_lower:
+                    return {
+                        'store_name': canonical_name,
+                        'confidence': 0.95,
+                        'method': 'exact'
+                    }
+                
+                # Fuzzy match logic
+                score = 0
+                if len(variation) <= 4:
+                    # Short names: strict matching
+                    score = fuzz.ratio(variation, text_lower)
+                    if score < 90:
+                        # Word boundary check
+                        if f" {variation} " in f" {text_lower} ":
+                            score = 100
+                        else:
+                            score = 0
+                else:
+                    # Long names: flexible matching
+                    score = fuzz.token_set_ratio(variation, text_lower)
+                
+                if score > 80 and score > best_score:
+                    best_score = score
+                    best_match = {
+                        'store_name': canonical_name,
+                        'confidence': score / 100.0,
+                        'method': 'fuzzy'
+                    }
+        
+        return best_match
+
     def _extract_by_known_chain(self, lines: list) -> Optional[Dict[str, Any]]:
         """
-        Check if any line matches a known retail chain.
+        Check if any line matches a known retail chain using fuzzy matching.
         
         Args:
             lines: List of text lines from OCR
@@ -82,25 +214,28 @@ class StoreNameExtractor:
         Returns:
             Store name match or None
         """
+        best_match = None
+        best_score = 0
+        
         # Check first 10 lines for known chains
         for i, line in enumerate(lines[:10]):
-            line_lower = line.lower()
+            match = self.find_best_match(line)
             
-            for chain in self.KNOWN_CHAINS:
-                if chain in line_lower:
-                    # Found a known chain
-                    # Clean up the line (remove extra symbols)
-                    cleaned = self._clean_store_name(line)
-                    
-                    if cleaned and len(cleaned) >= 3:
-                        return {
-                            'store_name': cleaned,
-                            'confidence': 0.8,  # High confidence for known chains
-                            'method': 'known_chain',
-                            'line_index': i
-                        }
+            if match:
+                # If exact match, return immediately
+                if match['method'] == 'exact':
+                    match['line_index'] = i
+                    match['method'] = 'known_chain_exact'
+                    return match
+                
+                # Keep track of best fuzzy match
+                if match['confidence'] > best_score:
+                    best_score = match['confidence']
+                    best_match = match
+                    best_match['line_index'] = i
+                    best_match['method'] = 'known_chain_fuzzy'
         
-        return None
+        return best_match
     
     def _extract_by_position(self, lines: list) -> Optional[Dict[str, Any]]:
         """
