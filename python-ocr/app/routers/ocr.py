@@ -448,6 +448,32 @@ def override_merchant_data_with_tesseract(
             }
             print(f"  → Adding MerchantPhoneNumber: {phone}")
     
+    # Handle TransactionDate fallback
+    # Check if Azure found a transaction date
+    azure_date = fields.get('TransactionDate', {})
+    azure_date_value = azure_date.get('value') if isinstance(azure_date, dict) else azure_date
+    azure_date_confidence = azure_date.get('confidence', 0.0) if isinstance(azure_date, dict) else 0.0
+    
+    # Use Tesseract date if:
+    # 1. Azure didn't find a date, OR
+    # 2. Azure's date has very low confidence (< 0.5)
+    tesseract_date = location.get('transaction_date')
+    
+    if tesseract_date and (not azure_date_value or azure_date_confidence < 0.5):
+        fields['TransactionDate'] = {
+            'type': 'date',
+            'value': tesseract_date['value'],  # ISO format: YYYY-MM-DD
+            'content': tesseract_date['content'],  # Original OCR text
+            'confidence': tesseract_date['confidence'],
+            'source': 'tesseract_fallback',
+            'format_detected': tesseract_date.get('format_detected', 'unknown')
+        }
+        print(f"  → Adding TransactionDate from Tesseract: {tesseract_date['value']} (format: {tesseract_date.get('format_detected')})")
+    elif azure_date_value:
+        print(f"  ℹ️  Keeping Azure TransactionDate: {azure_date_value} (confidence: {azure_date_confidence:.2f})")
+    else:
+        print(f"  ⚠️  No transaction date detected by Azure or Tesseract")
+    
     # Add additional location metadata
     if 'metadata' not in azure_result:
         azure_result['metadata'] = {}
@@ -456,7 +482,8 @@ def override_merchant_data_with_tesseract(
         'postal_code': location.get('postal_code'),
         'country': location.get('country'),
         'tesseract_confidence': location.get('confidence'),
-        'extraction_strategy': tesseract_location.get('strategy_used')
+        'extraction_strategy': tesseract_location.get('strategy_used'),
+        'date_extracted': tesseract_date is not None
     }
     
     return azure_result
