@@ -41,27 +41,7 @@
           </label>
         </div>
 
-        <div class="form-control">
-          <label class="label cursor-pointer">
-            <span class="label-text flex flex-col">
-              <span class="font-medium">Enhance for OCR</span>
-              <span class="text-xs text-base-content/60">Improve text clarity for better recognition</span>
-            </span>
-            <input type="checkbox" class="toggle toggle-primary" [checked]="enhanceImage()"
-              (change)="enhanceImage.set($any($event.target).checked)" />
-          </label>
-        </div>
 
-        <div class="form-control">
-          <label class="label cursor-pointer">
-            <span class="label-text flex flex-col">
-              <span class="font-medium">Optimize Size</span>
-              <span class="text-xs text-base-content/60">Reduce file size for faster upload</span>
-            </span>
-            <input type="checkbox" class="toggle toggle-primary" [checked]="optimizeSize()"
-              (change)="optimizeSize.set($any($event.target).checked)" />
-          </label>
-        </div>
       </div>
     </div>
     }

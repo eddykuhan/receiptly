@@ -36,8 +36,6 @@ export class CameraComponent {
 
   // Processing options (disabled by default - OpenCV is optional)
   autoCrop = signal(false);
-  enhanceImage = signal(false);
-  optimizeSize = signal(false);
 
   async ngOnInit() {
     // OpenCV.js is loaded after a short delay to prevent UI freezing
@@ -58,8 +56,6 @@ export class CameraComponent {
 
       // Enable processing options by default after loading
       this.autoCrop.set(true);
-      this.enhanceImage.set(true);
-      this.optimizeSize.set(true);
 
       console.log('✓ OpenCV.js ready for image processing');
     } catch (error) {
@@ -126,21 +122,6 @@ export class CameraComponent {
             const dataUrl = await this.blobToDataUrl(processedBlob);
             this.capturedImage.set(dataUrl);
           }
-        }
-
-        // Step 2: Enhance for OCR
-        if (this.enhanceImage()) {
-          console.log('Enhancing image for OCR...');
-          processedBlob = await this.opencvService.enhanceForOCR(processedBlob);
-        }
-
-        // Step 3: Optimize size
-        if (this.optimizeSize()) {
-          console.log('Optimizing image size...');
-          const originalSize = processedBlob.size;
-          processedBlob = await this.opencvService.optimizeImage(processedBlob, 1024);
-          const newSize = processedBlob.size;
-          console.log(`Image size reduced: ${(originalSize / 1024).toFixed(1)}KB → ${(newSize / 1024).toFixed(1)}KB`);
         }
       } catch (error) {
         console.error('Image processing error:', error);
