@@ -177,7 +177,7 @@ class EasyOCRService:
         # Use top 50% of image (more than location-only preprocessing)
         height = gray.shape[0]
         width = gray.shape[1]
-        top_section = gray[:int(height * 0.5), :]
+        top_section = gray[:int(height * 0.25), :]
         
         # Resize if too small
         if width < 1200:
