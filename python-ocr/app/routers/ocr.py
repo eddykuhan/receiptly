@@ -351,6 +351,7 @@ def override_merchant_data_with_tesseract(
                 'confidence': location.get('confidence', 0.0),
                 'source': 'tesseract'
             }
+            print(f"Original MerchantName : {store_name}")
             print(f"  → Overriding MerchantName with Tesseract: {store_name}")
             merchant_name_set = True
         else:

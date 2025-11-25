@@ -1,0 +1,195 @@
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                                                         │
+│        Receipt Merchant & Location Extraction Model                    │
+│        ============================================                     │
+│                                                                         │
+│  A machine learning model that extracts merchant names and locations   │
+│  from OCR-extracted receipt text.                                      │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  📁 PROJECT STRUCTURE                                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  📄 train_model.py           - Main training script                     │
+│  📄 predict.py               - Interactive prediction script            │
+│  📄 integration_examples.py  - Integration examples                     │
+│  📊 sample_data.csv          - Training data (15 examples)              │
+│  🤖 receipt_ner_model.pkl    - Trained model (ready to use!)            │
+│  📋 requirements.txt         - Python dependencies                      │
+│  📖 README.md                - Full documentation                       │
+│  📖 HOW_TO_IMPROVE.md        - Guide to improve accuracy                │
+│  🚀 quickstart.sh            - Quick setup script                       │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  🎯 HOW IT WORKS                                                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Input:  "MYDIN WHOLESALE HYPERMARKET BUKIT MERTAJAM"                   │
+│           ↓                                                             │
+│  [TF-IDF Vectorization]  (Converts text to numerical features)         │
+│           ↓                                                             │
+│  [Random Forest Classifier]  (Trained ML model)                        │
+│           ↓                                                             │
+│  Output: {                                                              │
+│            merchant: "MYDIN",                                           │
+│            location: "BUKIT_MERTAJAM",                                  │
+│            merchant_confidence: 0.95,                                   │
+│            location_confidence: 0.92                                    │
+│          }                                                              │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  🚀 QUICK START                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  1. Setup (already done! ✅)                                            │
+│     ./quickstart.sh                                                     │
+│                                                                         │
+│  2. Try interactive mode:                                               │
+│     source venv/bin/activate                                            │
+│     python predict.py                                                   │
+│                                                                         │
+│  3. Use in your code:                                                   │
+│     from train_model import ReceiptNERModel                             │
+│                                                                         │
+│     model = ReceiptNERModel()                                           │
+│     model.load_model('receipt_ner_model.pkl')                           │
+│                                                                         │
+│     result = model.predict("MYDIN BUKIT MERTAJAM")                      │
+│     print(f"Merchant: {result['merchant']}")                            │
+│     print(f"Location: {result['location']}")                            │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  📊 CURRENT MODEL PERFORMANCE                                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Training Examples: 15                                                  │
+│  Unique Merchants:  15                                                  │
+│  Unique Locations:  15                                                  │
+│                                                                         │
+│  Merchant Accuracy: 100% (on training data)                             │
+│  Location Accuracy: 100% (on training data)                             │
+│                                                                         │
+│  ⚠️  Note: Small dataset - add more examples for production use!        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  🔧 INTEGRATION WITH YOUR OCR SYSTEM                                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  from integration_examples import ReceiptParser                         │
+│                                                                         │
+│  # Initialize parser                                                    │
+│  parser = ReceiptParser()                                               │
+│                                                                         │
+│  # Your OCR output                                                      │
+│  ocr_text = """                                                         │
+│      MYDIN WHOLESALE HYPERMARKET                                        │
+│      BUKIT MERTAJAM                                                     │
+│      NO. 123, JALAN PERMAI                                              │
+│      Date: 23/11/2025                                                   │
+│      ...                                                                │
+│  """                                                                    │
+│                                                                         │
+│  # Extract merchant and location                                        │
+│  result = parser.parse_receipt(ocr_text)                                │
+│                                                                         │
+│  # Use the results                                                      │
+│  print(f"Merchant: {result['merchant']}")                               │
+│  print(f"Location: {result['location']}")                               │
+│  print(f"Confidence: {result['merchant_confidence']:.0%}")              │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  📈 IMPROVING ACCURACY                                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  1. Add more training data to sample_data.csv:                          │
+│     - Minimum: 10 examples per merchant/location                        │
+│     - Recommended: 50+ examples per merchant/location                   │
+│     - Production: 100+ examples per merchant/location                   │
+│                                                                         │
+│  2. Include variations:                                                 │
+│     ✓ "MYDIN WHOLESALE HYPERMARKET BUKIT MERTAJAM"                      │
+│     ✓ "MYDIN BUKIT MERTAJAM"                                            │
+│     ✓ "mydin bukit mertajam"                                            │
+│     ✓ "MYD1N BUKIT MERTAJAM" (OCR error)                                │
+│                                                                         │
+│  3. Re-train:                                                           │
+│     source venv/bin/activate                                            │
+│     python train_model.py                                               │
+│                                                                         │
+│  Read HOW_TO_IMPROVE.md for detailed guidance!                          │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  💡 TIPS FOR PRODUCTION USE                                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  1. Collect real OCR data from your system                              │
+│  2. Include common OCR errors in training data                          │
+│  3. Use confidence thresholds (e.g., > 70%)                             │
+│  4. Implement fallback logic for low confidence                         │
+│  5. Monitor predictions and add uncertain cases to training             │
+│  6. Re-train regularly as you collect more data                         │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  📚 DOCUMENTATION                                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  README.md           - Full project documentation                       │
+│  HOW_TO_IMPROVE.md   - Guide to improve model accuracy                  │
+│  integration_examples.py - Working code examples                        │
+│                                                                         │
+│  Run examples:                                                          │
+│    source venv/bin/activate                                             │
+│    python integration_examples.py                                       │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ✅ WHAT'S INCLUDED                                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ✓ Complete training pipeline                                           │
+│  ✓ Pre-trained model ready to use                                       │
+│  ✓ Interactive prediction tool                                          │
+│  ✓ Integration examples                                                 │
+│  ✓ Sample training data (15 examples)                                   │
+│  ✓ Comprehensive documentation                                          │
+│  ✓ Quick start script                                                   │
+│  ✓ Virtual environment setup                                            │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  🎓 MODEL DETAILS                                                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Algorithm:     Random Forest Classifier (100 trees)                    │
+│  Vectorization: TF-IDF with 1-3 n-grams                                 │
+│  Features:      Up to 1000 TF-IDF features                              │
+│  Output:        Merchant name + Location (multi-output)                 │
+│  Confidence:    Probability scores from Random Forest                   │
+│                                                                         │
+│  Why this approach?                                                     │
+│  • Works well with limited data                                         │
+│  • Fast training and prediction                                         │
+│  • Provides confidence scores                                           │
+│  • Easy to understand and debug                                         │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+                         Ready to use! 🚀
