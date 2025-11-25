@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, HttpUrl
 from typing import Dict, Any, Literal
 from ..services.document_intelligence import DocumentIntelligenceService
-from ..services.tesseract_ocr import TesseractOCRService
+from ..services.easyocr_service import EasyOCRService
 from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
 from ..services.store_name_extractor import StoreNameExtractor
@@ -13,10 +13,10 @@ from ..core.config import get_settings
 router = APIRouter()
 
 
-def get_tesseract_service() -> TesseractOCRService:
-    """Factory function to create TesseractOCRService with debug mode from settings."""
+def get_easyocr_service() -> EasyOCRService:
+    """Factory function to create EasyOCRService with debug mode from settings."""
     settings = get_settings()
-    return TesseractOCRService(debug_mode=settings.DEBUG_TESSERACT)
+    return EasyOCRService(debug_mode=settings.DEBUG_TESSERACT)
 
 
 class AnalyzeRequest(BaseModel):
@@ -31,7 +31,7 @@ class AnalyzeRequest(BaseModel):
 async def analyze_receipt(
     request: AnalyzeRequest,
     doc_service: DocumentIntelligenceService = Depends(DocumentIntelligenceService),
-    tesseract_service: TesseractOCRService = Depends(get_tesseract_service)
+    easyocr_service: EasyOCRService = Depends(get_easyocr_service)
 ) -> Dict[str, Any]:
     """
     Analyze a receipt image from a URL and return structured data with store location.
@@ -39,12 +39,12 @@ async def analyze_receipt(
     Uses:
     - Azure Layout model OR OpenCV for receipt boundary detection (optional)
     - Azure Document Intelligence for structured receipt data extraction
-    - Tesseract OCR for store location/address extraction
+    - EasyOCR for store location/address extraction (fallback if Azure fails)
     
     Args:
         request: Request containing the image URL and extraction options
         doc_service: Azure Document Intelligence service instance
-        tesseract_service: Tesseract OCR service instance
+        easyocr_service: EasyOCR service instance
         
     Returns:
         Dictionary containing:
@@ -118,19 +118,9 @@ async def analyze_receipt(
                         "size_bytes": len(file_bytes)
                     })
         
-        # Step 3: Extract store location using Tesseract (if requested)
+        # Step 3: Store original bytes for potential EasyOCR fallback later
+        # We don't run EasyOCR yet - only if Azure fails to extract merchant info
         location_data = None
-        if request.extract_location:
-            print("Extracting store location with Tesseract OCR...")
-            location_data = tesseract_service.extract_location_from_bytes(file_bytes)
-            print(f"Location extraction complete. Success: {location_data}")
-            
-            if debugger:
-                debugger.save_json(location_data, "03_location_extraction", {
-                    "tesseract_version": tesseract_service.__class__.__name__
-                })
-                if location_data and location_data.get('raw_text'):
-                    debugger.save_text(location_data['raw_text'], "03_location_raw_text")
         
         # Step 4: Preprocess image for Azure
         print("Preprocessing image...")
@@ -165,14 +155,23 @@ async def analyze_receipt(
                 "merchant_address": result.get("merchant_address")
             })
         
-        # Step 6: Override Azure's merchant data with Tesseract's more accurate location data
-        # Pass original image bytes for fallback extraction if needed
-        if location_data and location_data.get('success'):
-            result = override_merchant_data_with_tesseract(result, location_data, file_bytes)
-            print("✓ Overridden Azure merchant data with Tesseract location data")
+        # Step 6: Override Azure's merchant data with EasyOCR if Azure failed or has low confidence
+        # Priority: Azure first, EasyOCR only as fallback
+        if request.extract_location:
+            result = override_merchant_data_with_easyocr(
+                result, 
+                easyocr_service, 
+                file_bytes,
+                debugger
+            )
         else:
-            # Even if Tesseract extraction was disabled/failed, try fallback if Azure has no merchant name
-            result = override_merchant_data_with_tesseract(result, {'success': False}, file_bytes)
+            # Even if extraction was disabled, try fallback if Azure has missing/low-confidence merchant data
+            result = override_merchant_data_with_easyocr(
+                result, 
+                easyocr_service, 
+                file_bytes,
+                debugger
+            )
         
         if debugger:
             debugger.save_json(result, "06_final_result_after_override", {
@@ -262,35 +261,90 @@ def validate_receipt_confidence(azure_result: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def override_merchant_data_with_tesseract(
+def override_merchant_data_with_easyocr(
     azure_result: Dict[str, Any],
-    tesseract_location: Dict[str, Any],
-    image_bytes: bytes = None
+    easyocr_service: 'EasyOCRService',
+    image_bytes: bytes = None,
+    debugger = None
 ) -> Dict[str, Any]:
     """
-    Override Azure Document Intelligence merchant/store fields with Tesseract OCR data.
-    Tesseract's location extraction is often more accurate for store names and addresses.
-    Validates extracted text before overriding to prevent gibberish.
-    Uses fallback extraction if both Azure and Tesseract fail.
+    Override Azure Document Intelligence merchant/store fields with EasyOCR data.
+    
+    **Priority Logic:**
+    1. Azure results are preferred (highest priority)
+    2. EasyOCR is only used as fallback if:
+       - Azure MerchantName is empty/null OR confidence < 0.5
+       - Azure MerchantAddress is empty/null OR confidence < 0.5
+    
+    This ensures we trust Azure's specialized receipt model first, 
+    and only use EasyOCR when Azure fails or is uncertain.
     
     Args:
         azure_result: Azure Document Intelligence result dictionary
-        tesseract_location: Tesseract location extraction result
-        image_bytes: Original image bytes for fallback extraction
+        easyocr_service: EasyOCR service instance
+        image_bytes: Original image bytes for EasyOCR extraction
+        debugger: Optional debugger instance
         
     Returns:
-        Modified azure_result with overridden merchant data (only if valid)
+        Modified azure_result with merchant data (Azure preferred, EasyOCR as fallback)
     """
-    if not tesseract_location.get('success') or not tesseract_location.get('location'):
-        return azure_result
-    
-    location = tesseract_location['location']
-    
     # Azure receipt structure typically has 'fields' with merchant info
     if 'fields' not in azure_result:
         azure_result['fields'] = {}
     
     fields = azure_result['fields']
+    
+    # Helper function to check if Azure field is valid and confident
+    def is_azure_field_valid(field_name: str, min_confidence: float = 0.5) -> bool:
+        """Check if Azure extracted a valid field with sufficient confidence."""
+        field = fields.get(field_name, {})
+        
+        if not isinstance(field, dict):
+            return False
+        
+        value = field.get('value', '')
+        confidence = field.get('confidence', 0.0)
+        
+        # Check if value exists and is not empty
+        if not value or (isinstance(value, str) and len(value.strip()) < 2):
+            return False
+        
+        # Check confidence threshold
+        if confidence < min_confidence:
+            return False
+        
+        return True
+    
+    # Check Azure's merchant name and address
+    azure_merchant_valid = is_azure_field_valid('MerchantName')
+    azure_address_valid = is_azure_field_valid('MerchantAddress')
+    
+    print(f"  Azure MerchantName valid: {azure_merchant_valid}")
+    print(f"  Azure MerchantAddress valid: {azure_address_valid}")
+    
+    # Determine if we need EasyOCR fallback
+    need_easyocr_merchant = not azure_merchant_valid
+    need_easyocr_address = not azure_address_valid
+    
+    # Only run EasyOCR if needed
+    easyocr_location = None
+    if (need_easyocr_merchant or need_easyocr_address) and image_bytes:
+        print("  → Running EasyOCR fallback extraction...")
+        try:
+            easyocr_result = easyocr_service.extract_location_from_bytes(image_bytes)
+            
+            if debugger:
+                debugger.save_json(easyocr_result, "03_easyocr_extraction", {
+                    "triggered_by": "azure_missing_or_low_confidence"
+                })
+            
+            if easyocr_result and easyocr_result.get('success'):
+                easyocr_location = easyocr_result.get('location', {})
+                print(f"  ✓ EasyOCR extraction successful (confidence: {easyocr_location.get('confidence', 0):.2f})")
+            else:
+                print(f"  ⚠️ EasyOCR extraction failed: {easyocr_result.get('error', 'unknown error')}")
+        except Exception as e:
+            print(f"  ⚠️ EasyOCR extraction error: {str(e)}")
     
     # Helper function to validate text isn't gibberish
     def is_valid_text(text: str, max_length: int = 200) -> bool:
@@ -325,66 +379,58 @@ def override_merchant_data_with_tesseract(
         
         return True
     
-    # Initialize StoreNameExtractor for fallback and fuzzy matching
+    # Initialize StoreNameExtractor for fuzzy matching
     extractor = StoreNameExtractor()
-    fallback_result = None
     
-    # Run full-image extraction only if needed for fallback later (lazy loading would be better but we need it for fallback)
-    if image_bytes:
-        try:
-            # We don't prioritize this anymore, but we keep it for fallback
-            fallback_result = extractor.extract_from_full_image(image_bytes)
-        except Exception as e:
-            print(f"  ⚠️  Store name extraction failed: {str(e)}")
-
-    # Override MerchantName
+    # ========== Handle MerchantName ==========
     merchant_name_set = False
     
-    # Priority 1: Tesseract Location Extraction (if valid)
-    if location.get('store_name'):
-        store_name = location['store_name']
+    # Priority 1: Keep Azure's result if valid
+    if azure_merchant_valid:
+        azure_merchant = fields.get('MerchantName', {})
+        azure_value = azure_merchant.get('value', '')
+        print(f"  ✓ Keeping Azure MerchantName: {azure_value}")
+        merchant_name_set = True
+    
+    # Priority 2: Use EasyOCR if Azure failed
+    if not merchant_name_set and easyocr_location and easyocr_location.get('store_name'):
+        store_name = easyocr_location['store_name']
         if is_valid_text(store_name, max_length=100):
             fields['MerchantName'] = {
                 'type': 'string',
                 'value': store_name,
                 'content': store_name,
-                'confidence': location.get('confidence', 0.0),
-                'source': 'tesseract'
+                'confidence': easyocr_location.get('confidence', 0.0),
+                'source': 'easyocr_fallback'
             }
-            print(f"Original MerchantName : {store_name}")
-            print(f"  → Overriding MerchantName with Tesseract: {store_name}")
+            print(f"  → Overriding MerchantName with EasyOCR: {store_name}")
             merchant_name_set = True
         else:
-            print(f"  ⚠️  Skipping Tesseract MerchantName - invalid text detected")
-
-    # Priority 2: Keep Azure's result (if it exists and is valid)
-    if not merchant_name_set:
-        azure_merchant = fields.get('MerchantName', {})
-        azure_value = azure_merchant.get('value', '') if isinstance(azure_merchant, dict) else str(azure_merchant)
-        
-        if azure_value and len(azure_value.strip()) >= 2:
-            # Azure found something, and we didn't find a better match
-            merchant_name_set = True
-            
-    # Priority 3: Fallback Heuristics (Position, Capitalization, etc.) from StoreNameExtractor
-    if not merchant_name_set and fallback_result and fallback_result.get('store_name'):
-        fallback_name = fallback_result['store_name']
-        fallback_confidence = fallback_result.get('confidence', 0.0)
-        fallback_method = fallback_result.get('method', 'unknown')
-        
-        fields['MerchantName'] = {
-            'type': 'string',
-            'value': fallback_name,
-            'content': fallback_name,
-            'confidence': fallback_confidence,
-            'source': f'fallback_{fallback_method}'
-        }
-        print(f"  ✓ Fallback extraction successful: {fallback_name} (method: {fallback_method})")
-        merchant_name_set = True
+            print(f"  ⚠️ Skipping EasyOCR MerchantName - invalid text detected")
+    
+    # Priority 3: Fallback Heuristics from StoreNameExtractor
+    if not merchant_name_set and image_bytes:
+        try:
+            fallback_result = extractor.extract_from_full_image(image_bytes)
+            if fallback_result and fallback_result.get('store_name'):
+                fallback_name = fallback_result['store_name']
+                fallback_confidence = fallback_result.get('confidence', 0.0)
+                fallback_method = fallback_result.get('method', 'unknown')
+                
+                fields['MerchantName'] = {
+                    'type': 'string',
+                    'value': fallback_name,
+                    'content': fallback_name,
+                    'confidence': fallback_confidence,
+                    'source': f'fallback_{fallback_method}'
+                }
+                print(f"  ✓ Fallback extraction successful: {fallback_name} (method: {fallback_method})")
+                merchant_name_set = True
+        except Exception as e:
+            print(f"  ⚠️ Store name extraction failed: {str(e)}")
     
     # FINAL STEP: Fuzzy Match Correction
-    # Regardless of source (Tesseract, Azure, or Fallback), try to match the detected name against known chains
-    # This fixes issues like "APOIN" -> "Mydin"
+    # Regardless of source, try to match against known chains
     current_merchant = fields.get('MerchantName', {})
     current_value = current_merchant.get('value', '') if isinstance(current_merchant, dict) else str(current_merchant)
     
@@ -406,7 +452,7 @@ def override_merchant_data_with_tesseract(
             }
             merchant_name_set = True
     
-    # If still no merchant name, set a placeholder for manual review
+    # If still no merchant name, set placeholder
     if not merchant_name_set:
         fields['MerchantName'] = {
             'type': 'string',
@@ -416,75 +462,81 @@ def override_merchant_data_with_tesseract(
             'source': 'placeholder',
             'requires_manual_review': True
         }
-        print("  ⚠️  No store name detected - using 'Unknown Store' placeholder")
-
+        print("  ⚠️ No store name detected - using 'Unknown Store' placeholder")
     
-    # Override MerchantAddress with Tesseract's address (only if valid)
-    if location.get('address'):
-        address = location['address']
+    # ========== Handle MerchantAddress ==========
+    # Priority 1: Keep Azure's address if valid
+    if azure_address_valid:
+        azure_address = fields.get('MerchantAddress', {})
+        azure_value = azure_address.get('value', '')
+        print(f"  ✓ Keeping Azure MerchantAddress: {azure_value[:50]}...")
+    
+    # Priority 2: Use EasyOCR if Azure failed
+    elif easyocr_location and easyocr_location.get('address'):
+        address = easyocr_location['address']
         if is_valid_text(address, max_length=300):
             fields['MerchantAddress'] = {
                 'type': 'string',
                 'value': address,
                 'content': address,
-                'confidence': location.get('confidence', 0.0),
-                'source': 'tesseract'
+                'confidence': easyocr_location.get('confidence', 0.0),
+                'source': 'easyocr_fallback'
             }
-            print(f"  → Overriding MerchantAddress: {address}")
+            print(f"  → Overriding MerchantAddress with EasyOCR: {address[:50]}...")
         else:
-            print(f"  ⚠️  Skipping MerchantAddress - invalid text detected (gibberish or too long)")
-            # Keep Azure's address if Tesseract returned gibberish
+            print(f"  ⚠️ Skipping EasyOCR MerchantAddress - invalid text detected")
     
-    # Add MerchantPhoneNumber if available and not already present
-    if location.get('phone'):
-        phone = location['phone']
-        # Phone validation - should be mostly digits
-        if phone and len(phone.replace('+', '').replace('-', '').replace(' ', '')) >= 7:
-            fields['MerchantPhoneNumber'] = {
-                'type': 'phoneNumber',
-                'value': phone,
-                'content': phone,
-                'confidence': location.get('confidence', 0.0),
-                'source': 'tesseract'
-            }
-            print(f"  → Adding MerchantPhoneNumber: {phone}")
+    # Add MerchantPhoneNumber if available from EasyOCR and not in Azure
+    if easyocr_location and easyocr_location.get('phone'):
+        phone = easyocr_location['phone']
+        # Only add if Azure doesn't have it
+        if not fields.get('MerchantPhoneNumber'):
+            if phone and len(phone.replace('+', '').replace('-', '').replace(' ', '')) >= 7:
+                fields['MerchantPhoneNumber'] = {
+                    'type': 'phoneNumber',
+                    'value': phone,
+                    'content': phone,
+                    'confidence': easyocr_location.get('confidence', 0.0),
+                    'source': 'easyocr'
+                }
+                print(f"  → Adding MerchantPhoneNumber from EasyOCR: {phone}")
     
     # Handle TransactionDate fallback
-    # Check if Azure found a transaction date
     azure_date = fields.get('TransactionDate', {})
     azure_date_value = azure_date.get('value') if isinstance(azure_date, dict) else azure_date
     azure_date_confidence = azure_date.get('confidence', 0.0) if isinstance(azure_date, dict) else 0.0
     
-    # Use Tesseract date if:
-    # 1. Azure didn't find a date, OR
-    # 2. Azure's date has very low confidence (< 0.5)
-    tesseract_date = location.get('transaction_date')
+    # Use EasyOCR date if Azure didn't find one or has very low confidence
+    easyocr_date = easyocr_location.get('transaction_date') if easyocr_location else None
     
-    if tesseract_date and (not azure_date_value or azure_date_confidence < 0.5):
+    if easyocr_date and (not azure_date_value or azure_date_confidence < 0.5):
         fields['TransactionDate'] = {
             'type': 'date',
-            'value': tesseract_date['value'],  # ISO format: YYYY-MM-DD
-            'content': tesseract_date['content'],  # Original OCR text
-            'confidence': tesseract_date['confidence'],
-            'source': 'tesseract_fallback',
-            'format_detected': tesseract_date.get('format_detected', 'unknown')
+            'value': easyocr_date['value'],
+            'content': easyocr_date['content'],
+            'confidence': easyocr_date['confidence'],
+            'source': 'easyocr_fallback',
+            'format_detected': easyocr_date.get('format_detected', 'unknown')
         }
-        print(f"  → Adding TransactionDate from Tesseract: {tesseract_date['value']} (format: {tesseract_date.get('format_detected')})")
+        print(f"  → Adding TransactionDate from EasyOCR: {easyocr_date['value']}")
     elif azure_date_value:
-        print(f"  ℹ️  Keeping Azure TransactionDate: {azure_date_value} (confidence: {azure_date_confidence:.2f})")
+        print(f"  ℹ️ Keeping Azure TransactionDate: {azure_date_value} (confidence: {azure_date_confidence:.2f})")
     else:
-        print(f"  ⚠️  No transaction date detected by Azure or Tesseract")
+        print(f"  ⚠️ No transaction date detected by Azure or EasyOCR")
     
     # Add additional location metadata
     if 'metadata' not in azure_result:
         azure_result['metadata'] = {}
     
-    azure_result['metadata']['location_extraction'] = {
-        'postal_code': location.get('postal_code'),
-        'country': location.get('country'),
-        'tesseract_confidence': location.get('confidence'),
-        'extraction_strategy': tesseract_location.get('strategy_used'),
-        'date_extracted': tesseract_date is not None
-    }
+    if easyocr_location:
+        azure_result['metadata']['location_extraction'] = {
+            'postal_code': easyocr_location.get('postal_code'),
+            'country': easyocr_location.get('country'),
+            'easyocr_confidence': easyocr_location.get('confidence'),
+            'extraction_strategy': 'easyocr_fallback',
+            'date_extracted': easyocr_date is not None,
+            'azure_merchant_valid': azure_merchant_valid,
+            'azure_address_valid': azure_address_valid
+        }
     
     return azure_result
