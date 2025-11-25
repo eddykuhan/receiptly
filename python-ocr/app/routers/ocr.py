@@ -473,7 +473,7 @@ def override_merchant_data_with_easyocr(
     
     # Priority 2: Use EasyOCR if Azure failed
     elif easyocr_location and easyocr_location.get('address'):
-        address = easyocr_location['address']
+        address = easyocr_location['address'].upper()
         if is_valid_text(address, max_length=300):
             fields['MerchantAddress'] = {
                 'type': 'string',
