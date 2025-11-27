@@ -179,6 +179,66 @@ public class ReceiptsController : ControllerBase
     }
 
     /// <summary>
+    /// Update a receipt
+    /// </summary>
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ReceiptDto>> UpdateReceipt(Guid id, [FromBody] ReceiptDto receiptDto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (id != receiptDto.Id)
+            {
+                return BadRequest(new { error = "ID mismatch" });
+            }
+
+            _logger.LogInformation("Updating receipt: {ReceiptId}", id);
+            
+            // Verify existence and get the tracked entity
+            var existingReceipt = await _receiptRepository.GetByIdAsync(id, cancellationToken);
+            if (existingReceipt == null)
+            {
+                return NotFound(new { error = "Receipt not found" });
+            }
+
+            // Update the existing tracked entity with values from DTO
+            // This prevents EF tracking conflicts
+            existingReceipt.StoreName = receiptDto.StoreName;
+            existingReceipt.StoreAddress = receiptDto.StoreAddress;
+            existingReceipt.StorePhoneNumber = receiptDto.StorePhoneNumber;
+            existingReceipt.TotalAmount = receiptDto.TotalAmount;
+            existingReceipt.SubtotalAmount = receiptDto.SubtotalAmount;
+            existingReceipt.TaxAmount = receiptDto.TaxAmount;
+            existingReceipt.TipAmount = receiptDto.TipAmount;
+            existingReceipt.TransactionId = receiptDto.TransactionId;
+            existingReceipt.PurchaseDate = receiptDto.PurchaseDate;
+            
+            // Update items if provided
+            if (receiptDto.Items != null)
+            {
+                existingReceipt.Items = _mapper.Map<List<Item>>(receiptDto.Items);
+            }
+
+            var result = await _receiptRepository.UpdateAsync(existingReceipt, cancellationToken);
+            
+            _logger.LogInformation("Receipt updated: {ReceiptId}", id);
+            
+            // Map back to DTO
+            var resultDto = _mapper.Map<ReceiptDto>(result);
+            return Ok(resultDto);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Request cancelled while updating receipt: {ReceiptId}", id);
+            return StatusCode(499, new { error = "Request cancelled" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating receipt: {ReceiptId}", id);
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Delete a receipt
     /// </summary>
     [HttpDelete("{id}")]

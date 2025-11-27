@@ -12,15 +12,15 @@ export class ReceiptService {
   private http = inject(HttpClient);
   private readonly API_URL = `${environment.apiUrl}/receipts`;
   private readonly USER_ID = 'default-user'; // TODO: Replace with actual user management
-  
+
   // In-memory cache for current session
   private receiptsCache$ = new BehaviorSubject<Receipt[]>([]);
   public receipts$ = this.receiptsCache$.asObservable();
-  
+
   constructor() {
     this.loadReceipts();
   }
-  
+
   /**
    * Load all receipts for the current user
    */
@@ -34,7 +34,7 @@ export class ReceiptService {
         this.receiptsCache$.next(receipts);
       });
   }
-  
+
   /**
    * Upload a receipt image for processing
    */
@@ -70,7 +70,7 @@ export class ReceiptService {
       })
     );
   }
-  
+
   /**
    * Get a single receipt by ID
    */
@@ -80,7 +80,7 @@ export class ReceiptService {
       catchError(this.handleError)
     );
   }
-  
+
   /**
    * Delete a receipt
    */
@@ -94,14 +94,34 @@ export class ReceiptService {
       catchError(this.handleError)
     );
   }
-  
+
+  /**
+   * Update a receipt
+   */
+  updateReceipt(receipt: Receipt): Observable<Receipt> {
+    return this.http.put<Receipt>(`${this.API_URL}/${receipt.id}`, receipt).pipe(
+      map(updatedReceipt => this.parseReceiptDates(updatedReceipt)),
+      tap(updatedReceipt => {
+        // Update cache
+        const currentReceipts = this.receiptsCache$.value;
+        const index = currentReceipts.findIndex(r => r.id === updatedReceipt.id);
+        if (index !== -1) {
+          const updatedReceipts = [...currentReceipts];
+          updatedReceipts[index] = updatedReceipt;
+          this.receiptsCache$.next(updatedReceipts);
+        }
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   /**
    * Get receipts from cache (for immediate display)
    */
   getCachedReceipts(): Receipt[] {
     return this.receiptsCache$.value;
   }
-  
+
   /**
    * Parse date strings to Date objects
    */
@@ -114,7 +134,7 @@ export class ReceiptService {
       processedAt: receipt.processedAt ? new Date(receipt.processedAt) : undefined
     };
   }
-  
+
   /**
    * Handle HTTP errors
    */

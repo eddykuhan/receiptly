@@ -105,14 +105,21 @@
     @if (processedReceipt(); as receipt) {
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body p-0">
-        <div class="p-6 border-b border-base-200">
+        <div class="p-6 border-b border-base-200 flex justify-between items-center">
           <h2 class="card-title flex items-center gap-2">
             <span class="material-icons text-primary">receipt</span>
             Receipt Details
           </h2>
+          @if (!isEditing()) {
+          <button class="btn btn-ghost btn-sm text-primary" (click)="startEditing()">
+            <span class="material-icons">edit</span>
+            Edit
+          </button>
+          }
         </div>
 
         <div class="p-6 space-y-6">
+          @if (!isEditing()) {
           <!-- Store Info -->
           <div>
             <h3 class="text-xl font-bold">{{ receipt.storeName }}</h3>
@@ -196,6 +203,37 @@
             <span class="text-xs opacity-80">Confidence: {{ (receipt.ocrConfidence * 100).toFixed(0) }}%</span>
             }
           </div>
+          } @else {
+          <!-- Edit Form -->
+          <div class="space-y-4">
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text font-medium">Store Name</span>
+              </label>
+              <input type="text" [(ngModel)]="editedReceipt.storeName" class="input input-bordered w-full" />
+            </div>
+
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text font-medium">Store Address</span>
+              </label>
+              <textarea [(ngModel)]="editedReceipt.storeAddress" class="textarea textarea-bordered h-24"></textarea>
+            </div>
+
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text font-medium">Total Amount</span>
+              </label>
+              <input type="number" [(ngModel)]="editedReceipt.totalAmount" class="input input-bordered w-full"
+                step="0.01" />
+            </div>
+
+            <div class="flex gap-3 pt-4">
+              <button class="btn btn-outline flex-1" (click)="cancelEditing()">Cancel</button>
+              <button class="btn btn-primary flex-1" (click)="saveEditing()">Save Changes</button>
+            </div>
+          </div>
+          }
         </div>
 
         <div class="p-6 pt-0">

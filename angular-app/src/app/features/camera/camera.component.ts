@@ -1,5 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CameraService } from '../../core/services/camera.service';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { OpenCVService } from '../../core/services/opencv.service';
@@ -11,7 +12,8 @@ import { MyrPipe } from '../../core/pipes/myr.pipe';
   standalone: true,
   imports: [
     CommonModule,
-    MyrPipe
+    MyrPipe,
+    FormsModule
   ],
   templateUrl: './camera.component.html',
   styleUrl: './camera.component.scss'
@@ -36,6 +38,41 @@ export class CameraComponent {
 
   // Processing options (disabled by default - OpenCV is optional)
   autoCrop = signal(false);
+
+  // Editing state
+  isEditing = signal(false);
+  editedReceipt: Partial<Receipt> = {};
+
+  startEditing() {
+    const receipt = this.processedReceipt();
+    if (receipt) {
+      this.editedReceipt = { ...receipt };
+      this.isEditing.set(true);
+    }
+  }
+
+  cancelEditing() {
+    this.isEditing.set(false);
+    this.editedReceipt = {};
+  }
+
+  saveEditing() {
+    if (this.processedReceipt() && this.editedReceipt) {
+      const updatedReceipt = { ...this.processedReceipt()!, ...this.editedReceipt } as Receipt;
+
+      this.receiptService.updateReceipt(updatedReceipt).subscribe({
+        next: (receipt) => {
+          this.processedReceipt.set(receipt);
+          this.isEditing.set(false);
+          this.showSuccess('Receipt updated successfully');
+        },
+        error: (error) => {
+          console.error('Update error:', error);
+          this.showError('Failed to update receipt');
+        }
+      });
+    }
+  }
 
   async ngOnInit() {
     // OpenCV.js is loaded after a short delay to prevent UI freezing
