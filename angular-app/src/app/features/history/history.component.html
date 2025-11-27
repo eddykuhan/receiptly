@@ -23,14 +23,15 @@
       <div class="form-control">
         <div class="relative">
           <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-white/60">search</span>
-          <input type="text" placeholder="Search receipts..." [(ngModel)]="searchQuery"
+          <input type="text" placeholder="Search receipts..." [ngModel]="searchQuery()"
+            (ngModelChange)="onSearchChange($event)"
             class="input input-bordered bg-white/20 backdrop-blur-sm text-white placeholder-white/60 border-white/30 w-full pl-10" />
         </div>
       </div>
     </div>
 
     <!-- Filter Chips -->
-    <div class="flex gap-2 overflow-x-auto pb-2">
+    <div class="flex gap-2 overflow-x-auto pb-2 relative z-10">
       <button class="btn btn-sm rounded-full" [class.btn-primary]="selectedFilter() === 'all'"
         [class.btn-ghost]="selectedFilter() !== 'all'" (click)="onFilterChange('all')">
         All Time
