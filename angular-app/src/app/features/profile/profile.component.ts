@@ -116,32 +116,10 @@ export class ProfileComponent {
         // In production, apply theme to document and save to backend
     }
 
-    toggleNotification(key: keyof UserProfile['notifications']) {
-        this.profile.update(p => ({
-            ...p,
-            notifications: { ...p.notifications, [key]: !p.notifications[key] }
-        }));
-    }
-
-    linkAppleAccount() {
-        // In production, initiate Apple Sign-In flow
-        alert('Apple Sign-In flow would start here');
-    }
-
-    unlinkAccount(provider: 'google' | 'apple') {
-        // In production, unlink account via backend
-        alert(`Unlink ${provider} account`);
-    }
-
-    exportData() {
-        // In production, trigger data export
-        alert('Data export would start here. You will receive an email with your data.');
-    }
-
-    deleteAccount() {
-        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            // In production, delete account via backend
-            alert('Account deletion would be processed here');
+    signOut() {
+        if (confirm('Are you sure you want to sign out?')) {
+            // In production, clear auth tokens and redirect to login
+            alert('Signed out successfully');
         }
     }
 

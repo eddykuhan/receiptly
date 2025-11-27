@@ -1,5 +1,6 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReceiptService } from '../../core/services/receipt.service';
 
 interface Milestone {
     count: number;
@@ -15,9 +16,11 @@ interface Milestone {
     templateUrl: './rewards.component.html',
     styleUrl: './rewards.component.scss'
 })
-export class RewardsComponent {
-    // Mock data - in production, fetch from backend
-    receiptCount = signal(73); // Demo: 73 out of 100
+export class RewardsComponent implements OnInit {
+    private receiptService = inject(ReceiptService);
+
+    // Real data from API
+    receiptCount = signal(0);
     voucherCode = 'TNG-CHEAP-2024-X7Y9Z'; // Revealed at 100 receipts
 
     // Computed properties
@@ -37,6 +40,12 @@ export class RewardsComponent {
 
     voucherRevealed = signal(false);
     showCopiedMessage = signal(false);
+
+    ngOnInit() {
+        this.receiptService.receipts$.subscribe(receipts => {
+            this.receiptCount.set(receipts.length);
+        });
+    }
 
     revealVoucher() {
         if (this.isComplete()) {
