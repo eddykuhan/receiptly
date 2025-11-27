@@ -43,6 +43,10 @@
                             (click)="performSearch()">
                             Search
                         </button>
+                        @if (isLoading()) {
+                        <span
+                            class="loading loading-spinner loading-xs absolute right-24 top-1/2 -translate-y-1/2 text-white"></span>
+                        }
                     </div>
                 </div>
 
@@ -64,11 +68,22 @@
                 }
             </div>
 
+            @if (errorMessage()) {
+            <div class="mt-2 alert alert-error py-2 text-sm flex items-center gap-2">
+                <span class="material-icons text-base">error</span>
+                <span>{{ errorMessage() }}</span>
+            </div>
+            }
+
             <!-- Results Summary -->
             @if (hasResults()) {
             <div class="mt-3 flex items-center gap-2 text-sm text-white/90">
                 <span class="badge badge-accent">{{ searchResults().length }} stores found</span>
                 <span class="text-white/80">Cheapest: {{ cheapestPrice() | myr }}</span>
+            </div>
+            } @else if (!isLoading() && searchQuery()) {
+            <div class="mt-3 flex items-center gap-2 text-sm text-white/90">
+                <span>No stores found for "{{ searchQuery() }}". Try a different product.</span>
             </div>
             }
         </div>

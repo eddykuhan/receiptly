@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
-import { MockPriceDataService, StoreWithPrice } from '../../core/services/mock-price-data.service';
+import { firstValueFrom } from 'rxjs';
+import { PriceMapService, StoreWithPrice } from './price-map.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 
 @Component({
@@ -23,6 +24,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     productSuggestions = signal<string[]>([]);
     showSuggestions = signal(false);
     userLocation = signal<{ lat: number; lon: number } | null>(null);
+    isLoading = signal(false);
+    errorMessage = signal<string | null>(null);
 
     // Computed properties
     hasResults = computed(() => this.searchResults().length > 0);
@@ -31,12 +34,12 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         return results.length > 0 ? results[0].price : 0;
     });
 
-    constructor(private mockDataService: MockPriceDataService) { }
+    constructor(private priceMapService: PriceMapService) { }
 
     ngOnInit() {
         this.initMap();
         this.getUserLocation();
-        this.productSuggestions.set(this.mockDataService.getProductNames());
+        this.loadProductSuggestions();
     }
 
     ngOnDestroy() {
@@ -102,30 +105,39 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.performSearch();
     }
 
-    performSearch() {
-        const query = this.searchQuery();
-        if (!query.trim()) {
+    async performSearch() {
+        const query = this.searchQuery().trim();
+        if (!query) {
             this.clearSearch();
             return;
         }
 
-        let results = this.mockDataService.searchProduct(query);
+        this.isLoading.set(true);
+        this.errorMessage.set(null);
 
-        // Add distance if user location is available
-        const userLoc = this.userLocation();
-        if (userLoc) {
-            results = this.mockDataService.addDistanceToResults(results, userLoc.lat, userLoc.lon);
+        try {
+            let results = await firstValueFrom(this.priceMapService.searchProduct(query));
+
+            const userLoc = this.userLocation();
+            if (userLoc) {
+                results = this.priceMapService.addDistanceToResults(results, userLoc.lat, userLoc.lon);
+            }
+
+            this.searchResults.set(results);
+            this.showSuggestions.set(false);
+            this.updateMapMarkers(results);
+        } catch (error) {
+            console.error('Failed to fetch price map data', error);
+            this.errorMessage.set('Unable to load price data. Please try again.');
+            this.searchResults.set([]);
+            this.clearMarkers();
+        } finally {
+            this.isLoading.set(false);
         }
-
-        this.searchResults.set(results);
-        this.showSuggestions.set(false);
-        this.updateMapMarkers(results);
     }
 
     private updateMapMarkers(results: StoreWithPrice[]) {
-        // Clear existing markers
-        this.markers.forEach(marker => marker.remove());
-        this.markers = [];
+        this.clearMarkers();
 
         if (!this.map || results.length === 0) return;
 
@@ -190,8 +202,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.searchResults.set([]);
         this.selectedStore.set(null);
         this.showSuggestions.set(false);
-        this.markers.forEach(marker => marker.remove());
-        this.markers = [];
+        this.errorMessage.set(null);
+        this.clearMarkers();
 
         // Reset map view to KL
         if (this.map) {
@@ -221,5 +233,18 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         return this.productSuggestions()
             .filter(name => name.toLowerCase().includes(query))
             .slice(0, 5);
+    }
+    private async loadProductSuggestions() {
+        try {
+            const suggestions = await firstValueFrom(this.priceMapService.getProductSuggestions());
+            this.productSuggestions.set(suggestions);
+        } catch (error) {
+            console.warn('Unable to load product suggestions', error);
+        }
+    }
+
+    private clearMarkers() {
+        this.markers.forEach(marker => marker.remove());
+        this.markers = [];
     }
 }
