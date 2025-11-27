@@ -1,0 +1,602 @@
+[
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "2934, Jln Kulim, Taman Berjaya Indah, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.350553,
+    "longitude": 100.46996,
+    "phone": "04-537 7732",
+    "rating": 2.5,
+    "total_ratings": 2
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "1, Jalan Pauh Indah 1, Taman Pauh Indah, 13700 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.3752642999999996,
+    "longitude": 100.4207575,
+    "phone": "04-399 0352",
+    "rating": 2.9,
+    "total_ratings": 16
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7 Cafe by 7 Eleven #289",
+    "address": "No. 17(GF) Jln Prai Jaya 2, Bandar Prai Jaya, 13600 Prai Penang, Bandar Perai Jaya, 13600 Perai, Penang, Malaysia",
+    "latitude": 5.3765719,
+    "longitude": 100.397882,
+    "phone": "04-397 1214",
+    "rating": 3.3,
+    "total_ratings": 23
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven • Bandar Perda • Store #1359",
+    "address": "484, Jln. Permatang Rawa, Bandar Perda, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.3663833,
+    "longitude": 100.43793149999999,
+    "phone": "",
+    "rating": 2.7,
+    "total_ratings": 9
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "26, Jalan Todak 2, Bandar Sunway, 13700 Perai, Pulau Pinang, Malaysia",
+    "latitude": 5.397325899999999,
+    "longitude": 100.398887,
+    "phone": "04-383 9226",
+    "rating": 3.9,
+    "total_ratings": 29
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "马来西亚, 118, Jalan Perusahaan, Bukit Tengah, 13600 Simpang Ampat, Pulau Pinang, Malaysia",
+    "latitude": 5.3381704999999995,
+    "longitude": 100.4292411,
+    "phone": "",
+    "rating": 2.8,
+    "total_ratings": 12
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven Malaysia: Store 852 Batu Maung",
+    "address": "No 117 (GF) Medan Kikik, Taman Indrawasih, 13600 Perai, Pulau Pinang, 13600 Batu Maung, Penang, Malaysia",
+    "latitude": 5.2882738,
+    "longitude": 100.2815739,
+    "phone": "04-390 2326",
+    "rating": 4.3,
+    "total_ratings": 30
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "181, Jln Macalister, George Town, 11400 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.4191055,
+    "longitude": 100.3177201,
+    "phone": "",
+    "rating": 3.2,
+    "total_ratings": 22
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7CAFé by 7-Eleven Taman Bukit Minyak (#1871)",
+    "address": "3, Jalan Bukit Minyak 7, Taman Bukit Minyak, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.3283647,
+    "longitude": 100.4473148,
+    "phone": "",
+    "rating": 2.8,
+    "total_ratings": 33
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "39, Jalan Tembikai, Taman Mutiara, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.3634379,
+    "longitude": 100.444937,
+    "phone": "",
+    "rating": 3.8,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "88, Jln Penang, George Town, 10000 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.4203605,
+    "longitude": 100.33268319999999,
+    "phone": "",
+    "rating": 3.1,
+    "total_ratings": 17
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "89 & 91, Jalan Magazine, 10300 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.412761499999999,
+    "longitude": 100.33110839999999,
+    "phone": "03-2142 1136",
+    "rating": 3.1,
+    "total_ratings": 36
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "144, Jln Macalister, 10450 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.416116,
+    "longitude": 100.324657,
+    "phone": "",
+    "rating": 2.4,
+    "total_ratings": 27
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "13600 George Town, Penang, Malaysia",
+    "latitude": 5.354815299999999,
+    "longitude": 100.4193521,
+    "phone": "",
+    "rating": 5,
+    "total_ratings": 1
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7CAFé by 7-Eleven Chai Leng Park Pulau Pinang (#119)",
+    "address": "50, Jln Kurau, Chai Leng Park, 13700 Perai, Pulau Pinang, Malaysia",
+    "latitude": 5.3848240999999994,
+    "longitude": 100.3931989,
+    "phone": "04-397 2043",
+    "rating": 3.4,
+    "total_ratings": 21
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "215, Jln Penang, George Town, 10450 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.419258999999999,
+    "longitude": 100.3321289,
+    "phone": "04-263 4475",
+    "rating": 3.6,
+    "total_ratings": 37
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "111, Lebuh Tek Soon, George Town, 10100 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.413723699999999,
+    "longitude": 100.3313471,
+    "phone": "",
+    "rating": 2.6,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "6, Halaman Bukit Gambir, Sunway Bukit Gambier, 11700 Gelugor, Pulau Pinang, Malaysia",
+    "latitude": 5.357020200000001,
+    "longitude": 100.2925903,
+    "phone": "04-658 7103",
+    "rating": 3.5,
+    "total_ratings": 21
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "19&21, Lebuh Light, George Town, 10200 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.420229,
+    "longitude": 100.341453,
+    "phone": "",
+    "rating": 3.5,
+    "total_ratings": 31
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "320, Lbh Chulia, George Town, 10450 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.418506,
+    "longitude": 100.3362142,
+    "phone": "",
+    "rating": 3.4,
+    "total_ratings": 68
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "90, Persiaran Gurney, 10250 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.4339496,
+    "longitude": 100.31517,
+    "phone": "",
+    "rating": 1.9,
+    "total_ratings": 14
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "291, Jalan Burma, Pulau Tikus, 10350 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.430122,
+    "longitude": 100.31278999999999,
+    "phone": "04-226 5877",
+    "rating": 2.1,
+    "total_ratings": 19
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "Level 3A, Podium Block, Plaza Berjaya, 12, Jln Imbi, Bukit Bintang, 55100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1432271999999997,
+    "longitude": 101.7095442,
+    "phone": "03-2142 1136",
+    "rating": 3.2,
+    "total_ratings": 83
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "2, Jalan Seri Impian 1, Taman Seri Impian, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.317503100000001,
+    "longitude": 100.4779452,
+    "phone": "",
+    "rating": 3.6,
+    "total_ratings": 80
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "Jalan Dato Keramat, 10150 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.412928,
+    "longitude": 100.3152509,
+    "phone": "04-227 9627",
+    "rating": 2.8,
+    "total_ratings": 15
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "Taman Jelutong, 11600 Jelutong, Penang, Malaysia",
+    "latitude": 5.387648899999999,
+    "longitude": 100.3125431,
+    "phone": "",
+    "rating": 3.8,
+    "total_ratings": 8
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "4H, Tingkat Kenari, Taman Desa Ria, 11900 Bayan Lepas, Pulau Pinang, Malaysia",
+    "latitude": 5.3196911,
+    "longitude": 100.26840709999999,
+    "phone": "",
+    "rating": 3.7,
+    "total_ratings": 6
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7 Eleven Malaysia: Store 1823",
+    "address": "19, Jalan Reko Sentral 2, Reko Sentral, 43000 Kajang, Selangor, Malaysia",
+    "latitude": 2.9662869,
+    "longitude": 101.7893505,
+    "phone": "",
+    "rating": 2.5,
+    "total_ratings": 10
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "144, Jln Bukit Bintang, Bukit Bintang, 55100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1474735,
+    "longitude": 101.7119496,
+    "phone": "03-2142 1897",
+    "rating": 3,
+    "total_ratings": 48
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "7 B, Jalan Gottlieb, 10350 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.4325978,
+    "longitude": 100.302345,
+    "phone": "012-578 4782",
+    "rating": 3.2,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "350C-G-3A, Jln Perak, Taman Desa Green, 11600 Jelutong, Pulau Pinang, Malaysia",
+    "latitude": 5.39743,
+    "longitude": 100.3146039,
+    "phone": "04-281 0520",
+    "rating": 2.9,
+    "total_ratings": 12
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "288D-1-12, Fourtune Court, Jln Thean Tek, Kampung Melayu, 11500 Ayer Itam, Pulau Pinang, Malaysia",
+    "latitude": 5.3975738,
+    "longitude": 100.2880536,
+    "phone": "04-827 5205",
+    "rating": 2,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven Malaysia RO24",
+    "address": "14-2, Jalan Pekaka 8/3, Seksyen 8 Kota Damansara, 47810 Petaling Jaya, Selangor, Malaysia",
+    "latitude": 3.174717,
+    "longitude": 101.57517299999999,
+    "phone": "",
+    "rating": 5,
+    "total_ratings": 3
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "1008, Jalan Dato Ismail Hashim, Kampung Sepuluh, 11900 Bayan Lepas, Pulau Pinang, Malaysia",
+    "latitude": 5.308057,
+    "longitude": 100.265259,
+    "phone": "04-658 8711",
+    "rating": 2.6,
+    "total_ratings": 15
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven 1858",
+    "address": "115, Jalan Kendi, Taman Merak Jaya, 14100 Simpang Ampat, Pulau Pinang, Malaysia",
+    "latitude": 5.2665562,
+    "longitude": 100.47182459999999,
+    "phone": "04-502 9131",
+    "rating": 3.8,
+    "total_ratings": 39
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "G18A, Berjaya Times Square, 1, Jln Imbi, Imbi, 55100 Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.1423834999999998,
+    "longitude": 101.7096766,
+    "phone": "",
+    "rating": 3.1,
+    "total_ratings": 38
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "Persiaran Bayan Indah, 11900 Bayan Lepas, Penang, Malaysia",
+    "latitude": 5.3392425999999995,
+    "longitude": 100.308841,
+    "phone": "",
+    "rating": 2.8,
+    "total_ratings": 22
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "B-2-5, Northpoint Office Mid Valley City.1, Kuala Lumpur Wilayah Persekutuan, Medan Syed Putra Utara, Mid Valley City, 59200 Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.1198023999999998,
+    "longitude": 101.6780912,
+    "phone": "",
+    "rating": 4,
+    "total_ratings": 2
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven #0864",
+    "address": "7, Jalan Besar, Taman Tiong Mas, 14100 Simpang Ampat, Pulau Pinang, Malaysia",
+    "latitude": 5.275988,
+    "longitude": 100.4772847,
+    "phone": "04-588 6140",
+    "rating": 4,
+    "total_ratings": 7
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "2G-G, Lorong Delima 6, Taman Island Glades, 11700 Jelutong, Pulau Pinang, Malaysia",
+    "latitude": 5.382401499999999,
+    "longitude": 100.30404639999999,
+    "phone": "018-463 3269",
+    "rating": 3.4,
+    "total_ratings": 16
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "82-84, Jln Bukit Bintang, Bukit Bintang, 55100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1457089,
+    "longitude": 101.7101546,
+    "phone": "",
+    "rating": 2.8,
+    "total_ratings": 27
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7 Eleven Malaysia #1854",
+    "address": "9801, Jalan Badlishah, Bandar Amanjaya, 08000 Sungai Petani, Kedah, Malaysia",
+    "latitude": 5.6710654,
+    "longitude": 100.5069809,
+    "phone": "",
+    "rating": 4,
+    "total_ratings": 31
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "8, Jalan Perak, Kuala Lumpur, 50450 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.153909,
+    "longitude": 101.70849299999999,
+    "phone": "",
+    "rating": 3.2,
+    "total_ratings": 34
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "05-103, Berjaya Times Square, Jln Imbi, Imbi, 55100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1420694,
+    "longitude": 101.71162939999999,
+    "phone": "",
+    "rating": 3.3,
+    "total_ratings": 16
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "Lot G.03, Ground Floor, Wisma Fui Chiu, 32, Jalan Tun Tan Cheng Lock, City Centre, 50050 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1451995999999998,
+    "longitude": 101.69762659999999,
+    "phone": "",
+    "rating": 3.7,
+    "total_ratings": 21
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "94, Changkat Bukit Bintang, Bukit Bintang, 50200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1467397999999998,
+    "longitude": 101.7095754,
+    "phone": "03-2141 3040",
+    "rating": 2,
+    "total_ratings": 11
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "Ground Floor, 210, Jalan Tun H S Lee, City Centre, 50000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1427266,
+    "longitude": 101.69655859999999,
+    "phone": "",
+    "rating": 3.3,
+    "total_ratings": 66
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "No 5A, Jln Angsana, Bandar Baru Ayer Hitam, 11400 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.388993500000001,
+    "longitude": 100.28435999999999,
+    "phone": "",
+    "rating": 2.6,
+    "total_ratings": 16
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "111, Jln Sultan Ismail, Bukit Bintang, 50250 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1454051,
+    "longitude": 101.7113171,
+    "phone": "",
+    "rating": 3,
+    "total_ratings": 22
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "10, Jalan Dagangan 2, Pusat Bandar Bertam Perdana, 13200 Kepala Batas, Pulau Pinang, Malaysia",
+    "latitude": 5.5175274,
+    "longitude": 100.4475908,
+    "phone": "04-575 2127",
+    "rating": 4.2,
+    "total_ratings": 25
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "E-gate, Lebuh Tunku Kudin 2, 11700 Gelugor, Pulau Pinang, Malaysia",
+    "latitude": 5.3763086,
+    "longitude": 100.3152831,
+    "phone": "04-659 6537",
+    "rating": 4.7,
+    "total_ratings": 7
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "287-I, No 287(Gf, Jalan Tunku Asaad, Kulim, 09000 Kulim, Kedah, Malaysia",
+    "latitude": 5.3701661,
+    "longitude": 100.55501579999999,
+    "phone": "04-495 6075",
+    "rating": 3.2,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "Unit G.04 & G.05, Ground Floor, Menara TA One, 22, Jalan P. Ramlee, Kuala Lumpur, 50250 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1568859999999996,
+    "longitude": 101.7095427,
+    "phone": "",
+    "rating": 1.7,
+    "total_ratings": 11
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "21, Jln. Utama, 10450 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.4145826,
+    "longitude": 100.3112597,
+    "phone": "",
+    "rating": 4,
+    "total_ratings": 14
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "88 G17 & G18, Jalan Raja Chulan, Kuala Lumpur, 50200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.150759,
+    "longitude": 101.71207629999999,
+    "phone": "03-2070 4651",
+    "rating": 3.3,
+    "total_ratings": 24
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "17C, Jalan Air Itam, 11500 Ayer Itam, Pulau Pinang, Malaysia",
+    "latitude": 5.4044815999999996,
+    "longitude": 100.28906409999999,
+    "phone": "018-271 1726",
+    "rating": 2.5,
+    "total_ratings": 4
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "10, Jalan Sultan Azlan Shah, Minden Heights, 11700 Gelugor, Pulau Pinang, Malaysia",
+    "latitude": 5.3676194,
+    "longitude": 100.3100132,
+    "phone": "",
+    "rating": 3.6,
+    "total_ratings": 10
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven Malaysia Sdn Bhd",
+    "address": "No 27, Ground Floor, Jalan Sulaiman Ninam Shah,, Jln Junid, Taman Tun Sulaiman Ninam Shah, 84000 Muar, Johor, Malaysia",
+    "latitude": 2.0295152,
+    "longitude": 102.5575095,
+    "phone": "",
+    "rating": 4,
+    "total_ratings": 8
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "180-182, Jln Ampang, Kuala Lumpur, 50450 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.151521,
+    "longitude": 101.69802039999999,
+    "phone": "",
+    "rating": 2.9,
+    "total_ratings": 8
+  },
+  {
+    "store_name": "7-Eleven Malaysia",
+    "branch_name": "7-Eleven",
+    "address": "Lot 1-1-1B, Menara Bangkok Bank Laman Sentral Berjaya, 105, Jln Ampang, Kuala Lumpur, 50450 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1562322,
+    "longitude": 101.7051434,
+    "phone": "03-2142 1136 ext. 480",
+    "rating": 1.9,
+    "total_ratings": 43
+  }
+]

@@ -397,6 +397,40 @@ public class ReceiptProcessingService : IReceiptProcessingService
             receipt.OcrStrategy = strategy?.ToString() ?? string.Empty;
         }
 
+        // Extract Google Places metadata
+        if (ocrResponse.Metadata != null)
+        {
+            // Extract Latitude
+            if (ocrResponse.Metadata.TryGetValue("latitude", out var lat) && 
+                double.TryParse(lat?.ToString(), out var latitude))
+            {
+                receipt.Latitude = latitude;
+            }
+
+            // Extract Longitude
+            if (ocrResponse.Metadata.TryGetValue("longitude", out var lng) && 
+                double.TryParse(lng?.ToString(), out var longitude))
+            {
+                receipt.Longitude = longitude;
+            }
+
+            // Extract Match Confidence (override Tesseract confidence if available)
+            if (ocrResponse.Metadata.TryGetValue("match_confidence", out var matchConf) && 
+                double.TryParse(matchConf?.ToString(), out var matchConfidence))
+            {
+                receipt.LocationConfidence = matchConfidence;
+            }
+
+            // Log Google Places match details
+            if (ocrResponse.Metadata.TryGetValue("google_places_match", out var isMatch) && 
+                isMatch?.ToString()?.ToLower() == "true")
+            {
+                var branch = ocrResponse.Metadata.TryGetValue("matched_branch", out var b) ? b?.ToString() : "unknown";
+                _logger.LogInformation("Google Places match found. Branch: {Branch}, Confidence: {Confidence}", 
+                    branch, receipt.LocationConfidence);
+            }
+        }
+
         // Extract transaction date
         if (ocrResponse.Fields.TryGetValue("TransactionDate", out var transactionDate))
         {

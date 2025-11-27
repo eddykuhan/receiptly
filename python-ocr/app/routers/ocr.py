@@ -6,6 +6,7 @@ from ..services.easyocr_service import EasyOCRService
 from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
 from ..services.store_name_extractor import StoreNameExtractor
+from ..services.store_location_service import StoreLocationService
 from ..utils.image_utils import download_image
 from ..utils.debug import ImageDebugger, enable_debug, disable_debug
 from ..core.config import get_settings
@@ -464,6 +465,97 @@ def override_merchant_data_with_easyocr(
         }
         print("  ⚠️ No store name detected - using 'Unknown Store' placeholder")
     
+    # ========== Google Places Matching ==========
+    # Try to match the extracted store name against Google Places database
+    # This will replace OCR-extracted address with verified Google Places data
+    google_places_match = None
+    try:
+        location_service = StoreLocationService()
+        
+        # Get current merchant name and address for matching
+        current_merchant = fields.get('MerchantName', {})
+        current_name = current_merchant.get('value', '') if isinstance(current_merchant, dict) else str(current_merchant)
+        
+        # Get OCR-extracted data for matching signals
+        ocr_address = None
+        ocr_phone = None
+        ocr_postal = None
+        
+        if easyocr_location:
+            ocr_address = easyocr_location.get('address')
+            ocr_phone = easyocr_location.get('phone')
+            ocr_postal = easyocr_location.get('postal_code')
+        
+        # Also check Azure's data (extract string value from dict)
+        azure_address = fields.get('MerchantAddress', {})
+        if isinstance(azure_address, dict) and azure_address.get('value'):
+            addr_value = azure_address.get('value')
+            if isinstance(addr_value, str):
+                ocr_address = ocr_address or addr_value
+        
+        azure_phone = fields.get('MerchantPhoneNumber', {})
+        if isinstance(azure_phone, dict) and azure_phone.get('value'):
+            phone_value = azure_phone.get('value')
+            if isinstance(phone_value, str):
+                ocr_phone = ocr_phone or phone_value
+        
+        # Ensure all values are strings or None (not dicts or other types)
+        ocr_address = str(ocr_address) if ocr_address and not isinstance(ocr_address, str) else ocr_address
+        ocr_phone = str(ocr_phone) if ocr_phone and not isinstance(ocr_phone, str) else ocr_phone
+        ocr_postal = str(ocr_postal) if ocr_postal and not isinstance(ocr_postal, str) else ocr_postal
+        
+        # Try to find best match
+        if current_name and current_name != 'Unknown Store':
+            print(f"  🗺️ Searching Google Places for: {current_name}")
+            google_places_match = location_service.find_best_match(
+                store_name=current_name,
+                partial_address=ocr_address,
+                phone=ocr_phone,
+                postal_code=ocr_postal,
+                min_confidence=0.70  # Only use matches with 70%+ confidence
+            )
+            
+            if google_places_match:
+                confidence = google_places_match['confidence']
+                branch = google_places_match['branch_name']
+                reason = google_places_match['match_reason']
+                
+                print(f"  ✅ Google Places match found!")
+                print(f"     Branch: {branch}")
+                print(f"     Confidence: {confidence:.2f}")
+                print(f"     Reason: {reason}")
+                
+                # Replace address with Google Places data (if confidence is high enough)
+                if confidence >= 0.80:
+                    fields['MerchantAddress'] = {
+                        'type': 'string',
+                        'value': google_places_match['address'],
+                        'content': google_places_match['address'],
+                        'confidence': confidence,
+                        'source': 'google_places'
+                    }
+                    print(f"  → Replaced address with Google Places data")
+                    
+                    # Add phone if not already present
+                    if google_places_match.get('phone') and not fields.get('MerchantPhoneNumber'):
+                        fields['MerchantPhoneNumber'] = {
+                            'type': 'phoneNumber',
+                            'value': google_places_match['phone'],
+                            'content': google_places_match['phone'],
+                            'confidence': confidence,
+                            'source': 'google_places'
+                        }
+                        print(f"  → Added phone from Google Places: {google_places_match['phone']}")
+                else:
+                    print(f"  ℹ️ Google Places match confidence ({confidence:.2f}) below threshold (0.80)")
+                    print(f"  ℹ️ Keeping OCR-extracted address")
+            else:
+                print(f"  ℹ️ No Google Places match found for '{current_name}'")
+        
+    except Exception as e:
+        print(f"  ⚠️ Google Places matching error: {str(e)}")
+        # Continue without Google Places data
+    
     # ========== Handle MerchantAddress ==========
     # Priority 1: Keep Azure's address if valid
     if azure_address_valid:
@@ -538,5 +630,21 @@ def override_merchant_data_with_easyocr(
             'azure_merchant_valid': azure_merchant_valid,
             'azure_address_valid': azure_address_valid
         }
+    
+    # Add Google Places metadata if match was found
+    if google_places_match:
+        azure_result['metadata']['google_places_match'] = True
+        azure_result['metadata']['match_confidence'] = google_places_match['confidence']
+        azure_result['metadata']['matched_branch'] = google_places_match['branch_name']
+        azure_result['metadata']['match_reason'] = google_places_match['match_reason']
+        azure_result['metadata']['latitude'] = google_places_match['latitude']
+        azure_result['metadata']['longitude'] = google_places_match['longitude']
+        
+        # Add rating info if available
+        if google_places_match.get('rating'):
+            azure_result['metadata']['google_rating'] = google_places_match['rating']
+            azure_result['metadata']['google_total_ratings'] = google_places_match.get('total_ratings', 0)
+    else:
+        azure_result['metadata']['google_places_match'] = False
     
     return azure_result

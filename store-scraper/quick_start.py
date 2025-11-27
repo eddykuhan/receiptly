@@ -7,17 +7,19 @@ This is the recommended approach - much more reliable than web scraping.
 import os
 import json
 import requests
+import time
 from typing import List, Dict
 
 
-def get_store_locations(store_name: str, api_key: str, location: str = "Malaysia") -> List[Dict]:
+def get_store_locations(store_name: str, api_key: str, location: str = "Malaysia", max_results: int = 100) -> List[Dict]:
     """
-    Fetch store locations using Google Places API (New version)
+    Fetch store locations using Google Places API (New version) with pagination
     
     Args:
         store_name: Name of the store (e.g., "Jaya Grocer")
         api_key: Your Google Places API key
         location: Geographic area (default: "Malaysia")
+        max_results: Maximum number of results to fetch (default: 100)
     
     Returns:
         List of store locations with address, coordinates, etc.
@@ -27,38 +29,63 @@ def get_store_locations(store_name: str, api_key: str, location: str = "Malaysia
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": api_key,
-        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.nationalPhoneNumber,places.rating,places.userRatingCount"
+        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.nationalPhoneNumber,places.rating,places.userRatingCount,nextPageToken"
     }
     
-    body = {
-        "textQuery": f"{store_name} {location}",
-        "maxResultCount": 20  # Max 20 per request
-    }
+    all_locations = []
+    next_page_token = None
+    page_count = 0
     
-    try:
-        response = requests.post(url, json=body, headers=headers, timeout=10)
-        response.raise_for_status()
-        data = response.json()
+    while len(all_locations) < max_results:
+        body = {
+            "textQuery": f"{store_name} {location}",
+            "maxResultCount": 20  # Max 20 per request
+        }
         
-        locations = []
-        for place in data.get('places', []):
-            location_data = {
-                'store_name': store_name,
-                'branch_name': place.get('displayName', {}).get('text', ''),
-                'address': place.get('formattedAddress', ''),
-                'latitude': place.get('location', {}).get('latitude'),
-                'longitude': place.get('location', {}).get('longitude'),
-                'phone': place.get('nationalPhoneNumber', ''),
-                'rating': place.get('rating'),
-                'total_ratings': place.get('userRatingCount', 0)
-            }
-            locations.append(location_data)
+        # Add page token for subsequent requests
+        if next_page_token:
+            body["pageToken"] = next_page_token
         
-        return locations
-        
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Error fetching data: {e}")
-        return []
+        try:
+            response = requests.post(url, json=body, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            
+            places = data.get('places', [])
+            if not places:
+                break
+            
+            # Process places
+            for place in places:
+                location_data = {
+                    'store_name': store_name,
+                    'branch_name': place.get('displayName', {}).get('text', ''),
+                    'address': place.get('formattedAddress', ''),
+                    'latitude': place.get('location', {}).get('latitude'),
+                    'longitude': place.get('location', {}).get('longitude'),
+                    'phone': place.get('nationalPhoneNumber', ''),
+                    'rating': place.get('rating'),
+                    'total_ratings': place.get('userRatingCount', 0)
+                }
+                all_locations.append(location_data)
+            
+            page_count += 1
+            print(f"   📄 Page {page_count}: {len(places)} locations (total: {len(all_locations)})")
+            
+            # Check for next page
+            next_page_token = data.get('nextPageToken')
+            if not next_page_token:
+                print(f"   ℹ️  No more pages available")
+                break
+            
+            # Google requires a short delay between paginated requests
+            time.sleep(2)
+            
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error fetching data: {e}")
+            break
+    
+    return all_locations[:max_results]
 
 
 def save_to_json(data: List[Dict], filename: str):
@@ -93,12 +120,19 @@ def main():
         "Mydin",
         "Lotus's Malaysia",
         "AEON Malaysia",
-        "Village Grocer Malaysia"
+        "Village Grocer Malaysia",
+        "99 Speedmart",
+        "Giant Hypermarket",
+        "7-Eleven Malaysia",
+        "FamilyMart Malaysia",
+        "KK Super Mart",
+        "Watsons Malaysia",
+        "Guardian Malaysia"
     ]
     
     for store_name in stores:
         print(f"\n📍 Fetching {store_name} locations...")
-        locations = get_store_locations(store_name, api_key)
+        locations = get_store_locations(store_name, api_key, max_results=200)
         
         if locations:
             # Save to file

@@ -1,0 +1,602 @@
+[
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Taman Mutiara ( PNTM )",
+    "address": "45, Jalan Tembikai, Taman Mutiara, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.3631855,
+    "longitude": 100.44481329999999,
+    "phone": "",
+    "rating": 5,
+    "total_ratings": 1
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Maju Jaya ( PNMJ )",
+    "address": "3193-G, Jalan Maju, Pusat Perniagaan Maju Jaya, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.352102800000001,
+    "longitude": 100.47150669999999,
+    "phone": "",
+    "rating": 5,
+    "total_ratings": 4
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Taman Chai Leng ( PNCL )",
+    "address": "15, Jln Kurau, Taman Chai Leng, 13700 Perai, Pulau Pinang, Malaysia",
+    "latitude": 5.3835448,
+    "longitude": 100.39253629999999,
+    "phone": "",
+    "rating": 5,
+    "total_ratings": 2
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Seberang Jaya ( PNSJ )",
+    "address": "26, Jalan Sembilang 2, 13700 Seberang Jaya, Pulau Pinang, Malaysia",
+    "latitude": 5.4031302,
+    "longitude": 100.398957,
+    "phone": "",
+    "rating": null,
+    "total_ratings": 0
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Machang Bubok ( PNMB )",
+    "address": "265-G, Jln Machang Bubok, Taman Machang Bubok, 14020 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.3312382,
+    "longitude": 100.5040884,
+    "phone": "",
+    "rating": 1.7,
+    "total_ratings": 6
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Jalan Van Praagh ( PNVP )",
+    "address": "No.42-G-8, 9 & 10, Jalan Van Praagh, Taman Desa Green, 11600 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.398060999999999,
+    "longitude": 100.3109781,
+    "phone": "",
+    "rating": 2.6,
+    "total_ratings": 11
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, I-Avenue ( PNIA )",
+    "address": "No.1-01-40, I-avenue, Medan Kampung Relau 1, Relau, 11900 Bayan Lepas, Pulau Pinang, Malaysia",
+    "latitude": 5.3328516,
+    "longitude": 100.29342589999999,
+    "phone": "",
+    "rating": 2.5,
+    "total_ratings": 4
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPERMART & SUPERSTORE SDN BHD",
+    "address": "Jalan Perindustrian Balakong Jaya 2/1, 43300 Seri Kembangan, Selangor, Malaysia",
+    "latitude": 3.0104853,
+    "longitude": 101.74175919999999,
+    "phone": "03-9074 2308",
+    "rating": 3.7,
+    "total_ratings": 6
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Air Itam ( PNAI )",
+    "address": "616H, Jln Paya Terubung, Pekan Ayer Itam, 11500 Ayer Itam, Pulau Pinang, Malaysia",
+    "latitude": 5.4019865,
+    "longitude": 100.2782987,
+    "phone": "",
+    "rating": 5,
+    "total_ratings": 2
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Desa Petaling (DP)",
+    "address": "33 & 35, Jalan 3/125d, Desa Petaling, 57100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.0829806,
+    "longitude": 101.7048791,
+    "phone": "016-330 8137",
+    "rating": 2.6,
+    "total_ratings": 38
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart KL Sentral ( KLS )",
+    "address": "Lot 14,15 & 16, First Floor, Kuala Lumpur, Unit 10 & 11 Arrival Hall, City Air Termina, City Air Terminal, Jalan Stesen Sentral, Kuala Lumpur Sentral, 50470 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1347008,
+    "longitude": 101.6871705,
+    "phone": "",
+    "rating": 3.9,
+    "total_ratings": 8
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Terubong Avenue ( PNTA )",
+    "address": "Terubong Avenue, 1-G, 25, Tingkat Paya Terubong 4, Paya Terubong, 11060 Ayer Itam, Pulau Pinang, Malaysia",
+    "latitude": 5.3689193,
+    "longitude": 100.2752028,
+    "phone": "",
+    "rating": 2.6,
+    "total_ratings": 8
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Kuchai Lama (KC)",
+    "address": "No. 4, Jalan 3/116B, Off, Jalan Kuchai Lama, Kuchai Entrepreneur's Park, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.0895148999999997,
+    "longitude": 101.6901062,
+    "phone": "016-218 3308",
+    "rating": 3.1,
+    "total_ratings": 27
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Jalan Alor (JAL)",
+    "address": "56, 亚罗街, Bukit Bintang, 50200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1457002999999997,
+    "longitude": 101.708559,
+    "phone": "016-330 8104",
+    "rating": 2.9,
+    "total_ratings": 9
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK PLUS by KK SUPERMART",
+    "address": "T6-01-04, Maju Link, Jln Lingkaran Tengah 2, Bandar Tasik Selatan, 57000 Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.0752151999999997,
+    "longitude": 101.711215,
+    "phone": "",
+    "rating": 4.3,
+    "total_ratings": 3
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Jalan Sultan Ismail (SIM2)",
+    "address": "45, Jln Sultan Ismail, Bukit Bintang, 50250 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1476650999999998,
+    "longitude": 101.7107214,
+    "phone": "016-330 8694",
+    "rating": 2.4,
+    "total_ratings": 12
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Megan Avenue (MAN)",
+    "address": "Unit E-0-6, Block E, Megan Avenue 1,, 189, Jalan Tun Razak,, 50400 Kuala Lumpur,, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.1617876999999996,
+    "longitude": 101.7168717,
+    "phone": "016-330 8344",
+    "rating": 2.3,
+    "total_ratings": 12
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Cyberjaya, Shaftsbury Square (SSQ)",
+    "address": "P1-10, Shaftsbury Square,, Cyber 6, Persiaran Multimedia, Cyberjaya, 63000 Cyberjaya, Selangor, Malaysia",
+    "latitude": 2.9233176999999997,
+    "longitude": 101.66282009999999,
+    "phone": "016-330 8732",
+    "rating": 2.9,
+    "total_ratings": 16
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "Menara KK (HQ)",
+    "address": "T6-01-03, Tower 6, Maju Link, Jln Lingkaran Tengah 2, Bandar Tasik Selatan, 57000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.0750900999999997,
+    "longitude": 101.7112944,
+    "phone": "03-9057 3308",
+    "rating": 3.9,
+    "total_ratings": 57
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart (BB1)",
+    "address": "77G, Jln Bukit Bintang, Bukit Bintang, 55100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1454302,
+    "longitude": 101.70974149999999,
+    "phone": "016-330 8259",
+    "rating": 4,
+    "total_ratings": 24
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "Radixhallmart Bukit Mertajam",
+    "address": "Taman Desa Damai, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
+    "latitude": 5.364338,
+    "longitude": 100.43953619999999,
+    "phone": "011-1681 4064",
+    "rating": 4,
+    "total_ratings": 1
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Pulau Pinang, Bayan Baru ( PNBB )",
+    "address": "16-01-07, Persiaran Mayang Pasir 5, Bayan Baru, 11950 Bayan Lepas, Pulau Pinang, Malaysia",
+    "latitude": 5.3154086,
+    "longitude": 100.2815997,
+    "phone": "",
+    "rating": 2.7,
+    "total_ratings": 3
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Jalan Maharajalela (JMH)",
+    "address": "147, Jln Maharajalela, Kampung Attap, 50150 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1365939999999997,
+    "longitude": 101.70270099999999,
+    "phone": "016-330 8346",
+    "rating": 2.8,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Bukit Bintang, Jalan Angsoka (BBA)",
+    "address": "No:2, Jalan Angsoka, Bukit Bintang, 50200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1481838,
+    "longitude": 101.7092066,
+    "phone": "010-230 8402",
+    "rating": 3.6,
+    "total_ratings": 9
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Cyberjaya , Kanvas ( CKV)",
+    "address": "Kanvas, G-6, Jalan Teknokrat 6, Cyber 5, 63000 Cyberjaya, Selangor, Malaysia",
+    "latitude": 2.9135165,
+    "longitude": 101.6550219,
+    "phone": "",
+    "rating": 1.2,
+    "total_ratings": 22
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Petaling Jaya, Jalan Bukit (PBK)",
+    "address": "No. 31, Jalan Bukit 11/2, Pjs 11,, Pjs 11,, 46200 Petaling Jaya, Selangor, Malaysia",
+    "latitude": 3.1105395,
+    "longitude": 101.64546949999999,
+    "phone": "016-512 3308",
+    "rating": 2.4,
+    "total_ratings": 20
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Johor, Skudai, Taman Sutera Utama(JSSU)",
+    "address": "No: 31, Jalan Sutera Tanjung 8/2, Taman Sutera Utama, 81300 Skudai, Johor Darul Ta'zim, Malaysia",
+    "latitude": 1.5162350999999998,
+    "longitude": 103.6670577,
+    "phone": "",
+    "rating": 2,
+    "total_ratings": 18
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Jalan Sultan (JS)",
+    "address": "93, Jalan Sultan, City Centre, 50000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1444346,
+    "longitude": 101.69874829999999,
+    "phone": "016-330 8265",
+    "rating": 3,
+    "total_ratings": 23
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart M-City Ampang • AMC",
+    "address": "R-09-G, M-City Ampang, 326, Jln Ampang, Kampung Berembang, 50450 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1589880999999997,
+    "longitude": 101.74719789999999,
+    "phone": "",
+    "rating": 1.8,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Central Market (CMK)",
+    "address": "4, Jalan Hang Lekir, City Centre, 50000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1444622,
+    "longitude": 101.69593379999999,
+    "phone": "016-330 8270",
+    "rating": 2.9,
+    "total_ratings": 21
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Genting, Golden Hills Resort ( GHR )",
+    "address": "No.3A117, Golden Hills Resort, Jalan Ion Delemen, 69000 Genting Highlands, Pahang, Malaysia",
+    "latitude": 3.4301340000000002,
+    "longitude": 101.7892176,
+    "phone": "",
+    "rating": 4,
+    "total_ratings": 13
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Taman Connaught (TC)",
+    "address": "10, Jalan Cerdik, Taman Connaught, 56000 Cheras, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.0811930999999997,
+    "longitude": 101.7388886,
+    "phone": "016-330 8132",
+    "rating": 3.3,
+    "total_ratings": 12
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart SS2 (SS2)",
+    "address": "40, Jalan SS 2/67, SS 2, 47300 Petaling Jaya, Selangor, Malaysia",
+    "latitude": 3.1197719999999998,
+    "longitude": 101.6221101,
+    "phone": "016-330 8169",
+    "rating": 2.7,
+    "total_ratings": 26
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Damansara Utama (DUT)",
+    "address": "70, Jalan SS 21/39, Damansara Utama, 47400 Petaling Jaya, Selangor, Malaysia",
+    "latitude": 3.1346208,
+    "longitude": 101.6214414,
+    "phone": "011-6128 0751",
+    "rating": 3.3,
+    "total_ratings": 10
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "Happy Mart",
+    "address": "No. 1B, 1D.L1-01, Jln Penang, George Town, 10000 George Town, Pulau Pinang, Malaysia",
+    "latitude": 5.4140402,
+    "longitude": 100.3308586,
+    "phone": "04-262 8628",
+    "rating": 3.5,
+    "total_ratings": 8
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Setia Alam, Jalan Setia Gemilang (SAG)",
+    "address": "89-G, Jln Setia Gemilang BG U13/BG, Setia Alam, 40170 Shah Alam, Selangor, Malaysia",
+    "latitude": 3.1267454999999997,
+    "longitude": 101.47086519999999,
+    "phone": "016-508 3308",
+    "rating": 2.5,
+    "total_ratings": 19
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart • Kajang • Bandar Teknologi (KBT)",
+    "address": "7, Jalan Seri Baiduri 1, Taman Seri Baiduri, Off, Jalan Semenyih, Bandar Teknologi Kajang, 43000 Semenyih, Selangor, Malaysia",
+    "latitude": 2.9737229999999997,
+    "longitude": 101.828509,
+    "phone": "016-330 8314",
+    "rating": 3.4,
+    "total_ratings": 13
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Wangsa Maju (WM)",
+    "address": "Link @ Shop Office, 31, Jalan Wangsa Delima 13, Wangsa Maju, 53300 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1970916,
+    "longitude": 101.7420339,
+    "phone": "016-330 8215",
+    "rating": 2.3,
+    "total_ratings": 13
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart",
+    "address": "No3, Block A, Solaries, Jalan Solaris, Mont Kiara, 50480 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1744524999999997,
+    "longitude": 101.6596478,
+    "phone": "016-249 8308",
+    "rating": 2.9,
+    "total_ratings": 17
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Pekan Sungai Besi (PSB)",
+    "address": "15, Jalan Pejabat Pos,, Pekan Sungai Besi,, 57100 Kuala Lumpur,, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.0643844,
+    "longitude": 101.7104462,
+    "phone": "016-330 8307",
+    "rating": 4.2,
+    "total_ratings": 6
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART @Melaka Raya (MRY)",
+    "address": "586, Jln Merdeka, Taman Melaka Raya, 75000 Melaka, Malaysia",
+    "latitude": 2.1865463,
+    "longitude": 102.257481,
+    "phone": "016-330 8274",
+    "rating": 2.6,
+    "total_ratings": 19
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Medan Imbi (IBM)",
+    "address": "No. 1, Jalan Khoo Teik Ee, Imbi, 55100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.14378,
+    "longitude": 101.71462,
+    "phone": "016-220 8106",
+    "rating": 4,
+    "total_ratings": 14
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart United Garden • UGD",
+    "address": "92-A, Jaan Sepadu, Taman United,, Taman United, 58200 Kuala Lumpur,, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.0832477000000003,
+    "longitude": 101.6752022,
+    "phone": "016-788 2308",
+    "rating": 3.1,
+    "total_ratings": 15
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Johor, Taman Mount Austin (JMTA)",
+    "address": "56, Jalan Austin Heights 8/7, Taman Mount Austin, 81100 Johor Bahru, Johor Darul Ta'zim, Malaysia",
+    "latitude": 1.5632618999999999,
+    "longitude": 103.77886960000001,
+    "phone": "",
+    "rating": 1.9,
+    "total_ratings": 13
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Imbi, Lorong 1(IB1)",
+    "address": "No.32, Lorong 1/77a, Imbi, 55100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1411881999999998,
+    "longitude": 101.71004409999999,
+    "phone": "",
+    "rating": 3.2,
+    "total_ratings": 10
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Johor, Pusat Perdagangan Danga Utama ( JDGU )",
+    "address": "22G, Jln Pertama 1, Pusat Perdagangan Danga Utama, 81300 Johor Bahru, Johor Darul Ta'zim, Malaysia",
+    "latitude": 1.5196714999999998,
+    "longitude": 103.67916,
+    "phone": "",
+    "rating": 1.8,
+    "total_ratings": 10
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart",
+    "address": "59, Jalan Dang Wangi, Chow Kit, 50100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1565905,
+    "longitude": 101.69914159999999,
+    "phone": "016-330 8136",
+    "rating": 3.1,
+    "total_ratings": 13
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart OVERSEAS UNION GARDEN (OUG)",
+    "address": "4, Jalan Hujan Rahmat 2, Happy Garden, 58200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.0740917999999997,
+    "longitude": 101.6724479,
+    "phone": "016-330 8522",
+    "rating": 2.9,
+    "total_ratings": 24
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Sentul, UTC (SUTC)",
+    "address": "43-0, 7, Jalan 1/48a, Bandar Baru Sentul, 51000 Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.1818074999999997,
+    "longitude": 101.69768250000001,
+    "phone": "010-395 3308",
+    "rating": 2,
+    "total_ratings": 7
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Johor, Taman Abad (JAB)",
+    "address": "38, Jalan Harimau Tarum, Taman Century, 80250 Johor Bahru, Johor Darul Ta'zim, Malaysia",
+    "latitude": 1.4810626,
+    "longitude": 103.764213,
+    "phone": "016-216 6308",
+    "rating": 2.6,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Shah Alam, Seksyen U1(SAU1)",
+    "address": "Sec U1, No.11-G, Jalan Peniaga U1/34, Hicom-glenmarie Industrial Park, 40150 Shah Alam, Selangor, Malaysia",
+    "latitude": 3.0819265,
+    "longitude": 101.559522,
+    "phone": "",
+    "rating": 3.4,
+    "total_ratings": 5
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Genting, Jalan Permai (GPM)",
+    "address": "Lot PT21074, Ground Floor, Jalan Permai 2, 69000 Genting Highlands, Pahang, Malaysia",
+    "latitude": 3.3871059999999997,
+    "longitude": 101.7746772,
+    "phone": "010-768 5308",
+    "rating": 3.3,
+    "total_ratings": 7
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Johor, Taman Bukit Indah(JTBI)",
+    "address": "41, Jalan Indah 10/1, Taman Bukit Indah, 81200 Johor Bahru, Johor Darul Ta'zim, Malaysia",
+    "latitude": 1.4793018999999998,
+    "longitude": 103.6504329,
+    "phone": "",
+    "rating": 2.6,
+    "total_ratings": 14
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Kepong Perdana (KPD)",
+    "address": "15, Jalan Perdana 5, Taman Indah Perdana,, Kepong,, 52100 Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia",
+    "latitude": 3.2194409999999998,
+    "longitude": 101.6369395,
+    "phone": "016-330 8294",
+    "rating": 2.9,
+    "total_ratings": 15
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Desa Pandan (DPD)",
+    "address": "8, Jalan 1/76d, Desa Pandan, 51000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1469856,
+    "longitude": 101.73702949999999,
+    "phone": "016-330 8047",
+    "rating": 2.2,
+    "total_ratings": 13
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Rawang, Bukit Beruntung (RBB)",
+    "address": "No: 59-G, Jln Adenium 2G/8, Seksyen BB5, Bukit Beruntung, 48300 Rawang, Selangor, Malaysia",
+    "latitude": 3.4193647,
+    "longitude": 101.5566041,
+    "phone": "",
+    "rating": 3.3,
+    "total_ratings": 3
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart Sungai Way (SGW)",
+    "address": "621, Jalan SS 9a/1, Ss 9a, 47300 Petaling Jaya, Selangor, Malaysia",
+    "latitude": 3.0856681999999998,
+    "longitude": 101.6207242,
+    "phone": "016-330 8457",
+    "rating": 3.3,
+    "total_ratings": 8
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Johor, Bandar Baru Uda (JBU)",
+    "address": "No. 41, Jalan Padi Ria, Bandar Baru Uda, 81200 Johor Bahru, Johor Darul Ta'zim, Malaysia",
+    "latitude": 1.4995093,
+    "longitude": 103.71768259999999,
+    "phone": "010-230 8469",
+    "rating": 2.8,
+    "total_ratings": 12
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK SUPER MART Seksyen 14, Petaling Jaya (S142)",
+    "address": "4A (GF, Jalan 14/20, Seksyen 14, 46100 Petaling Jaya, Selangor, Malaysia",
+    "latitude": 3.1093799,
+    "longitude": 101.63628550000001,
+    "phone": "016-330 8637",
+    "rating": 1.9,
+    "total_ratings": 10
+  },
+  {
+    "store_name": "KK Super Mart",
+    "branch_name": "KK Super Mart",
+    "address": "522, Jalan Ayer Jerneh, Kampung Baru Air Panas, 53200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+    "latitude": 3.1905856,
+    "longitude": 101.7182434,
+    "phone": "016-214 2308",
+    "rating": 4.1,
+    "total_ratings": 99
+  }
+]
