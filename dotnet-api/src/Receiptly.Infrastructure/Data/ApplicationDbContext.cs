@@ -12,10 +12,20 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<Item> Items { get; set; }
+    public DbSet<CanonicalCache> CanonicalCache { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Configure CanonicalCache entity
+        modelBuilder.Entity<CanonicalCache>(entity =>
+        {
+            entity.ToTable("canonical_cache");
+            entity.HasKey(e => e.RawName);
+            entity.Property(e => e.RawName).HasMaxLength(300);
+            entity.Property(e => e.CanonicalName).HasMaxLength(300);
+        });
 
         // Configure Receipt entity
         modelBuilder.Entity<Receipt>(entity =>
