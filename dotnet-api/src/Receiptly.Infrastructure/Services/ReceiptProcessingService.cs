@@ -14,18 +14,21 @@ public class ReceiptProcessingService : IReceiptProcessingService
     private readonly IReceiptRepository _receiptRepository;
     private readonly IImageHashService _imageHashService;
     private readonly ILogger<ReceiptProcessingService> _logger;
+    private readonly CanonicalizationService _canonicalizationService;
 
     public ReceiptProcessingService(
         S3StorageService s3Storage, 
         PythonOcrClient ocrClient,
         IReceiptRepository receiptRepository,
         IImageHashService imageHashService,
+        CanonicalizationService canonicalizationService,
         ILogger<ReceiptProcessingService> logger)
     {
         _s3Storage = s3Storage;
         _ocrClient = ocrClient;
         _receiptRepository = receiptRepository;
         _imageHashService = imageHashService;
+        _canonicalizationService = canonicalizationService;
         _logger = logger;
     }
 
@@ -162,7 +165,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
 
             // Step 7: Extract structured data from OCR response
             _logger.LogInformation("Step 7/9: Extracting structured data. ReceiptId: {ReceiptId}", receiptId);
-            var receipt = ExtractReceiptData(receiptId, userId, imageUrl, filename, ocrResult.Data, validation);
+            var receipt = await ExtractReceiptData(receiptId, userId, imageUrl, filename, ocrResult.Data, validation);
             
             // Add image hash to receipt
             receipt.ImageHash = imageHash;
@@ -289,7 +292,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
     /// <summary>
     /// Extract structured receipt data from Azure Document Intelligence response
     /// </summary>
-    private Receipt ExtractReceiptData(Guid receiptId, string userId, string imageUrl, string filename, OcrResponse ocrResponse, OcrValidation? validation)
+    private async Task<Receipt> ExtractReceiptData(Guid receiptId, string userId, string imageUrl, string filename, OcrResponse ocrResponse, OcrValidation? validation)
     {
         var receipt = new Receipt
         {
@@ -524,7 +527,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
             
             if (itemsList != null && itemsList.Count > 0)
             {
-                receipt.Items = ExtractItems(receiptId, itemsList);
+                receipt.Items = await ExtractItems(receiptId, itemsList);
                 _logger.LogInformation("Extracted {Count} items from receipt", receipt.Items.Count);
             }
             else
@@ -543,7 +546,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
     /// <summary>
     /// Extract individual items from the receipt
     /// </summary>
-    private List<Item> ExtractItems(Guid receiptId, List<OcrField> itemsArray)
+    private async Task<List<Item>> ExtractItems(Guid receiptId, List<OcrField> itemsArray)
     {
         var items = new List<Item>();
 
@@ -623,9 +626,15 @@ public class ReceiptProcessingService : IReceiptProcessingService
 
                 item.Price = price;
 
+                // Canonicalize name
+                if (!string.IsNullOrWhiteSpace(item.Name))
+                {
+                    item.CanonicalName = await _canonicalizationService.GetCanonicalNameAsync(item.Name);
+                }
+
                 items.Add(item);
-                _logger.LogInformation("Extracted item: {Name}, Qty: {Quantity}, Price: {Price}", 
-                    item.Name, item.Quantity, item.Price);
+                _logger.LogInformation("Extracted item: {Name}, Qty: {Quantity}, Price: {Price}, Canonical: {Canonical}", 
+                    item.Name, item.Quantity, item.Price, item.CanonicalName);
             }
             catch (Exception ex)
             {

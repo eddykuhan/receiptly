@@ -46,15 +46,23 @@ if check_port 8000; then
     kill_port 8000
 fi
 
+
 if check_port 5188; then
     echo -e "${YELLOW}Port 5188 (.NET API) is in use${NC}"
     kill_port 5188
 fi
 
+# Check and kill LLM Service port
+if check_port 8500; then
+    echo -e "${YELLOW}Port 8500 (LLM Service) is in use${NC}"
+    kill_port 8500
+fi
+
 echo ""
 
+
 # Start Python OCR Service
-echo -e "${GREEN}[1/2] Starting Python OCR Service...${NC}"
+echo -e "${GREEN}[1/3] Starting Python OCR Service...${NC}"
 echo -e "${BLUE}----------------------------------------------${NC}"
 
 cd "$SCRIPT_DIR/python-ocr"
@@ -98,8 +106,49 @@ done
 
 echo ""
 
-# Start .NET API
-echo -e "${GREEN}[2/2] Starting .NET API...${NC}"
+# Start LLM Service FastAPI
+echo -e "${GREEN}[2/3] Starting LLM Service FastAPI...${NC}"
+echo -e "${BLUE}----------------------------------------------${NC}"
+
+cd "$SCRIPT_DIR/llm_service"
+
+# Check if virtual environment exists
+if [ ! -d "venv" ]; then
+    echo -e "${RED}Virtual environment not found for llm_service. Creating...${NC}"
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+else
+    source venv/bin/activate
+fi
+
+# Start LLM service in background
+echo -e "${GREEN}Starting uvicorn server for LLM Service on port 8500...${NC}"
+uvicorn main:app --host 0.0.0.0 --port 8500 --reload > "$SCRIPT_DIR/logs/llm_service.log" 2>&1 &
+LLM_PID=$!
+
+# Wait for LLM service to start
+echo -e "${YELLOW}Waiting for LLM Service to start...${NC}"
+for i in {1..30}; do
+    if check_port 8500; then
+        echo -e "${GREEN}✓ LLM Service started successfully (PID: $LLM_PID)${NC}"
+        break
+    fi
+    if [ $i -eq 30 ]; then
+        echo -e "${RED}✗ LLM Service failed to start${NC}"
+        echo -e "${YELLOW}Check logs at: logs/llm_service.log${NC}"
+        kill $PYTHON_PID
+        exit 1
+    fi
+    sleep 1
+done
+
+echo ""
+
+cd "$SCRIPT_DIR"
+
+ # Start .NET API
+echo -e "${GREEN}[3/3] Starting .NET API...${NC}"
 echo -e "${BLUE}----------------------------------------------${NC}"
 
 cd "$SCRIPT_DIR/dotnet-api"
@@ -150,18 +199,22 @@ echo -e "${BLUE}==================================================${NC}"
 echo ""
 echo -e "${YELLOW}Services:${NC}"
 echo -e "  Python OCR:  ${GREEN}http://localhost:8000${NC} (PID: $PYTHON_PID)"
+echo -e "  LLM Service: ${GREEN}http://localhost:8500${NC} (PID: $LLM_PID)"
 echo -e "  .NET API:    ${GREEN}http://localhost:5188${NC} (PID: $DOTNET_PID)"
 echo ""
 echo -e "${YELLOW}Documentation:${NC}"
 echo -e "  Python Docs: ${BLUE}http://localhost:8000/docs${NC}"
+echo -e "  LLM Docs:    ${BLUE}http://localhost:8500/docs${NC}"
 echo -e "  .NET Swagger:${BLUE}http://localhost:5188/swagger${NC}"
 echo ""
 echo -e "${YELLOW}Logs:${NC}"
 echo -e "  Python:      ${BLUE}tail -f logs/python-ocr.log${NC}"
+echo -e "  LLM:         ${BLUE}tail -f logs/llm_service.log${NC}"
 echo -e "  .NET:        ${BLUE}tail -f logs/dotnet-api.log${NC}"
 echo ""
 echo -e "${YELLOW}Process IDs saved to: ${BLUE}.service-pids${NC}"
 echo "$PYTHON_PID" > "$SCRIPT_DIR/.service-pids"
+echo "$LLM_PID" >> "$SCRIPT_DIR/.service-pids"
 echo "$DOTNET_PID" >> "$SCRIPT_DIR/.service-pids"
 echo ""
 echo -e "${RED}To stop all services, run: ${BLUE}./stop-services.sh${NC}"

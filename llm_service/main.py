@@ -3,6 +3,7 @@ from services.canonicalizer import canonicalize_item, canonicalize_batch
 from services.merchant import normalize_merchant
 from services.category import classify_category
 from services.cleaner import clean_receipt
+from services.location_selector import select_best_location
 
 app = FastAPI(title="Receiptly LLM Service")
 
@@ -27,3 +28,9 @@ async def api_classify_category(body: dict):
 @app.post("/clean_receipt")
 async def api_clean_receipt(body: dict):
     return {"cleaned": await clean_receipt(body["ocr_json"])}
+
+@app.post("/select_best_location")
+async def api_select_best_location(body: dict):
+    candidates = body.get("candidates", [])
+    result = await select_best_location(candidates)
+    return result

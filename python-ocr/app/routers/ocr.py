@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, HttpUrl
-from typing import Dict, Any, Literal
+from typing import Dict, Any, Literal, List
 from ..services.document_intelligence import DocumentIntelligenceService
 from ..services.easyocr_service import EasyOCRService
 from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
 from ..services.store_name_extractor import StoreNameExtractor
 from ..services.store_location_service import StoreLocationService
+from ..services.llm_client import LlmServiceClient
 from ..utils.image_utils import download_image
 from ..utils.debug import ImageDebugger, enable_debug, disable_debug
 from ..core.config import get_settings
@@ -156,10 +157,10 @@ async def analyze_receipt(
                 "merchant_address": result.get("merchant_address")
             })
         
-        # Step 6: Override Azure's merchant data with EasyOCR if Azure failed or has low confidence
-        # Priority: Azure first, EasyOCR only as fallback
+        # Step 6: Override Azure's merchant data with LLM-enhanced selection
+        # Collects candidates from all strategies and uses LLM to select best
         if request.extract_location:
-            result = override_merchant_data_with_easyocr(
+            result = await override_merchant_data_with_easyocr(
                 result, 
                 easyocr_service, 
                 file_bytes,
@@ -167,7 +168,7 @@ async def analyze_receipt(
             )
         else:
             # Even if extraction was disabled, try fallback if Azure has missing/low-confidence merchant data
-            result = override_merchant_data_with_easyocr(
+            result = await override_merchant_data_with_easyocr(
                 result, 
                 easyocr_service, 
                 file_bytes,
@@ -262,32 +263,127 @@ def validate_receipt_confidence(azure_result: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def override_merchant_data_with_easyocr(
+async def collect_location_candidates(
+    azure_result: Dict[str, Any],
+    easyocr_service: 'EasyOCRService',
+    image_bytes: bytes,
+    debugger = None
+) -> List[Dict[str, Any]]:
+    """
+    Collect all possible location candidates from different OCR strategies.
+    
+    Returns a list of candidates with metadata for LLM selection.
+    """
+    candidates = []
+    extractor = StoreNameExtractor()
+    
+    # Helper to extract field value safely
+    def get_field_value(field_data, default=''):
+        if isinstance(field_data, dict):
+            return field_data.get('value', default)
+        return str(field_data) if field_data else default
+    
+    fields = azure_result.get('fields', {})
+    
+    # Candidate 1: Azure Document Intelligence
+    azure_merchant = fields.get('MerchantName', {})
+    azure_address = fields.get('MerchantAddress', {})
+    azure_phone = fields.get('MerchantPhoneNumber', {})
+    
+    azure_merchant_value = get_field_value(azure_merchant)
+    azure_address_value = get_field_value(azure_address)
+    azure_phone_value = get_field_value(azure_phone)
+    azure_confidence = azure_merchant.get('confidence', 0.0) if isinstance(azure_merchant, dict) else 0.0
+    
+    if azure_merchant_value and len(azure_merchant_value.strip()) >= 2:
+        candidates.append({
+            "store_name": azure_merchant_value,
+            "address": azure_address_value or None,
+            "phone": azure_phone_value or None,
+            "postal_code": None,
+            "source": "azure",
+            "confidence": azure_confidence,
+            "metadata": {
+                "method": "Azure Document Intelligence"
+            }
+        })
+        print(f"  📋 Candidate {len(candidates)-1} (Azure): {azure_merchant_value}")
+    
+    # Candidate 2: EasyOCR extraction
+    try:
+        easyocr_result = easyocr_service.extract_location_from_bytes(image_bytes)
+        if easyocr_result and easyocr_result.get('success'):
+            easyocr_location = easyocr_result.get('location', {})
+            easyocr_store = easyocr_location.get('store_name')
+            
+            if easyocr_store and len(easyocr_store.strip()) >= 2:
+                candidates.append({
+                    "store_name": easyocr_store,
+                    "address": easyocr_location.get('address'),
+                    "phone": easyocr_location.get('phone'),
+                    "postal_code": easyocr_location.get('postal_code'),
+                    "source": "easyocr",
+                    "confidence": easyocr_location.get('confidence', 0.0),
+                    "metadata": {
+                        "method": "EasyOCR",
+                        "country": easyocr_location.get('country')
+                    }
+                })
+                print(f"  📋 Candidate {len(candidates)-1} (EasyOCR): {easyocr_store}")
+    except Exception as e:
+        print(f"  ⚠️ EasyOCR extraction failed: {str(e)}")
+    
+    # Candidate 3: Fallback heuristics
+    try:
+        fallback_result = extractor.extract_from_full_image(image_bytes)
+        if fallback_result and fallback_result.get('store_name'):
+            fallback_name = fallback_result['store_name']
+            
+            # Only add if different from existing candidates
+            existing_names = [c['store_name'].lower() for c in candidates]
+            if fallback_name.lower() not in existing_names:
+                candidates.append({
+                    "store_name": fallback_name,
+                    "address": None,
+                    "phone": None,
+                    "postal_code": None,
+                    "source": "fallback",
+                    "confidence": fallback_result.get('confidence', 0.0),
+                    "metadata": {
+                        "method": f"Fallback {fallback_result.get('method', 'unknown')}"
+                    }
+                })
+                print(f"  📋 Candidate {len(candidates)-1} (Fallback): {fallback_name}")
+    except Exception as e:
+        print(f"  ⚠️ Fallback extraction failed: {str(e)}")
+    
+    print(f"  ✅ Collected {len(candidates)} location candidates")
+    return candidates
+
+
+async def override_merchant_data_with_easyocr(
     azure_result: Dict[str, Any],
     easyocr_service: 'EasyOCRService',
     image_bytes: bytes = None,
     debugger = None
 ) -> Dict[str, Any]:
     """
-    Override Azure Document Intelligence merchant/store fields with EasyOCR data.
+    Override Azure Document Intelligence merchant/store fields using LLM-enhanced selection.
     
-    **Priority Logic:**
-    1. Azure results are preferred (highest priority)
-    2. EasyOCR is only used as fallback if:
-       - Azure MerchantName is empty/null OR confidence < 0.5
-       - Azure MerchantAddress is empty/null OR confidence < 0.5
-    
-    This ensures we trust Azure's specialized receipt model first, 
-    and only use EasyOCR when Azure fails or is uncertain.
+    **New Logic:**
+    1. Collect location candidates from all strategies (Azure, EasyOCR, Fallback)
+    2. Use LLM to select the best candidate
+    3. Apply fuzzy matching correction
+    4. Match against Google Places
     
     Args:
         azure_result: Azure Document Intelligence result dictionary
         easyocr_service: EasyOCR service instance
-        image_bytes: Original image bytes for EasyOCR extraction
+        image_bytes: Original image bytes for extraction
         debugger: Optional debugger instance
         
     Returns:
-        Modified azure_result with merchant data (Azure preferred, EasyOCR as fallback)
+        Modified azure_result with best merchant data selected by LLM
     """
     # Azure receipt structure typically has 'fields' with merchant info
     if 'fields' not in azure_result:
@@ -295,142 +391,137 @@ def override_merchant_data_with_easyocr(
     
     fields = azure_result['fields']
     
-    # Helper function to check if Azure field is valid and confident
-    def is_azure_field_valid(field_name: str, min_confidence: float = 0.5) -> bool:
-        """Check if Azure extracted a valid field with sufficient confidence."""
-        field = fields.get(field_name, {})
-        
-        if not isinstance(field, dict):
-            return False
-        
-        value = field.get('value', '')
-        confidence = field.get('confidence', 0.0)
-        
-        # Check if value exists and is not empty
-        if not value or (isinstance(value, str) and len(value.strip()) < 2):
-            return False
-        
-        # Check confidence threshold
-        if confidence < min_confidence:
-            return False
-        
-        return True
+    # Step 1: Collect all location candidates
+    print("  🔍 Collecting location candidates from all strategies...")
+    candidates = await collect_location_candidates(
+        azure_result,
+        easyocr_service,
+        image_bytes,
+        debugger
+    )
     
-    # Check Azure's merchant name and address
-    azure_merchant_valid = is_azure_field_valid('MerchantName')
-    azure_address_valid = is_azure_field_valid('MerchantAddress')
+    if debugger:
+        debugger.save_json(candidates, "03_location_candidates")
     
-    print(f"  Azure MerchantName valid: {azure_merchant_valid}")
-    print(f"  Azure MerchantAddress valid: {azure_address_valid}")
+    # Step 2: Use LLM to select best candidate (if multiple)
+    selected_candidate = None
+    address_candidate = None
+    llm_selection_result = None
     
-    # Determine if we need EasyOCR fallback
-    need_easyocr_merchant = not azure_merchant_valid
-    need_easyocr_address = not azure_address_valid
-    
-    # Only run EasyOCR if needed
-    easyocr_location = None
-    if (need_easyocr_merchant or need_easyocr_address) and image_bytes:
-        print("  → Running EasyOCR fallback extraction...")
+    if len(candidates) > 1:
+        print(f"  🤖 Using LLM to combine best parts from {len(candidates)} candidates...")
         try:
-            easyocr_result = easyocr_service.extract_location_from_bytes(image_bytes)
+            llm_client = LlmServiceClient()
+            llm_selection_result = await llm_client.select_best_location(candidates)
             
-            if debugger:
-                debugger.save_json(easyocr_result, "03_easyocr_extraction", {
-                    "triggered_by": "azure_missing_or_low_confidence"
-                })
-            
-            if easyocr_result and easyocr_result.get('success'):
-                easyocr_location = easyocr_result.get('location', {})
-                print(f"  ✓ EasyOCR extraction successful (confidence: {easyocr_location.get('confidence', 0):.2f})")
+            if llm_selection_result:
+                store_idx = llm_selection_result.get('best_store_name_index', 0)
+                address_idx = llm_selection_result.get('best_address_index', store_idx)
+                reasoning = llm_selection_result.get('reasoning', 'No reasoning provided')
+                llm_confidence = llm_selection_result.get('confidence', 0.5)
+                
+                selected_candidate = candidates[store_idx]
+                address_candidate = candidates[address_idx] if address_idx != store_idx else None
+                
+                print(f"  ✨ LLM combined data:")
+                print(f"     Store Name from: Candidate {store_idx} ({candidates[store_idx]['source']})")
+                if address_candidate:
+                    print(f"     Address from: Candidate {address_idx} ({candidates[address_idx]['source']})")
+                print(f"     Reasoning: {reasoning}")
+                print(f"     LLM Confidence: {llm_confidence:.2f}")
+                
+                if debugger:
+                    debugger.save_json(llm_selection_result, "04_llm_selection")
             else:
-                print(f"  ⚠️ EasyOCR extraction failed: {easyocr_result.get('error', 'unknown error')}")
+                # Fallback to highest confidence for store name
+                store_idx = max(range(len(candidates)), key=lambda i: candidates[i].get("confidence", 0.0))
+                selected_candidate = candidates[store_idx]
+                address_candidate = None # No separate address candidate in fallback
+                print(f"  ⚠️ LLM selection failed, using highest confidence candidate {store_idx} for all fields")
         except Exception as e:
-            print(f"  ⚠️ EasyOCR extraction error: {str(e)}")
+            print(f"  ⚠️ LLM selection error: {str(e)}")
+            # Fallback to highest confidence for store name
+            store_idx = max(range(len(candidates)), key=lambda i: candidates[i].get("confidence", 0.0))
+            selected_candidate = candidates[store_idx]
+            address_candidate = None # No separate address candidate in fallback
+            print(f"  ⚠️ Using fallback: highest confidence candidate {store_idx} for all fields")
+    elif len(candidates) == 1:
+        selected_candidate = candidates[0]
+        print(f"  ℹ️ Only one candidate available, using: {selected_candidate['source']}")
+    else:
+        print("  ⚠️ No location candidates found")
     
-    # Helper function to validate text isn't gibberish
-    def is_valid_text(text: str, max_length: int = 200) -> bool:
-        """Check if text is valid (not gibberish or too long)."""
-        if not text or not isinstance(text, str):
-            return False
-        
-        # Length check
-        if len(text) > max_length:
-            return False
-        
-        # Check for reasonable letter ratio
-        letter_count = sum(c.isalpha() for c in text)
-        special_count = sum(not c.isalnum() and not c.isspace() for c in text)
-        total = len(text)
-        
-        if total == 0:
-            return False
-        
-        letter_ratio = letter_count / total
-        special_ratio = special_count / total
-        
-        # Text should be at least 30% letters and less than 40% special chars
-        if letter_ratio < 0.3 or special_ratio > 0.4:
-            return False
-        
-        # Check for words (should have at least one word of 3+ letters)
-        words = text.split()
-        valid_words = [w for w in words if len(w) >= 3 and any(c.isalpha() for c in w)]
-        if len(valid_words) == 0:
-            return False
-        
-        return True
-    
-    # Initialize StoreNameExtractor for fuzzy matching
-    extractor = StoreNameExtractor()
-    
-    # ========== Handle MerchantName ==========
+    # Step 3: Apply combined data to fields
     merchant_name_set = False
     
-    # Priority 1: Keep Azure's result if valid
-    if azure_merchant_valid:
-        azure_merchant = fields.get('MerchantName', {})
-        azure_value = azure_merchant.get('value', '')
-        print(f"  ✓ Keeping Azure MerchantName: {azure_value}")
-        merchant_name_set = True
-    
-    # Priority 2: Use EasyOCR if Azure failed
-    if not merchant_name_set and easyocr_location and easyocr_location.get('store_name'):
-        store_name = easyocr_location['store_name']
-        if is_valid_text(store_name, max_length=100):
+    if selected_candidate:
+        # Use LLM-parsed values if available, otherwise use candidate values
+        if llm_selection_result:
+            store_name = llm_selection_result.get('parsed_store_name') or selected_candidate.get('store_name')
+            # If LLM provided parsed_location, use it; otherwise check address_candidate
+            parsed_location = llm_selection_result.get('parsed_location')
+            if parsed_location:
+                address = parsed_location
+            elif address_candidate:
+                # Use address from different candidate
+                address = address_candidate.get('address')
+            else:
+                address = selected_candidate.get('address')
+        else:
+            store_name = selected_candidate.get('store_name')
+            address = selected_candidate.get('address')
+        
+        # Combine phone and postal from either candidate
+        phone = selected_candidate.get('phone') or (address_candidate.get('phone') if address_candidate else None)
+        postal_code = selected_candidate.get('postal_code') or (address_candidate.get('postal_code') if address_candidate else None)
+        source = selected_candidate.get('source')
+        confidence = selected_candidate.get('confidence', 0.0)
+        
+        # Set MerchantName
+        if store_name:
             fields['MerchantName'] = {
                 'type': 'string',
                 'value': store_name,
                 'content': store_name,
-                'confidence': easyocr_location.get('confidence', 0.0),
-                'source': 'easyocr_fallback'
+                'confidence': confidence,
+                'source': f'{source}_llm_parsed' if llm_selection_result and llm_selection_result.get('parsed_store_name') else f'{source}_llm_selected' if llm_selection_result else source
             }
-            print(f"  → Overriding MerchantName with EasyOCR: {store_name}")
             merchant_name_set = True
-        else:
-            print(f"  ⚠️ Skipping EasyOCR MerchantName - invalid text detected")
+            print(f"  ✓ Set MerchantName: {store_name}")
+            if llm_selection_result and llm_selection_result.get('parsed_store_name'):
+                print(f"     (LLM parsed from: {selected_candidate.get('store_name')})")
+        
+        # Set MerchantAddress if available
+        if address:
+            address_source = address_candidate.get('source') if address_candidate else source
+            fields['MerchantAddress'] = {
+                'type': 'string',
+                'value': address,
+                'content': address,
+                'confidence': address_candidate.get('confidence', confidence) if address_candidate else confidence,
+                'source': f'{address_source}_llm_parsed' if llm_selection_result and llm_selection_result.get('parsed_location') else f'{address_source}_llm_combined' if address_candidate else source
+            }
+            print(f"  ✓ Set MerchantAddress: {address[:50]}...")
+            if llm_selection_result and llm_selection_result.get('parsed_location'):
+                print(f"     (LLM extracted location from mixed data)")
+            elif address_candidate:
+                print(f"     (Combined from {address_source} candidate)")
+        
+        # Set MerchantPhoneNumber if available
+        if phone and not fields.get('MerchantPhoneNumber'):
+            fields['MerchantPhoneNumber'] = {
+                'type': 'phoneNumber',
+                'value': phone,
+                'content': phone,
+                'confidence': confidence,
+                'source': f'{source}_llm_selected' if llm_selection_result else source
+            }
+            print(f"  ✓ Set MerchantPhoneNumber: {phone}")
     
-    # Priority 3: Fallback Heuristics from StoreNameExtractor
-    if not merchant_name_set and image_bytes:
-        try:
-            fallback_result = extractor.extract_from_full_image(image_bytes)
-            if fallback_result and fallback_result.get('store_name'):
-                fallback_name = fallback_result['store_name']
-                fallback_confidence = fallback_result.get('confidence', 0.0)
-                fallback_method = fallback_result.get('method', 'unknown')
-                
-                fields['MerchantName'] = {
-                    'type': 'string',
-                    'value': fallback_name,
-                    'content': fallback_name,
-                    'confidence': fallback_confidence,
-                    'source': f'fallback_{fallback_method}'
-                }
-                print(f"  ✓ Fallback extraction successful: {fallback_name} (method: {fallback_method})")
-                merchant_name_set = True
-        except Exception as e:
-            print(f"  ⚠️ Store name extraction failed: {str(e)}")
+    # Step 4: Fuzzy Match Correction
+    # Initialize StoreNameExtractor for fuzzy matching
+    extractor = StoreNameExtractor()
     
-    # FINAL STEP: Fuzzy Match Correction
     # Regardless of source, try to match against known chains
     current_merchant = fields.get('MerchantName', {})
     current_value = current_merchant.get('value', '') if isinstance(current_merchant, dict) else str(current_merchant)
@@ -476,15 +567,10 @@ def override_merchant_data_with_easyocr(
         current_merchant = fields.get('MerchantName', {})
         current_name = current_merchant.get('value', '') if isinstance(current_merchant, dict) else str(current_merchant)
         
-        # Get OCR-extracted data for matching signals
-        ocr_address = None
-        ocr_phone = None
-        ocr_postal = None
-        
-        if easyocr_location:
-            ocr_address = easyocr_location.get('address')
-            ocr_phone = easyocr_location.get('phone')
-            ocr_postal = easyocr_location.get('postal_code')
+        # Get OCR-extracted data for matching signals from selected candidate
+        ocr_address = selected_candidate.get('address') if selected_candidate else None
+        ocr_phone = selected_candidate.get('phone') if selected_candidate else None
+        ocr_postal = selected_candidate.get('postal_code') if selected_candidate else None
         
         # Also check Azure's data (extract string value from dict)
         azure_address = fields.get('MerchantAddress', {})
@@ -556,80 +642,31 @@ def override_merchant_data_with_easyocr(
         print(f"  ⚠️ Google Places matching error: {str(e)}")
         # Continue without Google Places data
     
-    # ========== Handle MerchantAddress ==========
-    # Priority 1: Keep Azure's address if valid
-    if azure_address_valid:
-        azure_address = fields.get('MerchantAddress', {})
-        azure_value = azure_address.get('value', '')
-        print(f"  ✓ Keeping Azure MerchantAddress: {azure_value[:50]}...")
-    
-    # Priority 2: Use EasyOCR if Azure failed
-    elif easyocr_location and easyocr_location.get('address'):
-        address = easyocr_location['address'].upper()
-        if is_valid_text(address, max_length=300):
-            fields['MerchantAddress'] = {
-                'type': 'string',
-                'value': address,
-                'content': address,
-                'confidence': easyocr_location.get('confidence', 0.0),
-                'source': 'easyocr_fallback'
-            }
-            print(f"  → Overriding MerchantAddress with EasyOCR: {address[:50]}...")
-        else:
-            print(f"  ⚠️ Skipping EasyOCR MerchantAddress - invalid text detected")
-    
-    # Add MerchantPhoneNumber if available from EasyOCR and not in Azure
-    if easyocr_location and easyocr_location.get('phone'):
-        phone = easyocr_location['phone']
-        # Only add if Azure doesn't have it
-        if not fields.get('MerchantPhoneNumber'):
-            if phone and len(phone.replace('+', '').replace('-', '').replace(' ', '')) >= 7:
-                fields['MerchantPhoneNumber'] = {
-                    'type': 'phoneNumber',
-                    'value': phone,
-                    'content': phone,
-                    'confidence': easyocr_location.get('confidence', 0.0),
-                    'source': 'easyocr'
-                }
-                print(f"  → Adding MerchantPhoneNumber from EasyOCR: {phone}")
-    
-    # Handle TransactionDate fallback
+    # Transaction date is handled by Azure - no additional processing needed for location selection
     azure_date = fields.get('TransactionDate', {})
     azure_date_value = azure_date.get('value') if isinstance(azure_date, dict) else azure_date
-    azure_date_confidence = azure_date.get('confidence', 0.0) if isinstance(azure_date, dict) else 0.0
-    
-    # Use EasyOCR date if Azure didn't find one or has very low confidence
-    easyocr_date = easyocr_location.get('transaction_date') if easyocr_location else None
-    
-    if easyocr_date and (not azure_date_value or azure_date_confidence < 0.5):
-        fields['TransactionDate'] = {
-            'type': 'date',
-            'value': easyocr_date['value'],
-            'content': easyocr_date['content'],
-            'confidence': easyocr_date['confidence'],
-            'source': 'easyocr_fallback',
-            'format_detected': easyocr_date.get('format_detected', 'unknown')
-        }
-        print(f"  → Adding TransactionDate from EasyOCR: {easyocr_date['value']}")
-    elif azure_date_value:
-        print(f"  ℹ️ Keeping Azure TransactionDate: {azure_date_value} (confidence: {azure_date_confidence:.2f})")
-    else:
-        print(f"  ⚠️ No transaction date detected by Azure or EasyOCR")
+    if azure_date_value:
+        print(f"  ℹ️ TransactionDate from Azure: {azure_date_value}")
     
     # Add additional location metadata
     if 'metadata' not in azure_result:
         azure_result['metadata'] = {}
     
-    if easyocr_location:
+    if selected_candidate:
         azure_result['metadata']['location_extraction'] = {
-            'postal_code': easyocr_location.get('postal_code'),
-            'country': easyocr_location.get('country'),
-            'easyocr_confidence': easyocr_location.get('confidence'),
-            'extraction_strategy': 'easyocr_fallback',
-            'date_extracted': easyocr_date is not None,
-            'azure_merchant_valid': azure_merchant_valid,
-            'azure_address_valid': azure_address_valid
+            'postal_code': selected_candidate.get('postal_code'),
+            'selected_source': selected_candidate.get('source'),
+            'selected_confidence': selected_candidate.get('confidence'),
+            'extraction_strategy': 'llm_enhanced_selection',
+            'llm_selection_used': llm_selection_result is not None
         }
+        
+        if llm_selection_result:
+            azure_result['metadata']['llm_selection'] = {
+                'reasoning': llm_selection_result.get('reasoning'),
+                'confidence': llm_selection_result.get('confidence'),
+                'num_candidates': len(candidates)
+            }
     
     # Add Google Places metadata if match was found
     if google_places_match:
