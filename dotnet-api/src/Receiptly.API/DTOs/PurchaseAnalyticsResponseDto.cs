@@ -1,3 +1,4 @@
+using Receiptly.Domain.Enums;
 namespace Receiptly.API.DTOs;
 
 public class PurchaseAnalyticsResponseDto
@@ -16,6 +17,7 @@ public class PurchaseAnalyticsItemDto
     public Guid ReceiptId { get; init; }
     public string ItemName { get; init; } = string.Empty;
     public string? Description { get; init; }
+    public string? CanonicalName { get; init; }
     public decimal UnitPrice { get; init; }
     public int Quantity { get; init; }
     public decimal? TotalPrice { get; init; }
@@ -33,5 +35,6 @@ public class PurchaseAnalyticsMetadataDto
     public string? ReceiptType { get; init; }
     public string? TransactionId { get; init; }
     public string? PaymentMethod { get; init; }
+    public ReceiptStatus Status { get; init; }
 }
 

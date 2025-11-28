@@ -101,6 +101,7 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
                 ReceiptId = i.ReceiptId,
                 ItemName = i.Name,
                 Description = i.Description,
+                CanonicalName = i.CanonicalName,
                 UnitPrice = i.UnitPrice ?? i.Price,
                 TotalPrice = i.TotalPrice ?? ((i.UnitPrice ?? i.Price) * i.Quantity),
                 Quantity = i.Quantity,

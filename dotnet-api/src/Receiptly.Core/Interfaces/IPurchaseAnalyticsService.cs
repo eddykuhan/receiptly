@@ -38,6 +38,7 @@ public class PurchaseAnalyticsRecord
     public Guid ReceiptId { get; init; }
     public string ItemName { get; init; } = string.Empty;
     public string? Description { get; init; }
+    public string? CanonicalName { get; init; }
     public decimal UnitPrice { get; init; }
     public decimal? TotalPrice { get; init; }
     public int Quantity { get; init; }

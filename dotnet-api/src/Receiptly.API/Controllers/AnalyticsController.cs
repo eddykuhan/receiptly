@@ -76,6 +76,7 @@ public class AnalyticsController : ControllerBase
             ReceiptId = record.ReceiptId,
             ItemName = record.ItemName,
             Description = record.Description,
+            CanonicalName = record.CanonicalName,
             UnitPrice = record.UnitPrice,
             TotalPrice = record.TotalPrice,
             Quantity = record.Quantity,
@@ -90,7 +91,8 @@ public class AnalyticsController : ControllerBase
                     Longitude = record.Longitude,
                     ReceiptType = record.ReceiptType,
                     TransactionId = record.TransactionId,
-                    PaymentMethod = record.PaymentMethod
+                    PaymentMethod = record.PaymentMethod,
+                    Status = record.Status
                 }
                 : null
         };
