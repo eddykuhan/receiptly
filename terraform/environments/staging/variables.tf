@@ -55,19 +55,19 @@ variable "db_multi_az" {
 variable "enable_https" {
   description = "Enable HTTPS with Nginx and Let's Encrypt"
   type        = bool
-  default     = false # Set to true to enable HTTPS
+  default     = true # Set to true to enable HTTPS
 }
 
 variable "domain_name" {
   description = "Domain name for SSL certificate (e.g., api.receiptly.com)"
   type        = string
-  default     = "" # Set your domain name here
+  default     = "cheapsy.duckdns.org" # Set your domain name here
 }
 
 variable "letsencrypt_email" {
   description = "Email address for Let's Encrypt SSL certificate notifications"
   type        = string
-  default     = "" # Set your email here
+  default     = "your-email@example.com" # Set your email here
 }
 
 variable "db_backup_retention_period" {
