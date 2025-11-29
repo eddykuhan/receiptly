@@ -53,7 +53,7 @@ resource "aws_security_group" "ocr_service" {
 
   # Allow HTTP access (port 80) for Let's Encrypt validation
   ingress {
-    description = "HTTP for Let's Encrypt"
+    description = "HTTP for LetsEncrypt"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
