@@ -12,8 +12,8 @@ variable "versioning_enabled" {
 variable "lifecycle_rules" {
   description = "Lifecycle rules for the bucket"
   type = list(object({
-    id      = string
-    enabled = bool
+    id              = string
+    enabled         = bool
     expiration_days = number
   }))
   default = []

@@ -16,7 +16,9 @@ public class FileValidationService
         "image/jpg", 
         "image/png",
         "image/tiff",
-        "image/tif"
+        "image/tif",
+        "image/heic",
+        "image/heif"
     };
     
     // Rejected MIME types with specific error messages
@@ -30,7 +32,8 @@ public class FileValidationService
         { "jpeg", new byte[] { 0xFF, 0xD8, 0xFF } },
         { "png", new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A } },
         { "tiff_ii", new byte[] { 0x49, 0x49, 0x2A, 0x00 } }, // TIFF little-endian
-        { "tiff_mm", new byte[] { 0x4D, 0x4D, 0x00, 0x2A } }  // TIFF big-endian
+        { "tiff_mm", new byte[] { 0x4D, 0x4D, 0x00, 0x2A } }, // TIFF big-endian
+        { "heic", new byte[] { 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63 } } // ftyp at offset 4
     };
     
     // PDF signature for explicit rejection

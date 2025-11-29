@@ -1,0 +1,156 @@
+@import './variables';
+
+// Import Inter font from Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+// Global resets and base styles
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: $font-family;
+  font-size: $font-size-base;
+  color: $text-primary;
+  background-color: $bg-secondary;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Typography
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: $spacing-md;
+}
+
+h1 { font-size: $font-size-3xl; }
+h2 { font-size: $font-size-2xl; }
+h3 { font-size: $font-size-xl; }
+h4 { font-size: $font-size-lg; }
+h5 { font-size: $font-size-base; }
+h6 { font-size: $font-size-sm; }
+
+p {
+  line-height: 1.6;
+  margin-bottom: $spacing-md;
+}
+
+// Utility classes
+.gradient-text {
+  background: linear-gradient(135deg, $primary 0%, $purple 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card {
+  background: $bg-primary;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+  transition: all $transition-base;
+
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-2px);
+  }
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $border-color;
+
+  .icon-container {
+    width: 48px;
+    height: 48px;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: 600;
+  }
+}
+
+// Currency formatting
+.currency {
+  &::before {
+    content: $currency-symbol;
+    margin-right: 2px;
+  }
+}
+
+// Button styles
+.btn {
+  padding: 12px 24px;
+  border-radius: $radius-md;
+  font-weight: 600;
+  font-size: $font-size-base;
+  transition: all $transition-fast;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  &.btn-primary {
+    background: $primary;
+    color: white;
+
+    &:hover {
+      background: $primary-dark;
+      transform: translateY(-1px);
+      box-shadow: $shadow-md;
+    }
+  }
+
+  &.btn-success {
+    background: $success;
+    color: white;
+
+    &:hover {
+      background: #0d9668;
+    }
+  }
+
+  &.btn-warning {
+    background: $warning;
+    color: white;
+
+    &:hover {
+      background: #dc8a0a;
+    }
+  }
+}
+
+// Material overrides for consistent theming
+.mat-mdc-card {
+  border-radius: $radius-lg !important;
+  box-shadow: $shadow-sm !important;
+}
+
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-flat-button {
+  font-family: $font-family !important;
+  font-weight: 600 !important;
+  border-radius: $radius-md !important;
+}
+
+.mat-mdc-form-field {
+  font-family: $font-family !important;
+}

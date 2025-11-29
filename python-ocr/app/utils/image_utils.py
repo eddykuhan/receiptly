@@ -5,13 +5,13 @@ import httpx
 from typing import Optional
 
 
-async def download_image(url: str, timeout: float = 30.0) -> bytes:
+async def download_image(url: str, timeout: float = 120.0) -> bytes:
     """
     Download image from a URL.
     
     Args:
         url: URL to download the image from
-        timeout: Request timeout in seconds (default: 30.0)
+        timeout: Request timeout in seconds (default: 120.0 for mobile uploads)
         
     Returns:
         Image bytes
@@ -29,7 +29,7 @@ async def download_image(url: str, timeout: float = 30.0) -> bytes:
 async def download_image_with_retry(
     url: str,
     max_retries: int = 3,
-    timeout: float = 30.0
+    timeout: float = 120.0
 ) -> Optional[bytes]:
     """
     Download image from a URL with retry logic.
@@ -37,7 +37,7 @@ async def download_image_with_retry(
     Args:
         url: URL to download the image from
         max_retries: Maximum number of retry attempts (default: 3)
-        timeout: Request timeout in seconds (default: 30.0)
+        timeout: Request timeout in seconds (default: 120.0 for mobile uploads)
         
     Returns:
         Image bytes if successful, None if all retries fail

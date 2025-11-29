@@ -40,6 +40,16 @@ public class ReceiptRepository : IReceiptRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<Receipt?> GetByImageHashAsync(string userId, string imageHash, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(imageHash))
+            return null;
+            
+        return await _context.Receipts
+            .Include(r => r.Items)
+            .FirstOrDefaultAsync(r => r.UserId == userId && r.ImageHash == imageHash, cancellationToken);
+    }
+
     public async Task<Receipt> UpdateAsync(Receipt receipt, CancellationToken cancellationToken = default)
     {
         receipt.UpdatedAt = DateTime.UtcNow;

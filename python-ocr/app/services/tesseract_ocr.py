@@ -8,6 +8,7 @@ import re
 from typing import Dict, Any, Optional, List
 import cv2
 import numpy as np
+from datetime import datetime, timedelta
 
 
 class TesseractOCRService:
@@ -281,12 +282,15 @@ class TesseractOCRService:
         postal_code = self._extract_postal_code(text)
         country = self._detect_country(text)
         
+        # Extract transaction date
+        date_info = self.extract_date_from_text(text)
+        
         # Calculate confidence based on how much info we found
         confidence = self._calculate_location_confidence(
             store_name, address, phone, postal_code, country
         )
         
-        return {
+        result = {
             "store_name": store_name,
             "address": address,
             "phone": phone,
@@ -295,6 +299,12 @@ class TesseractOCRService:
             "confidence": confidence,
             "full_location_text": self._get_location_section(lines)
         }
+        
+        # Add date information if found
+        if date_info:
+            result["transaction_date"] = date_info
+        
+        return result
     
     def _extract_store_name(self, lines: List[str]) -> Optional[str]:
         """
@@ -321,15 +331,95 @@ class TesseractOCRService:
             if any(word in line.lower() for word in ['date', 'time', 'am', 'pm']):
                 continue
             
+            # Check if line is gibberish (too many special characters, random text)
+            if self._is_gibberish(line):
+                continue
+            
             # Clean up common OCR errors
             cleaned_line = self._clean_ocr_text(line)
+            
+            # Validate the cleaned line again
+            if self._is_gibberish(cleaned_line):
+                continue
             
             # If line has mostly letters (good sign for store name)
             letter_count = sum(c.isalpha() for c in cleaned_line)
             if letter_count >= 3:  # At least 3 letters
-                return cleaned_line
+                # Final length check - store names shouldn't be extremely long
+                if len(cleaned_line) <= 100:  # Reasonable max length
+                    return cleaned_line
         
         return None
+    
+    def _is_gibberish(self, text: str) -> bool:
+        """
+        Detect if text is likely gibberish/noise from bad OCR.
+        
+        Returns True if text appears to be gibberish.
+        """
+        if not text or len(text) < 3:
+            return True
+        
+        # Check for excessive length (gibberish tends to be very long)
+        if len(text) > 200:
+            return True
+        
+        # Count different character types
+        letter_count = sum(c.isalpha() for c in text)
+        digit_count = sum(c.isdigit() for c in text)
+        space_count = sum(c.isspace() for c in text)
+        special_count = sum(not c.isalnum() and not c.isspace() for c in text)
+        total_chars = len(text)
+        
+        # Calculate ratios
+        letter_ratio = letter_count / total_chars if total_chars > 0 else 0
+        special_ratio = special_count / total_chars if total_chars > 0 else 0
+        
+        # Gibberish indicators:
+        # 1. Less than 30% letters
+        if letter_ratio < 0.3:
+            return True
+        
+        # 2. More than 40% special characters (excluding spaces)
+        if special_ratio > 0.4:
+            return True
+        
+        # 3. Check for repeating patterns (noise often repeats)
+        # Split into words
+        words = text.split()
+        if len(words) > 5:
+            # Check if too many words are very short (1-2 chars) or very long (>15)
+            short_words = sum(1 for w in words if len(w) <= 2)
+            long_words = sum(1 for w in words if len(w) > 15)
+            
+            if short_words > len(words) * 0.5:  # More than 50% are 1-2 char words
+                return True
+            if long_words > len(words) * 0.3:  # More than 30% are very long
+                return True
+        
+        # 4. Check for excessive uppercase sequences (OCR noise pattern)
+        uppercase_sequences = re.findall(r'[A-Z]{10,}', text)
+        if len(uppercase_sequences) > 3:
+            return True
+        
+        # 5. Check for repeating character patterns
+        # e.g., "ee ee ee" or "aa aa aa"
+        if re.search(r'(\b\w{1,3}\b)(\s+\1){3,}', text):
+            return True
+        
+        # 6. Check for excessive mixed case (OCR artifact)
+        # Count transitions between upper and lower
+        case_transitions = 0
+        for i in range(len(text) - 1):
+            if text[i].isalpha() and text[i+1].isalpha():
+                if text[i].isupper() != text[i+1].isupper():
+                    case_transitions += 1
+        
+        # If more than 50% of letters are case transitions
+        if letter_count > 0 and case_transitions > letter_count * 0.5:
+            return True
+        
+        return False
     
     def _clean_ocr_text(self, text: str) -> str:
         """Clean up common OCR errors and noise."""
@@ -367,8 +457,16 @@ class TesseractOCRService:
             if not line:
                 continue
             
+            # Skip gibberish
+            if self._is_gibberish(line):
+                continue
+            
             # Clean common OCR errors in addresses
             line = self._clean_address_ocr(line)
+            
+            # Validate again after cleaning
+            if self._is_gibberish(line):
+                continue
             
             # Check if line contains address-like keywords
             if any(keyword in line.lower() for keyword in [
@@ -376,13 +474,23 @@ class TesseractOCRService:
                 'level', 'floor', 'unit', '#', 'bldg', 'building',
                 'mall', 'plaza', 'center', 'centre', 'jalan', 'jln'
             ]):
-                address_lines.append(line)
+                if len(line) <= 150:  # Reasonable address length
+                    address_lines.append(line)
             
             # Check for numbered addresses (e.g., "123 Main St")
             elif re.search(r'\b\d+[-\s]+[A-Za-z]', line):
-                address_lines.append(line)
+                if len(line) <= 150:
+                    address_lines.append(line)
         
-        return ' '.join(address_lines) if address_lines else None
+        # Combine address lines but limit total length
+        full_address = ' '.join(address_lines) if address_lines else None
+        
+        # Final validation - address shouldn't be too long
+        if full_address and len(full_address) > 300:
+            # Keep only first 300 characters
+            full_address = full_address[:300]
+        
+        return full_address
     
     def _clean_address_ocr(self, text: str) -> str:
         """Clean OCR errors specific to addresses."""
@@ -595,6 +703,230 @@ class TesseractOCRService:
                 break
         
         return '\n'.join(location_lines)
+    
+    def extract_date_from_text(self, text: str) -> Optional[Dict[str, Any]]:
+        """
+        Extract transaction date from OCR text.
+        
+        Args:
+            text: Full OCR text from receipt
+            
+        Returns:
+            Dictionary with extracted date information or None if no valid date found
+        """
+        # Date patterns to match (in order of preference)
+        date_patterns = [
+            # DD/MM/YYYY or MM/DD/YYYY variants
+            (r'\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})\b', 'DMY_or_MDY'),
+            (r'\b(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})\b', 'YMD'),
+            
+            # DD MMM YYYY (e.g., 23 Nov 2025, 23 November 2025)
+            (r'\b(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{4})\b', 'DMY_text'),
+            
+            # MMM DD, YYYY (e.g., Nov 23, 2025)
+            (r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2}),?\s+(\d{4})\b', 'MDY_text'),
+            
+            # DD-MM-YY or MM-DD-YY (2-digit year)
+            (r'\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2})\b', 'DMY_or_MDY_short'),
+        ]
+        
+        # Month name to number mapping
+        month_map = {
+            'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+            'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
+        }
+        
+        # Clean text for better matching (fix common OCR errors)
+        cleaned_text = self._clean_date_ocr(text)
+        
+        all_candidates = []
+        
+        # Extract all potential dates
+        for pattern, format_type in date_patterns:
+            for match in re.finditer(pattern, cleaned_text, re.IGNORECASE):
+                try:
+                    raw_date_text = match.group(0)
+                    groups = match.groups()
+                    
+                    # Parse based on format type
+                    if format_type == 'DMY_or_MDY':
+                        # Try both DD/MM/YYYY and MM/DD/YYYY
+                        day_or_month1 = int(groups[0])
+                        day_or_month2 = int(groups[1])
+                        year = int(groups[2])
+                        
+                        # Try DD/MM/YYYY first (more common internationally)
+                        dates_to_try = [
+                            (day_or_month1, day_or_month2, year, 'DD/MM/YYYY'),
+                            (day_or_month2, day_or_month1, year, 'MM/DD/YYYY')
+                        ]
+                        
+                        for day, month, yr, fmt in dates_to_try:
+                            parsed_date = self._validate_and_create_date(day, month, yr, raw_date_text, fmt, match.start())
+                            if parsed_date:
+                                all_candidates.append(parsed_date)
+                                break  # Only use first valid interpretation
+                    
+                    elif format_type == 'YMD':
+                        year = int(groups[0])
+                        month = int(groups[1])
+                        day = int(groups[2])
+                        parsed_date = self._validate_and_create_date(day, month, year, raw_date_text, 'YYYY-MM-DD', match.start())
+                        if parsed_date:
+                            all_candidates.append(parsed_date)
+                    
+                    elif format_type == 'DMY_text':
+                        day = int(groups[0])
+                        month_str = groups[1].lower()[:3]
+                        month = month_map.get(month_str)
+                        year = int(groups[2])
+                        if month:
+                            parsed_date = self._validate_and_create_date(day, month, year, raw_date_text, 'DD MMM YYYY', match.start())
+                            if parsed_date:
+                                all_candidates.append(parsed_date)
+                    
+                    elif format_type == 'MDY_text':
+                        month_str = groups[0].lower()[:3]
+                        month = month_map.get(month_str)
+                        day = int(groups[1])
+                        year = int(groups[2])
+                        if month:
+                            parsed_date = self._validate_and_create_date(day, month, year, raw_date_text, 'MMM DD, YYYY', match.start())
+                            if parsed_date:
+                                all_candidates.append(parsed_date)
+                    
+                    elif format_type == 'DMY_or_MDY_short':
+                        # 2-digit year - convert to 4-digit
+                        day_or_month1 = int(groups[0])
+                        day_or_month2 = int(groups[1])
+                        year_short = int(groups[2])
+                        year = 2000 + year_short if year_short < 50 else 1900 + year_short
+                        
+                        # Try both interpretations
+                        dates_to_try = [
+                            (day_or_month1, day_or_month2, year, 'DD/MM/YY'),
+                            (day_or_month2, day_or_month1, year, 'MM/DD/YY')
+                        ]
+                        
+                        for day, month, yr, fmt in dates_to_try:
+                            parsed_date = self._validate_and_create_date(day, month, yr, raw_date_text, fmt, match.start())
+                            if parsed_date:
+                                all_candidates.append(parsed_date)
+                                break
+                
+                except (ValueError, IndexError):
+                    continue
+        
+        # Select best candidate
+        if not all_candidates:
+            return None
+        
+        # Sort by confidence and position (earlier in text = more likely to be transaction date)
+        all_candidates.sort(key=lambda x: (-x['confidence'], x['position']))
+        
+        return all_candidates[0] if all_candidates else None
+    
+    def _clean_date_ocr(self, text: str) -> str:
+        """
+        Clean common OCR errors in dates.
+        
+        Args:
+            text: Raw OCR text
+            
+        Returns:
+            Cleaned text
+        """
+        # Common OCR errors in dates
+        cleaned = text
+        
+        # Fix misread slashes (/ vs l vs 1)
+        # But be careful not to change legitimate 'l' in month names
+        cleaned = re.sub(r'(\d)\s*[l|]\s*(\d)', r'\1/\2', cleaned)
+        
+        # Fix O vs 0 in dates (only when surrounded by digits or date separators)
+        cleaned = re.sub(r'(?<=\d)O(?=\d)', '0', cleaned)
+        cleaned = re.sub(r'(?<=[/\-.])O(?=\d)', '0', cleaned)
+        cleaned = re.sub(r'(?<=\d)O(?=[/\-.])', '0', cleaned)
+        
+        return cleaned
+    
+    def _validate_and_create_date(
+        self,
+        day: int,
+        month: int,
+        year: int,
+        raw_text: str,
+        format_type: str,
+        position: int
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Validate date components and create date dictionary.
+        
+        Args:
+            day: Day component
+            month: Month component
+            year: Year component
+            raw_text: Original OCR text
+            format_type: Format type string for debugging
+            position: Position in text (earlier = higher priority)
+            
+        Returns:
+            Dictionary with date info or None if invalid
+        """
+        # Validate ranges
+        if not (1 <= month <= 12):
+            return None
+        if not (1 <= day <= 31):
+            return None
+        if not (1900 <= year <= 2100):
+            return None
+        
+        try:
+            # Try to create actual date (validates day/month combination)
+            date_obj = datetime(year, month, day)
+            
+            # Validate date is not in the future
+            now = datetime.now()
+            if date_obj > now + timedelta(days=1):  # Allow 1 day buffer for timezone differences
+                return None
+            
+            # Validate date is not too old (receipts older than 10 years are suspicious)
+            ten_years_ago = now - timedelta(days=10*365)
+            if date_obj < ten_years_ago:
+                # Still return it but with lower confidence
+                confidence = 0.5
+            else:
+                # Calculate confidence based on recency and position
+                # More recent dates are more likely
+                days_ago = (now - date_obj).days
+                
+                # Base confidence
+                confidence = 0.9
+                
+                # Reduce confidence for older dates
+                if days_ago > 365:
+                    confidence -= 0.1
+                if days_ago > 730:  # 2 years
+                    confidence -= 0.1
+                
+                # Position bonus (dates appearing earlier in receipt text are more likely transaction dates)
+                # First 200 characters = bonus
+                if position < 200:
+                    confidence = min(1.0, confidence + 0.1)
+            
+            # Return standardized format
+            return {
+                'value': date_obj.strftime('%Y-%m-%d'),  # ISO 8601 format
+                'content': raw_text,  # Original OCR text
+                'confidence': round(confidence, 2),
+                'format_detected': format_type,
+                'position': position
+            }
+            
+        except ValueError:
+            # Invalid date (e.g., Feb 30)
+            return None
+
     
     def _calculate_location_confidence(
         self,

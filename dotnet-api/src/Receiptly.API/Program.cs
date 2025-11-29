@@ -1,25 +1,8 @@
-using Receiptly.Core.Services;
-using Receiptly.Core.Interfaces;
-using Receiptly.Infrastructure.Services;
-using Receiptly.Infrastructure.Repositories;
-using Receiptly.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using Receiptly.API.Configuration;
 using Serilog;
-using Polly;
-using Polly.Extensions.Http;
 
 // Configure Serilog
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File(
-        path: "logs/receiptly-.log",
-        rollingInterval: RollingInterval.Day,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .CreateLogger();
+SerilogConfiguration.ConfigureLogger();
 
 try
 {
@@ -27,10 +10,29 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    // Configure Kestrel for mobile uploads (large files, longer processing time)
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.Limits.MaxRequestBodySize = 15 * 1024 * 1024; // 15MB (mobile images can be large)
+        options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // 5 minutes
+        options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
+    });
+
     // Add Serilog
     builder.Host.UseSerilog();
 
-    // Add services to the container.
+    // Configure CORS policies
+    builder.Services.AddCorsConfiguration(builder.Configuration);
+
+    // Configure form options for file uploads
+    builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+    {
+        options.MultipartBodyLengthLimit = 15 * 1024 * 1024; // 15MB
+        options.ValueLengthLimit = 15 * 1024 * 1024;
+        options.BufferBodyLengthLimit = 15 * 1024 * 1024;
+    });
+
+    // Configure Controllers with JSON options
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
         {
@@ -39,91 +41,32 @@ try
             options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
         });
 
-    // Add PostgreSQL DbContext
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    {
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        options.UseNpgsql(connectionString, npgsqlOptions =>
-        {
-            npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorCodesToAdd: null);
-        });
-        
-        if (builder.Environment.IsDevelopment())
-        {
-            options.EnableSensitiveDataLogging();
-            options.EnableDetailedErrors();
-        }
-    });
+    // Configure Database (with AWS Secrets Manager)
+    await builder.Services.AddDatabaseConfiguration(builder.Configuration, builder.Environment);
 
-    // Add S3 Storage Service
-    builder.Services.AddSingleton<S3StorageService>();
+    // Configure AWS Services (S3)
+    await builder.Services.AddAwsServices(builder.Configuration);
 
-    // Add File Validation Service
-    builder.Services.AddScoped<FileValidationService>();
+    // Configure OCR Service
+    await builder.Services.AddOcrService(builder.Configuration, builder.Environment);
 
-    // Add Repository
-    builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
+    // Add Application Services
+    builder.Services.AddApplicationServices();
 
-    // Add AutoMapper
-    builder.Services.AddAutoMapper(typeof(Program).Assembly);
-
-    // Add Python OCR Client with Polly retry policy
-    builder.Services.AddHttpClient<PythonOcrClient>()
-        .AddPolicyHandler(GetRetryPolicy());
-
-    // Add Receipt Processing Service
-    builder.Services.AddScoped<IReceiptProcessingService, ReceiptProcessingService>();
-
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    // Configure Swagger/OpenAPI
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
     var app = builder.Build();
 
-    // Apply migrations automatically in development
-    if (app.Environment.IsDevelopment())
-    {
-        using (var scope = app.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            try
-            {
-                Log.Information("Applying database migrations...");
-                dbContext.Database.Migrate();
-                Log.Information("Database migrations applied successfully");
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Could not apply database migrations. Database may not be available yet.");
-            }
-        }
-    }
+    // Apply database migrations (development only)
+    await app.ApplyDatabaseMigrations();
 
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+    // Configure middleware pipeline
+    app.ConfigureMiddleware();
 
-    // Only use HTTPS redirection in production with proper certificates
-    // app.UseHttpsRedirection();
-
-    // Add Serilog request logging
-    app.UseSerilogRequestLogging();
-
-    // Health check endpoint
-    app.MapGet("/health", () => Results.Ok(new
-    {
-        status = "healthy",
-        service = "receiptly-api",
-        timestamp = DateTime.UtcNow
-    }));
-
-    app.MapControllers();
+    // Map endpoints
+    app.MapEndpoints();
 
     app.Run();
 }
@@ -134,23 +77,4 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
-}
-
-// Polly retry policy for Python OCR client
-static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-{
-    return HttpPolicyExtensions
-        .HandleTransientHttpError() // Handles 5xx, 408, and network failures
-        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-        .WaitAndRetryAsync(
-            retryCount: 3,
-            sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-            onRetry: (outcome, timespan, retryCount, context) =>
-            {
-                Log.Warning(
-                    "Python OCR request failed. Retry {RetryCount}/3. Waiting {Delay}s before next attempt. Reason: {Reason}",
-                    retryCount,
-                    timespan.TotalSeconds,
-                    outcome.Exception?.Message ?? outcome.Result?.StatusCode.ToString() ?? "Unknown");
-            });
 }

@@ -1,0 +1,329 @@
+<div class="p-4 pb-24 space-y-6">
+  <!-- Header -->
+  <header class="flex items-center gap-3">
+    <div class="p-3 bg-secondary/10 rounded-xl text-secondary">
+      <span class="material-icons text-3xl">camera_alt</span>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold">Scan Receipt</h1>
+      <p class="text-base-content/60">Capture or upload your receipt</p>
+    </div>
+  </header>
+
+  <!-- Camera Actions (when no image captured) -->
+  @if (!capturedImage()) {
+  <div class="space-y-6">
+    <!-- Live Camera View -->
+    @if (showCamera()) {
+    <div class="relative rounded-xl overflow-hidden shadow-lg bg-black aspect-[3/4] max-h-[70vh]">
+      <video #videoElement autoplay playsinline muted class="w-full h-full object-cover"></video>
+
+      <app-camera-overlay [isScanning]="isValidating()" [instructionText]="validationInstruction()">
+
+        <button
+          class="btn btn-circle btn-lg btn-white border-4 border-primary/50 hover:border-primary hover:scale-105 transition-all shadow-lg"
+          (click)="capturePhoto()" [disabled]="isValidating()">
+          <div class="w-16 h-16 rounded-full bg-white border-4 border-transparent"></div>
+        </button>
+      </app-camera-overlay>
+
+      <button
+        class="absolute top-4 right-4 btn btn-circle btn-sm btn-ghost text-white bg-black/20 backdrop-blur-sm z-20"
+        (click)="stopCamera()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    } @else {
+    <!-- Initial State -->
+
+    <!-- OpenCV Loading Indicator -->
+    @if (opencvLoading()) {
+    <div class="alert">
+      <span class="loading loading-spinner text-primary"></span>
+      <span>Loading image processing...</span>
+    </div>
+    }
+
+    <!-- Processing Options -->
+    @if (opencvLoaded()) {
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title flex items-center gap-2 text-base">
+          <span class="material-icons">tune</span>
+          Image Processing
+        </h2>
+
+        <div class="form-control">
+          <label class="label cursor-pointer">
+            <span class="label-text flex flex-col">
+              <span class="font-medium">Auto-Crop Receipt</span>
+              <span class="text-xs text-base-content/60">Automatically detect and crop receipt boundaries</span>
+            </span>
+            <input type="checkbox" class="toggle toggle-primary" [checked]="autoCrop()"
+              (change)="autoCrop.set($any($event.target).checked)" />
+          </label>
+        </div>
+      </div>
+    </div>
+    }
+
+    <div class="flex flex-col gap-4">
+      <button class="btn btn-primary btn-lg w-full shadow-lg gap-2" (click)="startCamera()">
+        <span class="material-icons">photo_camera</span>
+        Start Camera
+      </button>
+
+      <button class="btn btn-outline btn-secondary w-full gap-2" (click)="selectFromGallery()">
+        <span class="material-icons">photo_library</span>
+        Upload from Gallery
+      </button>
+
+      <button class="btn btn-ghost btn-sm w-full gap-2 text-base-content/60" (click)="takePhotoNative()">
+        <span class="material-icons text-sm">camera</span>
+        Use Native Camera
+      </button>
+    </div>
+
+    <div class="alert bg-base-200 border-none">
+      <span class="material-icons text-info">info</span>
+      <span class="text-sm">Align receipt within the frame for best results</span>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Image Preview & Processing -->
+  @if (capturedImage()) {
+  <div class="space-y-6">
+    <!-- Image Preview -->
+    <div
+      class="relative rounded-xl overflow-hidden shadow-lg bg-base-300 min-h-[200px] flex items-center justify-center">
+      <img [src]="capturedImage()" alt="Captured receipt" class="w-full h-auto max-h-[60vh] object-contain" />
+      @if (!isUploading() && !processedReceipt()) {
+      <button class="btn btn-circle btn-error absolute top-2 right-2 shadow-lg" (click)="clearImage()">
+        <span class="material-icons text-white">close</span>
+      </button>
+      }
+    </div>
+
+    <!-- Upload Progress -->
+    @if (isProcessing()) {
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body items-center text-center">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+        <p class="font-medium mt-2">Processing image with OpenCV...</p>
+      </div>
+    </div>
+    }
+
+    @if (isUploading()) {
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-medium">Processing receipt...</span>
+          <span class="text-primary">{{ uploadProgress() }}%</span>
+        </div>
+        <progress class="progress progress-primary w-full" [value]="uploadProgress()" max="100"></progress>
+      </div>
+    </div>
+    }
+
+    <!-- Processed Receipt Details -->
+    @if (processedReceipt(); as receipt) {
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body p-0">
+        <div class="p-6 border-b border-base-200 flex justify-between items-center">
+          <h2 class="card-title flex items-center gap-2">
+            <span class="material-icons text-primary">receipt</span>
+            Receipt Details
+          </h2>
+          @if (!isEditing()) {
+          <button class="btn btn-ghost btn-sm text-primary" (click)="startEditing()">
+            <span class="material-icons">edit</span>
+            Edit
+          </button>
+          }
+        </div>
+
+        <div class="p-6 space-y-6">
+          @if (!isEditing()) {
+          <!-- Store Info -->
+          <div>
+            <h3 class="text-xl font-bold">{{ receipt.storeName }}</h3>
+            <p class="text-base-content/60">{{ receipt.storeAddress }}</p>
+            @if (receipt.storePhoneNumber) {
+            <p class="flex items-center gap-2 mt-1 text-sm text-base-content/60">
+              <span class="material-icons text-sm">phone</span>
+              {{ receipt.storePhoneNumber }}
+            </p>
+            }
+          </div>
+
+          <!-- Purchase Details -->
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="block text-base-content/60">Date</span>
+              <span class="font-medium">{{ receipt.purchaseDate | date:'mediumDate' }}</span>
+            </div>
+            @if (receipt.transactionId) {
+            <div>
+              <span class="block text-base-content/60">Transaction</span>
+              <span class="font-medium truncate">{{ receipt.transactionId }}</span>
+            </div>
+            }
+          </div>
+
+          <!-- Items List -->
+          @if (receipt.items && receipt.items.length > 0) {
+          <div>
+            <h4 class="font-medium mb-2 text-sm text-base-content/60 uppercase tracking-wider">Items ({{
+              receipt.items.length }})</h4>
+            <div class="space-y-2">
+              @for (item of receipt.items; track item.id) {
+              <div class="flex justify-between items-start py-2 border-b border-base-200 last:border-0">
+                <div class="flex-1 pr-4">
+                  <span class="block font-medium">{{ item.name }}</span>
+                  <span class="text-xs text-base-content/60">x{{ item.quantity }}</span>
+                </div>
+                <span class="font-mono">{{ item.price | myr }}</span>
+              </div>
+              }
+            </div>
+          </div>
+          }
+
+          <!-- Totals -->
+          <div class="bg-base-200/50 rounded-lg p-4 space-y-2">
+            @if (receipt.subtotalAmount) {
+            <div class="flex justify-between text-sm">
+              <span class="text-base-content/60">Subtotal</span>
+              <span class="font-mono">{{ receipt.subtotalAmount | myr }}</span>
+            </div>
+            }
+            @if (receipt.taxAmount) {
+            <div class="flex justify-between text-sm">
+              <span class="text-base-content/60">Tax</span>
+              <span class="font-mono">{{ receipt.taxAmount | myr }}</span>
+            </div>
+            }
+            @if (receipt.tipAmount) {
+            <div class="flex justify-between text-sm">
+              <span class="text-base-content/60">Tip</span>
+              <span class="font-mono">{{ receipt.tipAmount | myr }}</span>
+            </div>
+            }
+            <div class="flex justify-between font-bold text-lg pt-2 border-t border-base-300">
+              <span>Total</span>
+              <span class="font-mono text-primary">{{ receipt.totalAmount | myr }}</span>
+            </div>
+          </div>
+
+          <!-- Validation Status -->
+          <div class="flex items-center justify-between p-3 rounded-lg"
+            [class.bg-success-content]="receipt.isValidReceipt" [class.text-success]="receipt.isValidReceipt"
+            [class.bg-warning-content]="!receipt.isValidReceipt" [class.text-warning]="!receipt.isValidReceipt">
+            <div class="flex items-center gap-2">
+              <span class="material-icons">{{ receipt.isValidReceipt ? 'check_circle' : 'warning' }}</span>
+              <span class="font-medium">{{ receipt.isValidReceipt ? 'Validated' : 'Needs Review' }}</span>
+            </div>
+            @if (receipt.ocrConfidence) {
+            <span class="text-xs opacity-80">Confidence: {{ (receipt.ocrConfidence * 100).toFixed(0) }}%</span>
+            }
+          </div>
+          } @else {
+          <!-- Edit Form -->
+          <div class="space-y-4">
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text font-medium">Store Name</span>
+              </label>
+              <input type="text" [(ngModel)]="editedReceipt.storeName" class="input input-bordered w-full" />
+            </div>
+
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text font-medium">Store Address</span>
+              </label>
+              <textarea [(ngModel)]="editedReceipt.storeAddress" class="textarea textarea-bordered h-24"></textarea>
+            </div>
+
+            <div class="form-control w-full">
+              <label class="label">
+                <span class="label-text font-medium">Total Amount</span>
+              </label>
+              <input type="number" [(ngModel)]="editedReceipt.totalAmount" class="input input-bordered w-full"
+                step="0.01" />
+            </div>
+
+            <div class="flex gap-3 pt-4">
+              <button class="btn btn-outline flex-1" (click)="cancelEditing()">Cancel</button>
+              <button class="btn btn-primary flex-1" (click)="saveEditing()">Save Changes</button>
+            </div>
+          </div>
+          }
+        </div>
+
+        <div class="p-6 pt-0">
+          <button class="btn btn-primary w-full gap-2" (click)="clearImage()">
+            <span class="material-icons">add</span>
+            Scan Another
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Validation Feedback Modal -->
+  @if (validationResult() && !validationResult()?.isValid) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="card bg-base-100 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div class="card-body">
+        <h3 class="card-title text-warning flex items-center gap-2">
+          <span class="material-icons">warning</span>
+          Receipt Quality Check
+        </h3>
+
+        <p class="py-2">We had trouble reading some details. For best results:</p>
+
+        <ul class="space-y-2 my-4">
+          @for (suggestion of validationResult()?.suggestions; track suggestion) {
+          <li class="flex items-start gap-2 text-sm">
+            <span class="material-icons text-error text-sm mt-0.5">close</span>
+            <span>{{ suggestion }}</span>
+          </li>
+          }
+        </ul>
+
+        <div class="alert bg-base-200 text-xs">
+          <span class="material-icons text-info text-sm">info</span>
+          <span>Confidence Score: {{ (validationResult()?.confidence || 0).toFixed(0) }}%</span>
+        </div>
+
+        <div class="card-actions justify-end mt-6">
+          <button class="btn btn-ghost" (click)="proceedAnyway()">
+            Proceed Anyway
+          </button>
+          <button class="btn btn-primary" (click)="retakePhoto()">
+            <span class="material-icons">camera_alt</span>
+            Retake Photo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Toast Notification -->
+  @if (toastMessage()) {
+  <div class="toast toast-bottom toast-center z-50">
+    <div class="alert" [class.alert-success]="toastType() === 'success'" [class.alert-error]="toastType() === 'error'">
+      <span class="material-icons text-white">
+        {{ toastType() === 'success' ? 'check_circle' : 'error' }}
+      </span>
+      <span class="text-white">{{ toastMessage() }}</span>
+    </div>
+  </div>
+  }
+</div>

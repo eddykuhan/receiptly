@@ -22,6 +22,25 @@ namespace Receiptly.Infrastructure.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Receiptly.Domain.Models.CanonicalCache", b =>
+                {
+                    b.Property<string>("RawName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("CanonicalName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("RawName");
+
+                    b.ToTable("canonical_cache", (string)null);
+                });
+
             modelBuilder.Entity("Receiptly.Domain.Models.Item", b =>
                 {
                     b.Property<Guid>("Id")
@@ -31,6 +50,9 @@ namespace Receiptly.Infrastructure.Data.Migrations
                     b.Property<string>("Barcode")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CanonicalName")
+                        .HasColumnType("text");
 
                     b.Property<string>("Category")
                         .HasMaxLength(100)
@@ -98,6 +120,10 @@ namespace Receiptly.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("ImageHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(1000)
@@ -211,6 +237,8 @@ namespace Receiptly.Infrastructure.Data.Migrations
                     b.HasIndex("StoreName");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "ImageHash");
 
                     b.ToTable("receipts", (string)null);
                 });

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+using Receiptly.Infrastructure.Configuration;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,10 +10,10 @@ public class PythonOcrClient
     private readonly HttpClient _httpClient;
     private readonly string _ocrServiceUrl;
 
-    public PythonOcrClient(HttpClient httpClient, IConfiguration configuration)
+    public PythonOcrClient(HttpClient httpClient, OcrServiceSecretsConfig ocrConfig)
     {
         _httpClient = httpClient;
-        _ocrServiceUrl = configuration["PythonOcr:ServiceUrl"] ?? "http://localhost:8000";
+        _ocrServiceUrl = ocrConfig.BaseUrl;
     }
 
     /// <summary>
@@ -27,7 +27,12 @@ public class PythonOcrClient
             $"{_ocrServiceUrl}/api/v1/ocr/analyze",
             request);
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"OCR service returned {(int)response.StatusCode} ({response.StatusCode}). Error: {errorContent}");
+        }
 
         var result = await response.Content.ReadFromJsonAsync<OcrApiResponse>();
         
@@ -104,4 +109,10 @@ public class OcrField
     
     [JsonPropertyName("value_array")]
     public List<OcrField>? ValueArray { get; set; }
+    
+    [JsonPropertyName("source")]
+    public string? Source { get; set; }
+    
+    [JsonPropertyName("requires_manual_review")]
+    public bool? RequiresManualReview { get; set; }
 }

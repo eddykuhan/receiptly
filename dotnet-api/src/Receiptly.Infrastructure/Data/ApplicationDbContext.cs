@@ -12,10 +12,20 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<Item> Items { get; set; }
+    public DbSet<CanonicalCache> CanonicalCache { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Configure CanonicalCache entity
+        modelBuilder.Entity<CanonicalCache>(entity =>
+        {
+            entity.ToTable("canonical_cache");
+            entity.HasKey(e => e.RawName);
+            entity.Property(e => e.RawName).HasMaxLength(300);
+            entity.Property(e => e.CanonicalName).HasMaxLength(300);
+        });
 
         // Configure Receipt entity
         modelBuilder.Entity<Receipt>(entity =>
@@ -82,6 +92,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.OriginalFileName)
                 .HasMaxLength(255);
             
+            entity.Property(e => e.ImageHash)
+                .HasMaxLength(64); // SHA256 produces 64-character hex string
+            
             entity.Property(e => e.OcrProvider)
                 .HasMaxLength(50);
             
@@ -106,6 +119,7 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.StoreName);
+            entity.HasIndex(e => new { e.UserId, e.ImageHash }); // Composite index for duplicate detection
         });
 
         // Configure Item entity

@@ -41,6 +41,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
       id     = rule.value.id
       status = rule.value.enabled ? "Enabled" : "Disabled"
 
+      filter {
+        prefix = lookup(rule.value, "prefix", "")
+      }
+
       expiration {
         days = rule.value.expiration_days
       }

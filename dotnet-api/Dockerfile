@@ -26,8 +26,7 @@ RUN dotnet publish "Receiptly.API.csproj" -c Release -o /app/publish /p:UseAppHo
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 5000
 
 COPY --from=publish /app/publish .
 

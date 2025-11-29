@@ -15,7 +15,7 @@ async def test_integration():
     print("=" * 80)
     
     # Test receipt URL
-    test_url = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjQserXEkLiX1wBAbE7SYoeX6XXQRS2Bn-9ovr4c8AOsRK35tynCBGuZnEpMBMBxKZweIMfaoujfA-C6_g7rRu01zJmhsyhhHeq5ZOPzrtLeNILHPicHBP2avhR11EQhaclLJH1V5MV6ZcvsVdH440NqbecOjaZJNhc0zcz34a7KbsqDP0GIGRTRPN8bQ/s400/PSX_20221215_235707.jpg"
+    test_url = "https://receiptly-staging-receipts.s3.ap-southeast-1.amazonaws.com/users/default-user/receipts/2025/11/16/2674f091-e50b-40e5-adce-e87f21256dac/receipt_1763255767554.jpg?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA5ZJTSBRRPR56Z6XY%2F20251116%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20251116T012320Z&X-Amz-SignedHeaders=host&X-Amz-Signature=00d4fefec53fe4543399f09baa1b72f7d8ac18a8b651c2ecb617e021468338b0"
     
     print(f"\n📥 Test Image: {test_url[:80]}...")
     

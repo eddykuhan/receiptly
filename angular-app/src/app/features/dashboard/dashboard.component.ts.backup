@@ -1,0 +1,233 @@
+import { Component, signal, computed, inject, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { ReceiptService } from '../../core/services/receipt.service';
+import { Receipt } from '../../core/models/receipt.model';
+
+// Register Chart.js components
+Chart.register(...registerables);
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatIconModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    BaseChartDirective
+  ],
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.scss'
+})
+export class DashboardComponent implements OnInit {
+  private receiptService = inject(ReceiptService);
+
+  receipts = signal<Receipt[]>([]);
+  isLoading = signal(true);
+  selectedPeriod = signal<'week' | 'month' | '3months' | 'year'>('month');
+
+  totalSpent = signal(0);
+  receiptCount = signal(0);
+  averagePerReceipt = signal(0);
+  topStore = signal('—');
+
+  spendingOverTimeChart = signal<ChartData<'line'> | null>(null);
+  spendingByStoreChart = signal<ChartData<'pie'> | null>(null);
+  monthlyComparisonChart = signal<ChartData<'bar'> | null>(null);
+
+  lineChartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (context) => `$${(context.parsed.y ?? 0).toFixed(2)}`
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => `$${value}`
+        }
+      }
+    }
+  };
+
+  pieChartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: {
+        callbacks: {
+          label: (context) => `${context.label}: $${context.parsed.toFixed(2)}`
+        }
+      }
+    }
+  };
+
+  barChartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: (value) => `$${value}`
+        }
+      }
+    }
+  };
+
+  ngOnInit() {
+    this.loadReceipts();
+  }
+
+  loadReceipts() {
+    this.isLoading.set(true);
+    this.receiptService.receipts$.subscribe(receipts => {
+      this.receipts.set(receipts);
+      this.calculateStatistics(receipts);
+      this.generateCharts(receipts);
+      this.isLoading.set(false);
+    });
+  }
+
+  onPeriodChange(period: 'week' | 'month' | '3months' | 'year') {
+    this.selectedPeriod.set(period);
+    const filteredReceipts = this.filterReceiptsByPeriod(this.receipts(), period);
+    this.calculateStatistics(filteredReceipts);
+    this.generateCharts(filteredReceipts);
+  }
+
+  private filterReceiptsByPeriod(receipts: Receipt[], period: string): Receipt[] {
+    const now = new Date();
+    const cutoffDate = new Date();
+    switch (period) {
+      case 'week': cutoffDate.setDate(now.getDate() - 7); break;
+      case 'month': cutoffDate.setMonth(now.getMonth() - 1); break;
+      case '3months': cutoffDate.setMonth(now.getMonth() - 3); break;
+      case 'year': cutoffDate.setFullYear(now.getFullYear() - 1); break;
+    }
+    return receipts.filter(r => new Date(r.purchaseDate) >= cutoffDate);
+  }
+
+  private calculateStatistics(receipts: Receipt[]) {
+    const total = receipts.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+    const count = receipts.length;
+    this.totalSpent.set(total);
+    this.receiptCount.set(count);
+    this.averagePerReceipt.set(count > 0 ? total / count : 0);
+
+    const storeSpending = new Map<string, number>();
+    receipts.forEach(r => {
+      const current = storeSpending.get(r.storeName) || 0;
+      storeSpending.set(r.storeName, current + (r.totalAmount || 0));
+    });
+
+    let maxSpending = 0;
+    let topStoreName = '—';
+    storeSpending.forEach((spending, store) => {
+      if (spending > maxSpending) {
+        maxSpending = spending;
+        topStoreName = store;
+      }
+    });
+    this.topStore.set(topStoreName);
+  }
+
+  private generateCharts(receipts: Receipt[]) {
+    this.generateSpendingOverTimeChart(receipts);
+    this.generateSpendingByStoreChart(receipts);
+    this.generateMonthlyComparisonChart(receipts);
+  }
+
+  private generateSpendingOverTimeChart(receipts: Receipt[]) {
+    const dailySpending = new Map<string, number>();
+    receipts.forEach(r => {
+      const date = new Date(r.purchaseDate).toLocaleDateString();
+      const current = dailySpending.get(date) || 0;
+      dailySpending.set(date, current + (r.totalAmount || 0));
+    });
+
+    const sortedDates = Array.from(dailySpending.keys()).sort(
+      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+    );
+
+    this.spendingOverTimeChart.set({
+      labels: sortedDates,
+      datasets: [{
+        data: sortedDates.map(date => dailySpending.get(date) || 0),
+        label: 'Daily Spending',
+        borderColor: '#2196f3',
+        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    });
+  }
+
+  private generateSpendingByStoreChart(receipts: Receipt[]) {
+    const storeSpending = new Map<string, number>();
+    receipts.forEach(r => {
+      const current = storeSpending.get(r.storeName) || 0;
+      storeSpending.set(r.storeName, current + (r.totalAmount || 0));
+    });
+
+    const sortedStores = Array.from(storeSpending.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const colors = ['#2196f3', '#4caf50', '#ff9800', '#f44336', '#9c27b0'];
+
+    this.spendingByStoreChart.set({
+      labels: sortedStores.map(([store]) => store),
+      datasets: [{
+        data: sortedStores.map(([, amount]) => amount),
+        backgroundColor: colors,
+        borderWidth: 0
+      }]
+    });
+  }
+
+  private generateMonthlyComparisonChart(receipts: Receipt[]) {
+    const monthlySpending = new Map<string, number>();
+    receipts.forEach(r => {
+      const date = new Date(r.purchaseDate);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const current = monthlySpending.get(monthKey) || 0;
+      monthlySpending.set(monthKey, current + (r.totalAmount || 0));
+    });
+
+    const sortedMonths = Array.from(monthlySpending.keys()).sort();
+    const last6Months = sortedMonths.slice(-6);
+
+    this.monthlyComparisonChart.set({
+      labels: last6Months.map(month => {
+        const [year, monthNum] = month.split('-');
+        const date = new Date(parseInt(year), parseInt(monthNum) - 1);
+        return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      }),
+      datasets: [{
+        data: last6Months.map(month => monthlySpending.get(month) || 0),
+        label: 'Monthly Spending',
+        backgroundColor: '#2196f3',
+        borderRadius: 4
+      }]
+    });
+  }
+}

@@ -33,6 +33,7 @@ public class Receipt
     public string? ImageUrl { get; set; }
     public string? S3Key { get; set; } // AWS S3 object key
     public string? OriginalFileName { get; set; }
+    public string? ImageHash { get; set; } // SHA256 hash for duplicate detection
     
     // Location data
     public double? Latitude { get; set; }
