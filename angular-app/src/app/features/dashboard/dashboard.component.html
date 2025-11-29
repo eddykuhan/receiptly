@@ -1,6 +1,6 @@
-<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200">
-  <!-- Gradient Header with Glass Effect -->
-  <header class="bg-gradient-to-r from-primary to-secondary p-6 shadow-lg relative overflow-hidden">
+<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pb-24 lg:pb-4">
+  <!-- Hero Section with Search -->
+  <div class="bg-gradient-to-r from-primary to-secondary p-6 pb-12 shadow-lg relative overflow-hidden">
     <!-- Animated background pattern -->
     <div class="absolute inset-0 opacity-10">
       <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
@@ -9,140 +9,169 @@
       </div>
     </div>
 
-    <div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div class="flex items-center gap-4">
-        <div class="p-4 bg-white/20 backdrop-blur-sm rounded-2xl shadow-xl">
-          <span class="material-icons text-4xl text-white">dashboard</span>
-        </div>
-        <div>
-          <h1 class="text-3xl font-bold text-white mb-1">Dashboard</h1>
-          <p class="text-white/90 text-sm">Your spending overview</p>
-        </div>
-      </div>
+    <div class="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+      <h1 class="text-3xl md:text-4xl font-bold text-white">Find the Best Deals Near You</h1>
+      <p class="text-white/90 text-lg">Compare prices from thousands of crowdsourced receipts</p>
 
-      <!-- Period Selector -->
-      <select class="select select-bordered bg-white/20 backdrop-blur-sm text-white border-white/30 w-full md:w-auto"
-        [ngModel]="selectedPeriod()" (ngModelChange)="onPeriodChange($event)">
-        @for (period of periods; track period.value) {
-        <option [value]="period.value" class="text-base-content">{{ period.label }}</option>
-        }
-      </select>
-    </div>
-  </header>
-
-  <div class="p-4 space-y-6">
-
-    @if (isLoading()) {
-    <div class="flex flex-col items-center justify-center py-20 space-y-4">
-      <span class="loading loading-spinner loading-lg text-primary"></span>
-      <p class="text-base-content/60">Loading dashboard...</p>
-    </div>
-    } @else {
-    <!-- Summary Cards -->
-    @if (receiptCount() > 0) {
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-      <!-- Total Spent -->
-      <div class="stats shadow bg-base-100">
-        <div class="stat p-3 md:p-4">
-          <div class="stat-figure text-primary hidden md:block">
-            <span class="material-icons text-3xl">attach_money</span>
-          </div>
-          <div class="stat-title text-xs md:text-sm">Total Spent</div>
-          <div class="stat-value text-primary text-lg md:text-2xl">{{ totalSpent() | myr }}</div>
-          <div class="stat-desc text-xs hidden md:block">For selected period</div>
-        </div>
-      </div>
-
-      <!-- Receipts -->
-      <div class="stats shadow bg-base-100">
-        <div class="stat p-3 md:p-4">
-          <div class="stat-figure text-secondary hidden md:block">
-            <span class="material-icons text-3xl">receipt</span>
-          </div>
-          <div class="stat-title text-xs md:text-sm">Receipts</div>
-          <div class="stat-value text-secondary text-lg md:text-2xl">{{ receiptCount() }}</div>
-          <div class="stat-desc text-xs hidden md:block">Total scanned</div>
-        </div>
-      </div>
-
-      <!-- Average -->
-      <div class="stats shadow bg-base-100">
-        <div class="stat p-3 md:p-4">
-          <div class="stat-figure text-accent hidden md:block">
-            <span class="material-icons text-3xl">show_chart</span>
-          </div>
-          <div class="stat-title text-xs md:text-sm">Average</div>
-          <div class="stat-value text-accent text-lg md:text-2xl">{{ averagePerReceipt() | myr }}</div>
-          <div class="stat-desc text-xs hidden md:block">Per receipt</div>
-        </div>
-      </div>
-
-      <!-- Top Store -->
-      <div class="stats shadow bg-base-100">
-        <div class="stat p-3 md:p-4">
-          <div class="stat-figure text-info hidden md:block">
-            <span class="material-icons text-3xl">store</span>
-          </div>
-          <div class="stat-title text-xs md:text-sm">Top Store</div>
-          <div class="stat-value text-info text-lg md:text-xl truncate" [title]="topStore()">{{ topStore() }}</div>
-          <div class="stat-desc text-xs hidden md:block">Most frequent</div>
+      <!-- Search Bar -->
+      <div class="relative max-w-2xl mx-auto mt-8">
+        <div class="relative">
+          <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-base-content/50">search</span>
+          <input type="text" placeholder="Search for products (e.g., 'Milo', 'Milk', 'Rice')..."
+            class="input input-lg w-full pl-12 pr-32 shadow-xl bg-white/95 backdrop-blur text-base-content border-0 focus:ring-2 ring-white/50"
+            (keyup.enter)="onSearch($any($event.target).value)" />
+          <button class="btn btn-primary absolute right-2 top-2 bottom-2 shadow-md">
+            Search
+          </button>
         </div>
       </div>
     </div>
-    }
-
-    <!-- Charts (always visible) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Spending Over Time Chart -->
-      <div class="card bg-base-100 shadow-xl lg:col-span-2">
-        <div class="card-body p-4 md:p-8">
-          <h2 class="card-title flex items-center gap-2 text-base md:text-xl">
-            <span class="material-icons text-primary">timeline</span>
-            Spending Over Time
-          </h2>
-          <div class="h-[250px] md:h-[300px] w-full relative">
-            <canvas #spendingChart></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Spending by Store Chart -->
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body p-4 md:p-8">
-          <h2 class="card-title flex items-center gap-2 text-base md:text-xl">
-            <span class="material-icons text-secondary">pie_chart</span>
-            Top 5 Stores
-          </h2>
-          <div class="h-[250px] md:h-[300px] w-full relative">
-            <canvas #storeChart></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Monthly Comparison Chart (Hidden on mobile) -->
-      <div class="card bg-base-100 shadow-xl hidden lg:block">
-        <div class="card-body p-4 md:p-8">
-          <h2 class="card-title flex items-center gap-2 text-base md:text-xl">
-            <span class="material-icons text-accent">bar_chart</span>
-            Monthly Comparison
-          </h2>
-          <div class="h-[250px] md:h-[300px] w-full relative">
-            <canvas #monthlyChart></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    @if (receiptCount() === 0) {
-    <div class="hero bg-base-200 rounded-box p-8 mt-8">
-      <div class="hero-content text-center">
-        <div class="max-w-md">
-          <span class="material-icons text-6xl text-base-content/20 mb-4">receipt_long</span>
-          <h1 class="text-2xl font-bold">No receipts yet</h1>
-          <p class="py-6">Start scanning your receipts to see your spending insights here.</p>
-        </div>
-      </div>
-    </div>
-    }
-    }
   </div>
+
+  <!-- Main Content -->
+  <div class="max-w-6xl mx-auto p-4 -mt-8 relative z-20 space-y-8">
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <button class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
+        (click)="navigateToMap()">
+        <div class="card-body p-4 items-center text-center">
+          <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+            <span class="material-icons text-primary text-2xl">map</span>
+          </div>
+          <h3 class="font-bold text-sm">Explore Map</h3>
+        </div>
+      </button>
+
+      <button class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
+        (click)="navigateToScan()">
+        <div class="card-body p-4 items-center text-center">
+          <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-2">
+            <span class="material-icons text-secondary text-2xl">photo_camera</span>
+          </div>
+          <h3 class="font-bold text-sm">Scan Receipt</h3>
+        </div>
+      </button>
+
+      <button class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
+        (click)="navigateToRewards()">
+        <div class="card-body p-4 items-center text-center">
+          <div class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-2">
+            <span class="material-icons text-accent text-2xl">card_giftcard</span>
+          </div>
+          <h3 class="font-bold text-sm">Rewards</h3>
+        </div>
+      </button>
+
+      <button class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
+        (click)="navigateToProfile()">
+        <div class="card-body p-4 items-center text-center">
+          <div class="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center mb-2">
+            <span class="material-icons text-info text-2xl">account_circle</span>
+          </div>
+          <h3 class="font-bold text-sm">My Profile</h3>
+        </div>
+      </button>
+    </div>
+
+    <!-- Hot Deals Carousel -->
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <span class="material-icons text-error">local_fire_department</span>
+          Hot Deals Nearby
+        </h2>
+        <button class="btn btn-ghost btn-sm text-primary" (click)="navigateToMap()">View All</button>
+      </div>
+
+      @if (dealsLoading()) {
+      <div class="flex items-center justify-center p-8">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+      } @else if (deals().length > 0) {
+      <div class="carousel carousel-center w-full p-4 space-x-4 bg-base-100 rounded-box shadow-sm">
+        @for (deal of deals(); track deal.id) {
+        <div class="carousel-item">
+          <div class="card w-64 bg-base-200 shadow-md hover:shadow-xl transition-shadow">
+            <figure class="px-4 pt-4">
+              <img [src]="deal.imageUrl" [alt]="deal.productName" class="w-full h-32 object-cover rounded-xl bg-white"
+                (error)="$any($event.target).src='https://via.placeholder.com/400x300?text=Product'" />
+            </figure>
+            <div class="card-body p-4">
+              <h3 class="card-title text-base truncate">{{ deal.productName }}</h3>
+              <div class="flex items-end gap-2 mb-2">
+                <span class="text-xl font-bold text-primary">{{ deal.price | myr }}</span>
+                @if (deal.originalPrice) {
+                <span class="text-sm line-through opacity-50">{{ deal.originalPrice | myr }}</span>
+                }
+              </div>
+              @if (deal.originalPrice) {
+              <div class="badge badge-success badge-sm">{{ getDiscountPercentage(deal) }}% OFF</div>
+              }
+              <div class="flex items-center gap-1 text-xs text-base-content/60 mt-2">
+                <span class="material-icons text-sm">store</span>
+                <span class="truncate">{{ deal.storeName }}</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs text-base-content/60">
+                <span class="material-icons text-sm">location_on</span>
+                <span>{{ deal.distance }} km away</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="card bg-base-100 shadow-sm">
+        <div class="card-body text-center py-8">
+          <span class="material-icons text-4xl text-base-content/20 mb-2">local_offer</span>
+          <p class="text-base-content/60">No deals available at the moment</p>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Recent Community Activity -->
+    <div class="space-y-4">
+      <h2 class="text-xl font-bold flex items-center gap-2">
+        <span class="material-icons text-info">public</span>
+        Community Activity
+      </h2>
+
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body p-0">
+          <ul class="menu w-full p-0">
+            <li class="border-b border-base-200 last:border-0">
+              <a class="flex gap-4 py-4">
+                <div class="avatar placeholder">
+                  <div class="bg-neutral text-neutral-content rounded-full w-10">
+                    <span>JD</span>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <p class="font-medium">John D. uploaded a receipt</p>
+                  <p class="text-xs text-base-content/60">Found cheap Milo at Lotus's</p>
+                </div>
+                <span class="text-xs text-base-content/50">2m ago</span>
+              </a>
+            </li>
+            <li class="border-b border-base-200 last:border-0">
+              <a class="flex gap-4 py-4">
+                <div class="avatar placeholder">
+                  <div class="bg-primary text-primary-content rounded-full w-10">
+                    <span>SA</span>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <p class="font-medium">Sarah A. earned 50 points</p>
+                  <p class="text-xs text-base-content/60">Verified price for Farm Fresh Milk</p>
+                </div>
+                <span class="text-xs text-base-content/50">15m ago</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

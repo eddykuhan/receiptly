@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import * as L from 'leaflet';
 import { firstValueFrom } from 'rxjs';
 import { PriceMapService, StoreWithPrice } from './price-map.service';
@@ -34,12 +35,24 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         return results.length > 0 ? results[0].price : 0;
     });
 
-    constructor(private priceMapService: PriceMapService) { }
+    constructor(
+        private priceMapService: PriceMapService,
+        private route: ActivatedRoute
+    ) { }
 
     ngOnInit() {
         this.initMap();
         this.getUserLocation();
         this.loadProductSuggestions();
+
+        // Check for search query params
+        this.route.queryParams.subscribe(params => {
+            if (params['q']) {
+                this.searchQuery.set(params['q']);
+                // Small delay to ensure map is ready
+                setTimeout(() => this.performSearch(), 500);
+            }
+        });
     }
 
     ngOnDestroy() {

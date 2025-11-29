@@ -1,11 +1,13 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CameraService } from '../../core/services/camera.service';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { OpenCVService } from '../../core/services/opencv.service';
+import { ReceiptValidatorService, ValidationResult } from '../../core/services/receipt-validator.service';
 import { Receipt } from '../../core/models/receipt.model';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
+import { CameraOverlayComponent } from './components/camera-overlay.component';
 
 @Component({
   selector: 'app-camera',
@@ -13,7 +15,8 @@ import { MyrPipe } from '../../core/pipes/myr.pipe';
   imports: [
     CommonModule,
     MyrPipe,
-    FormsModule
+    FormsModule,
+    CameraOverlayComponent
   ],
   templateUrl: './camera.component.html',
   styleUrl: './camera.component.scss'
@@ -22,6 +25,7 @@ export class CameraComponent {
   private cameraService = inject(CameraService);
   private receiptService = inject(ReceiptService);
   private opencvService = inject(OpenCVService);
+  private validatorService = inject(ReceiptValidatorService);
 
   // State signals
   capturedImage = signal<string | null>(null);
@@ -32,11 +36,21 @@ export class CameraComponent {
   opencvLoaded = signal(false);
   opencvLoading = signal(false);
 
+  // Camera State
+  showCamera = signal(false);
+  stream: MediaStream | null = null;
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+
+  // Validation State
+  isValidating = signal(false);
+  validationResult = signal<ValidationResult | null>(null);
+  validationInstruction = signal('Align receipt within the frame');
+
   // Toast state
   toastMessage = signal<string | null>(null);
   toastType = signal<'success' | 'error'>('success');
 
-  // Processing options (disabled by default - OpenCV is optional)
+  // Processing options
   autoCrop = signal(false);
 
   // Editing state
@@ -75,10 +89,15 @@ export class CameraComponent {
   }
 
   async ngOnInit() {
-    // OpenCV.js is loaded after a short delay to prevent UI freezing
+    // OpenCV.js is loaded after a short delay
     setTimeout(() => {
       this.loadOpenCV();
     }, 1000);
+
+    // Initialize validator worker
+    this.validatorService.initializeWorker().catch(err =>
+      console.error('Failed to init validator:', err)
+    );
   }
 
   private async loadOpenCV() {
@@ -103,21 +122,131 @@ export class CameraComponent {
     }
   }
 
-  async takePhoto() {
+  ngOnDestroy() {
+    this.stopCamera();
+    this.validatorService.terminateWorker();
+  }
+
+  // ... (keep existing OpenCV methods) ...
+
+  async startCamera() {
     try {
-      const hasPermission = await this.cameraService.requestPermissions();
-      if (!hasPermission) {
-        this.showError('Camera permission denied');
-        return;
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      });
+      this.showCamera.set(true);
+
+      // Allow UI to update before accessing video element
+      setTimeout(() => {
+        if (this.videoElement) {
+          this.videoElement.nativeElement.srcObject = this.stream;
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Camera error:', error);
+      this.showError('Failed to access camera. Please check permissions.');
+      // Fallback to native camera
+      this.takePhotoNative();
+    }
+  }
+
+  stopCamera() {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+    this.showCamera.set(false);
+  }
+
+  async processImage(blob: Blob, filename: string) {
+    this.isProcessing.set(true);
+    this.processedReceipt.set(null);
+    this.validationResult.set(null);
+
+    try {
+      // Step 1: Auto-Crop (if enabled and OpenCV loaded)
+      let processedBlob = blob;
+      if (this.opencvLoaded()) {
+        if (this.autoCrop()) {
+          console.log('Auto-cropping receipt...');
+          try {
+            const croppedBlob = await this.opencvService.cropReceipt(blob);
+            if (croppedBlob.size > 0) {
+              processedBlob = croppedBlob;
+              console.log('Auto-crop successful');
+            }
+          } catch (cropError) {
+            console.warn('Auto-crop failed, using original image:', cropError);
+          }
+        }
       }
 
-      const image = await this.cameraService.takePhoto();
-      this.capturedImage.set(image.dataUrl);
-      this.processedReceipt.set(null);
+      // Update preview with processed image
+      const dataUrl = await this.blobToDataUrl(processedBlob);
+      this.capturedImage.set(dataUrl);
 
-      // Process and upload
-      await this.processAndUpload(image.blob, image.filename);
+      // Step 2: Validate
+      this.isValidating.set(true);
+      this.isProcessing.set(false); // Done with heavy processing, now validating
+
+      try {
+        const result = await this.validatorService.validateReceipt(dataUrl);
+        this.validationResult.set(result);
+
+        if (result.isValid) {
+          // Auto-proceed if valid
+          await this.uploadImage(processedBlob, filename);
+        } else {
+          // Show validation feedback
+          this.showError('Receipt quality check failed. Please review suggestions.');
+        }
+      } catch (validationError) {
+        console.error('Validation error:', validationError);
+        // Fallback to upload anyway if validation crashes
+        await this.uploadImage(processedBlob, filename);
+      } finally {
+        this.isValidating.set(false);
+      }
+
+    } catch (error) {
+      console.error('Processing error:', error);
+      this.showError('Failed to process image');
+      this.isProcessing.set(false);
+      this.isValidating.set(false);
+    }
+  }
+
+  async capturePhoto() {
+    if (!this.videoElement) return;
+
+    const video = this.videoElement.nativeElement;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(video, 0, 0);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    this.stopCamera();
+
+    const blob = await (await fetch(dataUrl)).blob();
+    await this.processImage(blob, `receipt_${Date.now()}.jpg`);
+  }
+
+  async takePhotoNative() {
+    try {
+      const image = await this.cameraService.takePhoto();
+      await this.processImage(image.blob, image.filename);
     } catch (error: any) {
+      // Ignore user cancellation
+      if (error.message?.includes('User cancelled') || error.message?.includes('cancelled')) {
+        return;
+      }
       console.error('Camera error:', error);
       this.showError(error.message || 'Failed to take photo');
     }
@@ -126,51 +255,31 @@ export class CameraComponent {
   async selectFromGallery() {
     try {
       const image = await this.cameraService.selectFromGallery();
-      this.capturedImage.set(image.dataUrl);
-      this.processedReceipt.set(null);
-
-      // Process and upload
-      await this.processAndUpload(image.blob, image.filename);
+      await this.processImage(image.blob, image.filename);
     } catch (error: any) {
+      // Ignore user cancellation
+      if (error.message?.includes('User cancelled') || error.message?.includes('cancelled')) {
+        return;
+      }
       console.error('Gallery error:', error);
       this.showError(error.message || 'Failed to select image');
     }
   }
 
-  /**
-   * Process image with OpenCV before upload
-   */
-  private async processAndUpload(blob: Blob, filename: string) {
-    let processedBlob = blob;
-
-    // Apply OpenCV processing if enabled and loaded
-    if (this.opencvLoaded()) {
-      this.isProcessing.set(true);
-
-      try {
-        // Step 1: Auto-crop receipt
-        if (this.autoCrop()) {
-          console.log('Cropping receipt...');
-          const croppedBlob = await this.opencvService.cropReceipt(blob);
-          if (croppedBlob.size > 0) {
-            processedBlob = croppedBlob;
-
-            // Update preview with cropped image
-            const dataUrl = await this.blobToDataUrl(processedBlob);
-            this.capturedImage.set(dataUrl);
-          }
-        }
-      } catch (error) {
-        console.error('Image processing error:', error);
-        this.showError('Image processing failed, uploading original');
-        processedBlob = blob; // Fallback to original
-      } finally {
-        this.isProcessing.set(false);
-      }
+  proceedAnyway() {
+    if (this.capturedImage()) {
+      this.isValidating.set(false);
+      this.validationResult.set(null);
+      fetch(this.capturedImage()!)
+        .then(res => res.blob())
+        .then(blob => this.uploadImage(blob, `receipt_${Date.now()}.jpg`));
     }
+  }
 
-    // Upload processed image
-    await this.uploadImage(processedBlob, filename);
+  retakePhoto() {
+    this.capturedImage.set(null);
+    this.validationResult.set(null);
+    this.startCamera();
   }
 
   /**

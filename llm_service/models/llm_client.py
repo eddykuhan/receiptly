@@ -2,7 +2,7 @@ import os
 from openai import AsyncOpenAI
 from groq import AsyncGroq
 
-USE_GROQ = os.getenv("USE_GROQ", "true").lower() == "true"
+USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"
 
 class LLMClient:
     def __init__(self):

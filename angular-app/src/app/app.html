@@ -15,50 +15,32 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 p-4 pb-24 lg:pb-4 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto">
       <router-outlet></router-outlet>
     </div>
 
-    <!-- FAB Speed Dial (Mobile) -->
-    <div class="fixed bottom-20 right-4 z-20 lg:hidden dropdown dropdown-top dropdown-end">
-      <div tabindex="0" role="button" class="btn btn-circle btn-primary btn-lg shadow-lg"
-        (click)="fabOpen.set(!fabOpen())" (blur)="fabOpen.set(false)">
-        <span class="material-icons text-3xl">{{ fabOpen() ? 'close' : 'add' }}</span>
-      </div>
-      <ul tabindex="0"
-        class="dropdown-content z-[1] menu p-2 shadow-xl bg-base-100 rounded-box w-auto mb-2 gap-1 border border-base-200">
-        <li>
-          <a (click)="onCameraClick(); fabOpen.set(false)" class="py-3">
-            <span class="material-icons text-secondary text-xl">photo_camera</span>
-          </a>
-        </li>
-        @if (!isOnAskAIPage()) {
-        <li>
-          <a (click)="onAskAIClick(); fabOpen.set(false)" class="py-3">
-            <span class="material-icons text-primary text-xl">auto_awesome</span>
-          </a>
-        </li>
-        }
-      </ul>
-    </div>
 
     <!-- Bottom Navigation (Mobile) -->
     <div class="btm-nav lg:hidden z-30 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
       <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
-        <span class="material-icons">dashboard</span>
-        <span class="btm-nav-label text-xs">Dashboard</span>
+        <span class="material-icons">home</span>
+        <span class="btm-nav-label text-xs">Home</span>
       </button>
       <button (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="text-primary">
-        <span class="material-icons">receipt_long</span>
-        <span class="btm-nav-label text-xs">History</span>
-      </button>
-      <button (click)="onTabChange(2)" [class.active]="activeTabIndex === 2" class="text-primary">
         <span class="material-icons">map</span>
-        <span class="btm-nav-label text-xs">Map</span>
+        <span class="btm-nav-label text-xs">Explore</span>
       </button>
-      <button (click)="onTabChange(3)" [class.active]="activeTabIndex === 3" class="text-primary">
-        <span class="material-icons">card_giftcard</span>
-        <span class="btm-nav-label text-xs">Rewards</span>
+      <button (click)="onCameraClick()" class="text-primary">
+        <span class="material-icons">photo_camera</span>
+        <span class="btm-nav-label text-xs">Scan</span>
+      </button>
+      <button (click)="onAskAIClick()" [class.active]="isRouteActive('/ask-ai')" class="text-primary">
+        <span class="material-icons">auto_awesome</span>
+        <span class="btm-nav-label text-xs">Ask AI</span>
+      </button>
+      <button (click)="onProfileClick()" [class.active]="isRouteActive('/profile')" class="text-primary">
+        <span class="material-icons">account_circle</span>
+        <span class="btm-nav-label text-xs">Profile</span>
       </button>
     </div>
   </div>
@@ -74,29 +56,20 @@
 
       <li>
         <a (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="gap-4 py-3">
-          <span class="material-icons">dashboard</span>
-          Dashboard
+          <span class="material-icons">home</span>
+          Home
         </a>
       </li>
       <li>
         <a (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="gap-4 py-3">
-          <span class="material-icons">receipt_long</span>
-          History
+          <span class="material-icons">map</span>
+          Explore
         </a>
       </li>
-
-      <div class="divider"></div>
-
       <li>
         <a (click)="onCameraClick()" [class.active]="isRouteActive('/camera')" class="gap-4 py-3">
           <span class="material-icons">photo_camera</span>
           Scan Receipt
-        </a>
-      </li>
-      <li>
-        <a (click)="onPriceMapClick()" [class.active]="isRouteActive('/price-map')" class="gap-4 py-3">
-          <span class="material-icons">map</span>
-          Price Map
         </a>
       </li>
       <li>

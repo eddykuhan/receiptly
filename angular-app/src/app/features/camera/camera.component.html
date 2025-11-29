@@ -13,6 +13,29 @@
   <!-- Camera Actions (when no image captured) -->
   @if (!capturedImage()) {
   <div class="space-y-6">
+    <!-- Live Camera View -->
+    @if (showCamera()) {
+    <div class="relative rounded-xl overflow-hidden shadow-lg bg-black aspect-[3/4] max-h-[70vh]">
+      <video #videoElement autoplay playsinline muted class="w-full h-full object-cover"></video>
+
+      <app-camera-overlay [isScanning]="isValidating()" [instructionText]="validationInstruction()">
+
+        <button
+          class="btn btn-circle btn-lg btn-white border-4 border-primary/50 hover:border-primary hover:scale-105 transition-all shadow-lg"
+          (click)="capturePhoto()" [disabled]="isValidating()">
+          <div class="w-16 h-16 rounded-full bg-white border-4 border-transparent"></div>
+        </button>
+      </app-camera-overlay>
+
+      <button
+        class="absolute top-4 right-4 btn btn-circle btn-sm btn-ghost text-white bg-black/20 backdrop-blur-sm z-20"
+        (click)="stopCamera()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    } @else {
+    <!-- Initial State -->
+
     <!-- OpenCV Loading Indicator -->
     @if (opencvLoading()) {
     <div class="alert">
@@ -40,28 +63,32 @@
               (change)="autoCrop.set($any($event.target).checked)" />
           </label>
         </div>
-
-
       </div>
     </div>
     }
 
     <div class="flex flex-col gap-4">
-      <button class="btn btn-primary btn-lg w-full shadow-lg gap-2" (click)="takePhoto()">
+      <button class="btn btn-primary btn-lg w-full shadow-lg gap-2" (click)="startCamera()">
         <span class="material-icons">photo_camera</span>
-        Take Photo
+        Start Camera
       </button>
 
       <button class="btn btn-outline btn-secondary w-full gap-2" (click)="selectFromGallery()">
         <span class="material-icons">photo_library</span>
         Upload from Gallery
       </button>
+
+      <button class="btn btn-ghost btn-sm w-full gap-2 text-base-content/60" (click)="takePhotoNative()">
+        <span class="material-icons text-sm">camera</span>
+        Use Native Camera
+      </button>
     </div>
 
     <div class="alert bg-base-200 border-none">
       <span class="material-icons text-info">info</span>
-      <span class="text-sm">Capture a clear photo of your receipt for best results</span>
+      <span class="text-sm">Align receipt within the frame for best results</span>
     </div>
+    }
   </div>
   }
 
@@ -245,6 +272,46 @@
       </div>
     </div>
     }
+  </div>
+  }
+
+  <!-- Validation Feedback Modal -->
+  @if (validationResult() && !validationResult()?.isValid) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="card bg-base-100 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+      <div class="card-body">
+        <h3 class="card-title text-warning flex items-center gap-2">
+          <span class="material-icons">warning</span>
+          Receipt Quality Check
+        </h3>
+
+        <p class="py-2">We had trouble reading some details. For best results:</p>
+
+        <ul class="space-y-2 my-4">
+          @for (suggestion of validationResult()?.suggestions; track suggestion) {
+          <li class="flex items-start gap-2 text-sm">
+            <span class="material-icons text-error text-sm mt-0.5">close</span>
+            <span>{{ suggestion }}</span>
+          </li>
+          }
+        </ul>
+
+        <div class="alert bg-base-200 text-xs">
+          <span class="material-icons text-info text-sm">info</span>
+          <span>Confidence Score: {{ (validationResult()?.confidence || 0).toFixed(0) }}%</span>
+        </div>
+
+        <div class="card-actions justify-end mt-6">
+          <button class="btn btn-ghost" (click)="proceedAnyway()">
+            Proceed Anyway
+          </button>
+          <button class="btn btn-primary" (click)="retakePhoto()">
+            <span class="material-icons">camera_alt</span>
+            Retake Photo
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
   }
 

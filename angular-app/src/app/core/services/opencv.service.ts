@@ -87,7 +87,9 @@ export class OpenCVService {
     try {
       cv.cvtColor(img, gray, cv.COLOR_RGBA2GRAY);
       cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-      cv.Canny(blurred, edges, 50, 150);
+
+      // Adjusted thresholds for better edge detection
+      cv.Canny(blurred, edges, 30, 100); // Lowered from 50, 150
 
       const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
       cv.dilate(edges, edges, kernel);
@@ -96,26 +98,36 @@ export class OpenCVService {
       const hierarchy = new cv.Mat();
       cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
+      console.log(`Found ${contours.size()} contours`);
+
       let maxArea = 0;
       let maxContour = null;
       let receiptFound = false;
+      const minArea = img.rows * img.cols * 0.05; // Lowered from 0.1 (10% -> 5%)
 
       for (let i = 0; i < contours.size(); i++) {
         const contour = contours.get(i);
         const area = cv.contourArea(contour);
 
-        if (area > img.rows * img.cols * 0.1) {
+        if (area > minArea) {
           const peri = cv.arcLength(contour, true);
           const approx = new cv.Mat();
           cv.approxPolyDP(contour, approx, 0.02 * peri, true);
 
           if (approx.rows === 4 && area > maxArea) {
             maxArea = area;
+            if (maxContour) maxContour.delete(); // Clean up previous max
             maxContour = approx.clone();
             receiptFound = true;
           }
           approx.delete();
         }
+      }
+
+      if (receiptFound) {
+        console.log('Receipt contour found with area:', maxArea);
+      } else {
+        console.warn('No receipt contour found. Max area was:', maxArea);
       }
 
       if (receiptFound && maxContour) {

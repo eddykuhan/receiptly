@@ -13,8 +13,6 @@ import { PwaInstallPromptComponent } from './shared/components/pwa-install-promp
 })
 export class App {
   activeTabIndex = 0;
-  isOnAskAIPage = signal(false);
-  fabOpen = signal(false);
   currentRoute = signal('');
 
   constructor(private router: Router) {
@@ -27,16 +25,11 @@ export class App {
 
       if (event.url.includes('/dashboard')) {
         this.activeTabIndex = 0;
-      } else if (event.url.includes('/history')) {
-        this.activeTabIndex = 1;
       } else if (event.url.includes('/price-map')) {
-        this.activeTabIndex = 2;
-      } else if (event.url.includes('/rewards')) {
-        this.activeTabIndex = 3;
+        this.activeTabIndex = 1;
+      } else {
+        this.activeTabIndex = -1; // No active tab for other routes
       }
-
-      // Check if on Ask AI page
-      this.isOnAskAIPage.set(event.url.includes('/ask-ai'));
     });
 
     // Set initial route
@@ -44,8 +37,11 @@ export class App {
   }
 
   onTabChange(index: number) {
-    const routes = ['/dashboard', '/history', '/price-map', '/rewards'];
-    this.router.navigate([routes[index]]);
+    if (index === 0) {
+      this.router.navigate(['/dashboard']);
+    } else if (index === 1) {
+      this.router.navigate(['/price-map']);
+    }
   }
 
   onCameraClick() {
