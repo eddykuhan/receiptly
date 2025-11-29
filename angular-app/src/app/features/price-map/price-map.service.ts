@@ -30,6 +30,7 @@ interface PurchaseAnalyticsItemDto {
     itemId: string;
     receiptId: string;
     itemName: string;
+    canonicalName?: string;
     unitPrice: number;
     totalPrice?: number;
     quantity: number;
@@ -67,6 +68,7 @@ export class PriceMapService {
 
     /**
      * Fetch cached product suggestions derived from analytics data.
+     * Uses canonical names for better grouping.
      */
     getProductSuggestions(): Observable<string[]> {
         if (this.suggestions$) {
@@ -83,7 +85,8 @@ export class PriceMapService {
                 map(response => {
                     const uniqueNames = new Set(
                         response.items
-                            .map(item => item.itemName.trim())
+                            // Prefer canonical name over raw item name
+                            .map(item => (item.canonicalName || item.itemName).trim())
                             .filter(Boolean)
                     );
                     return Array.from(uniqueNames).sort();

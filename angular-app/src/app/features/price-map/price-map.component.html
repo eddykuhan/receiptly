@@ -1,6 +1,6 @@
 <div class="flex flex-col h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pb-16 lg:pb-0">
     <!-- Gradient Header with Glass Effect -->
-    <header class="bg-gradient-to-r from-primary to-secondary p-6 shadow-lg relative overflow-hidden z-10">
+    <header class="bg-gradient-to-r from-primary to-secondary p-6 shadow-lg relative overflow-visible z-30">
         <!-- Animated background pattern -->
         <div class="absolute inset-0 opacity-10">
             <div
@@ -53,7 +53,7 @@
                 <!-- Autocomplete Suggestions -->
                 @if (showSuggestions() && getFilteredSuggestions().length > 0) {
                 <div
-                    class="absolute top-full mt-1 w-full bg-base-100 rounded-box shadow-xl border border-base-200 z-20">
+                    class="autocomplete-dropdown absolute top-full mt-1 w-full bg-base-100 rounded-box shadow-xl border border-base-200">
                     <ul class="menu p-2">
                         @for (suggestion of getFilteredSuggestions(); track suggestion) {
                         <li>
@@ -160,7 +160,7 @@
     <!-- Mobile Bottom Sheet -->
     @if (hasResults()) {
     <div
-        class="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-200 max-h-[40vh] overflow-y-auto z-20">
+        class="lg:hidden fixed bottom-16 left-0 right-0 bg-base-100 border-t-2 border-primary shadow-2xl max-h-[50vh] overflow-y-auto z-20 rounded-t-2xl">
         <div class="p-4">
             <div class="flex items-center justify-between mb-3">
                 <h2 class="font-bold flex items-center gap-2">

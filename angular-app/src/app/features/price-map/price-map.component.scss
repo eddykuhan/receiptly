@@ -3,6 +3,17 @@
 #map {
     width: 100%;
     height: 100%;
+    // Leaflet map has default z-index of 400, keep it lower
+    position: relative;
+    z-index: 1;
+}
+
+// Ensure autocomplete dropdown appears above map
+:host ::ng-deep {
+    .autocomplete-dropdown {
+        position: absolute;
+        z-index: 9999 !important;
+    }
 }
 
 // Leaflet popup customization

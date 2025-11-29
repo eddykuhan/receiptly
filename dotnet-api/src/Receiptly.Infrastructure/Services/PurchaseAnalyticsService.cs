@@ -60,7 +60,8 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
         if (!string.IsNullOrWhiteSpace(query.ProductName))
         {
             var productFilter = $"%{query.ProductName.Trim()}%";
-            itemsQuery = itemsQuery.Where(i => EF.Functions.ILike(i.Name, productFilter));
+            // Search by canonical name for better grouping of similar products
+            itemsQuery = itemsQuery.Where(i => EF.Functions.ILike(i.CanonicalName ?? i.Name, productFilter));
         }
 
         if (query.MinLatitude.HasValue)
