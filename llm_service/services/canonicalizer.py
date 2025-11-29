@@ -42,36 +42,44 @@ Describe what the product actually is:
 - For dairy: "Fresh Milk", "UHT Milk", "Chocolate Drink"
 - For pantry: "Black Beans", "Peanuts", etc.
 
-**STEP 3: Extract Size (if present)**
-Standardize units:
-- "1L" / "1 L" / "1 Liter" → "1L"
+**STEP 3: Extract Size (ALWAYS include if detectable)**
+Standardize units and ALWAYS include size if you can find it:
+- "1L" / "1 L" / "1 Liter" / "1000ml" → "1L"
 - "500ml" / "500 ml" / "500ML" → "500ml"
 - "1kg" / "1 kg" / "1KG" → "1kg"
 - "400g" / "400 g" → "400g"
 
+**CRITICAL: If the same product appears with and without size, ALWAYS include the size for consistency!**
+
 **OUTPUT FORMAT:**
-- If brand is clear: "Brand Product Size"
+- If brand + size detected: "Brand Product Size"
   Example: "Farm Fresh Fresh Milk 1L"
   
-- If NO clear brand: "Product Description Size"
-  Example: "Black Pepper Chicken Leg Boneless"
-  Example: "Tiger Prawns XXL"
+- If brand but NO size: "Brand Product"
+  Example: "Milo" (only if truly no size mentioned)
+  
+- If NO brand but size detected: "Product Description Size"
   Example: "Black Beans 400g"
+  Example: "Tiger Prawns XXL"
 
 **IMPORTANT RULES:**
 1. DON'T assume "FARM" = "Farm Fresh" brand
 2. For meat/seafood, describe the product, don't force a brand
 3. Be CONSISTENT - same input variations should produce same output
-4. Remove OCR noise (random numbers, special chars, asterisks)
-5. Return ONLY the canonical name, no explanation
+4. **ALWAYS include size if detectable** - don't drop it randomly
+5. Remove OCR noise (random numbers, special chars, asterisks)
+6. Return ONLY the canonical name, no explanation
 
 Examples:
 - "Farm Fresh Pure Fresh 1L" → "Farm Fresh Fresh Milk 1L"
+- "Farm Fresh FRS 1L" → "Farm Fresh Fresh Milk 1L"
+- "Farm Fresh Pure Milk" → "Farm Fresh Fresh Milk" (no size mentioned)
 - "KO UDANG HARIMAU FARM XXL" → "Tiger Prawns XXL"
 - "LK FRESH NATURAL FARM NO ANTI" → "Natural Farm Chicken"
 - "BLACK PEPPER CHICKEN LEG BONELESS" → "Black Pepper Chicken Leg Boneless"
 - "KACANG HITAM (+/- 400G)" → "Black Beans 400g"
 - "MILO 1KG" → "Milo 1kg"
+- "MILO POWDER 1KG" → "Milo 1kg"
 - "TILLAMOOK CHOCOLATE PEANUT 480Z" → "Tillamook Chocolate Drink 480z"
 """
 
