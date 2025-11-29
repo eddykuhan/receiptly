@@ -4,13 +4,13 @@ import { Observable, of } from 'rxjs';
 export interface Deal {
     id: string;
     productName: string;
-    price: number;
-    originalPrice?: number;
+    lowestPrice: number;
+    averagePrice: number; // For comparison
     storeName: string;
     storeAddress: string;
     distance: number; // km
     imageUrl: string;
-    expiresAt?: Date;
+    lastSeenDate: Date; // When this price was last recorded
 }
 
 @Injectable({
@@ -29,62 +29,68 @@ export class DealService {
             {
                 id: '1',
                 productName: 'Fresh Milk 1L',
-                price: 5.90,
-                originalPrice: 7.50,
+                lowestPrice: 5.90,
+                averagePrice: 7.20,
                 storeName: 'Tesco',
                 storeAddress: 'Bangsar Shopping Centre',
                 distance: 1.2,
-                imageUrl: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop'
+                imageUrl: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop',
+                lastSeenDate: new Date('2025-11-28')
             },
             {
                 id: '2',
                 productName: 'White Bread',
-                price: 2.50,
-                originalPrice: 3.20,
+                lowestPrice: 2.50,
+                averagePrice: 3.10,
                 storeName: 'Jaya Grocer',
                 storeAddress: 'Publika',
                 distance: 2.1,
-                imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop'
+                imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop',
+                lastSeenDate: new Date('2025-11-27')
             },
             {
                 id: '3',
                 productName: 'Eggs (10pcs)',
-                price: 4.80,
-                originalPrice: 6.00,
+                lowestPrice: 4.80,
+                averagePrice: 5.50,
                 storeName: 'Village Grocer',
                 storeAddress: 'Bangsar Village',
                 distance: 0.8,
-                imageUrl: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=300&fit=crop'
+                imageUrl: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=300&fit=crop',
+                lastSeenDate: new Date('2025-11-29')
             },
             {
                 id: '4',
                 productName: 'Chicken Breast 1kg',
-                price: 12.90,
-                originalPrice: 15.50,
+                lowestPrice: 12.90,
+                averagePrice: 14.80,
                 storeName: 'AEON',
                 storeAddress: 'Mid Valley',
                 distance: 3.5,
-                imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400&h=300&fit=crop'
+                imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400&h=300&fit=crop',
+                lastSeenDate: new Date('2025-11-26')
             },
             {
                 id: '5',
                 productName: 'Rice 5kg',
-                price: 18.50,
-                originalPrice: 22.00,
+                lowestPrice: 18.50,
+                averagePrice: 21.00,
                 storeName: 'Giant',
                 storeAddress: 'Kota Damansara',
                 distance: 4.2,
-                imageUrl: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=300&fit=crop'
+                imageUrl: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=300&fit=crop',
+                lastSeenDate: new Date('2025-11-25')
             },
             {
                 id: '6',
                 productName: 'Cooking Oil 2L',
-                price: 9.90,
-                originalPrice: 12.50,
+                lowestPrice: 9.90,
+                averagePrice: 11.50,
                 storeName: 'Mydin',
                 storeAddress: 'USJ',
                 distance: 5.0,
-                imageUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&h=300&fit=crop'
+                imageUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&h=300&fit=crop',
+                lastSeenDate: new Date('2025-11-24')
             }
         ];
 
@@ -92,10 +98,9 @@ export class DealService {
     }
 
     /**
-     * Calculate discount percentage
+     * Calculate how much cheaper the lowest price is vs average
      */
-    getDiscountPercentage(deal: Deal): number {
-        if (!deal.originalPrice) return 0;
-        return Math.round(((deal.originalPrice - deal.price) / deal.originalPrice) * 100);
+    getSavingsAmount(deal: Deal): number {
+        return deal.averagePrice - deal.lowestPrice;
     }
 }

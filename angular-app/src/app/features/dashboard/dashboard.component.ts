@@ -53,8 +53,8 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  getDiscountPercentage(deal: Deal): number {
-    return this.dealService.getDiscountPercentage(deal);
+  getSavingsAmount(deal: Deal): number {
+    return this.dealService.getSavingsAmount(deal);
   }
 
   onSearch(query: string) {

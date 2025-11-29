@@ -99,22 +99,25 @@
             </figure>
             <div class="card-body p-4">
               <h3 class="card-title text-base truncate">{{ deal.productName }}</h3>
-              <div class="flex items-end gap-2 mb-2">
-                <span class="text-xl font-bold text-primary">{{ deal.price | myr }}</span>
-                @if (deal.originalPrice) {
-                <span class="text-sm line-through opacity-50">{{ deal.originalPrice | myr }}</span>
-                }
+              <div class="flex items-baseline gap-2 mb-1">
+                <span class="text-2xl font-bold text-primary">{{ deal.lowestPrice | myr }}</span>
+                <span class="text-xs text-base-content/50">lowest</span>
               </div>
-              @if (deal.originalPrice) {
-              <div class="badge badge-success badge-sm">{{ getDiscountPercentage(deal) }}% OFF</div>
-              }
-              <div class="flex items-center gap-1 text-xs text-base-content/60 mt-2">
+              <div class="flex items-center gap-1 text-xs text-base-content/60 mb-2">
+                <span>Avg: {{ deal.averagePrice | myr }}</span>
+                <span class="badge badge-success badge-xs">Save {{ getSavingsAmount(deal) | myr }}</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs text-base-content/60">
                 <span class="material-icons text-sm">store</span>
                 <span class="truncate">{{ deal.storeName }}</span>
               </div>
               <div class="flex items-center gap-1 text-xs text-base-content/60">
                 <span class="material-icons text-sm">location_on</span>
                 <span>{{ deal.distance }} km away</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs text-base-content/50 mt-1">
+                <span class="material-icons text-xs">schedule</span>
+                <span>{{ deal.lastSeenDate | date:'MMM d' }}</span>
               </div>
             </div>
           </div>
