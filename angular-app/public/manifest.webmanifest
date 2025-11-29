@@ -1,14 +1,18 @@
 {
-  "name": "Receiptly - Smart Receipt Scanner",
-  "short_name": "Receiptly",
+  "name": "Cheapsy - Smart Receipt Scanner",
+  "short_name": "Cheapsy",
   "description": "Scan, track, and analyze your receipts with AI-powered OCR. Compare prices and manage expenses effortlessly.",
-  "theme_color": "#6366f1",
+  "theme_color": "#7c3aed",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
   "orientation": "portrait",
-  "categories": ["finance", "productivity", "utilities"],
+  "categories": [
+    "finance",
+    "productivity",
+    "utilities"
+  ],
   "screenshots": [
     {
       "src": "screenshots/dashboard.png",

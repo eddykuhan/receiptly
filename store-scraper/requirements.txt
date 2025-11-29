@@ -1,0 +1,3 @@
+beautifulsoup4==4.12.2
+requests==2.31.0
+# Note: Using html.parser (built-in) instead of lxml for Python 3.14+ compatibility

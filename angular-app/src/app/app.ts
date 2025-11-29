@@ -1,40 +1,47 @@
 import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { filter } from 'rxjs';
 import { PwaInstallPromptComponent } from './shared/components/pwa-install-prompt.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MatTabsModule, MatIconModule, MatButtonModule, PwaInstallPromptComponent],
+  standalone: true,
+  imports: [CommonModule, RouterOutlet, PwaInstallPromptComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
   activeTabIndex = 0;
-  isOnAskAIPage = signal(false);
-  
+  currentRoute = signal('');
+
   constructor(private router: Router) {
     // Update active tab based on route
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
+      // Update current route signal
+      this.currentRoute.set(event.url);
+
       if (event.url.includes('/dashboard')) {
         this.activeTabIndex = 0;
-      } else if (event.url.includes('/history')) {
+      } else if (event.url.includes('/price-map')) {
         this.activeTabIndex = 1;
+      } else {
+        this.activeTabIndex = -1; // No active tab for other routes
       }
-      
-      // Check if on Ask AI page
-      this.isOnAskAIPage.set(event.url.includes('/ask-ai'));
     });
+
+    // Set initial route
+    this.currentRoute.set(this.router.url);
   }
-  
+
   onTabChange(index: number) {
-    const routes = ['/dashboard', '/history'];
-    this.router.navigate([routes[index]]);
+    if (index === 0) {
+      this.router.navigate(['/dashboard']);
+    } else if (index === 1) {
+      this.router.navigate(['/price-map']);
+    }
   }
 
   onCameraClick() {
@@ -43,5 +50,21 @@ export class App {
 
   onAskAIClick() {
     this.router.navigate(['/ask-ai']);
+  }
+
+  onPriceMapClick() {
+    this.router.navigate(['/price-map']);
+  }
+
+  onRewardsClick() {
+    this.router.navigate(['/rewards']);
+  }
+
+  onProfileClick() {
+    this.router.navigate(['/profile']);
+  }
+
+  isRouteActive(route: string): boolean {
+    return this.currentRoute().includes(route);
   }
 }

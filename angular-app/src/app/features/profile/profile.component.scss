@@ -1,0 +1,32 @@
+// Avatar upload button
+.avatar {
+    position: relative;
+}
+
+// Stats cards hover effect
+.stat {
+    transition: transform 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+// Toggle switch customization
+.toggle {
+    cursor: pointer;
+}
+
+// Form animations
+.form-control {
+
+    input,
+    select {
+        transition: border-color 0.2s ease;
+
+        &:focus {
+            outline: none;
+            border-color: hsl(var(--p));
+        }
+    }
+}

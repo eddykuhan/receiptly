@@ -71,7 +71,7 @@ module "database" {
   allowed_cidr_blocks = ["0.0.0.0/0"]
 
   # Free Tier Configuration
-  postgres_version  = "16.6"
+  postgres_version  = "16.8"
   instance_class    = "db.t3.micro" # Free tier eligible
   allocated_storage = 20             # Free tier: up to 20GB
 
@@ -111,6 +111,11 @@ module "ocr_service" {
   ssh_allowed_cidr_blocks = [] # No SSH access for security
 
   aws_region = var.aws_region
+
+  # HTTPS Configuration
+  enable_https      = var.enable_https
+  domain_name       = var.domain_name
+  letsencrypt_email = var.letsencrypt_email
 }
 
 # ==========================================

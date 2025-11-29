@@ -1,55 +1,101 @@
-<div class="app-container">
-  <!-- Main Content Area -->
-  <div class="content">
-    <router-outlet></router-outlet>
+<div class="drawer lg:drawer-open">
+  <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+
+  <div class="drawer-content flex flex-col bg-base-200 min-h-screen relative">
+    <!-- Navbar (Mobile only) -->
+    <div class="navbar bg-base-100 lg:hidden shadow-sm z-10">
+      <div class="flex-1">
+        <a class="btn btn-ghost text-xl text-primary font-bold">Cheapsy</a>
+      </div>
+      <div class="flex-none">
+        <button class="btn btn-ghost btn-circle" (click)="onProfileClick()">
+          <span class="material-icons">account_circle</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </div>
+
+
+    <!-- Bottom Navigation (Mobile) -->
+    <div class="btm-nav lg:hidden z-30 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+      <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
+        <span class="material-icons">home</span>
+        <span class="btm-nav-label text-xs">Home</span>
+      </button>
+      <button (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="text-primary">
+        <span class="material-icons">map</span>
+        <span class="btm-nav-label text-xs">Explore</span>
+      </button>
+      <button (click)="onCameraClick()" class="text-primary">
+        <span class="material-icons">photo_camera</span>
+        <span class="btm-nav-label text-xs">Scan</span>
+      </button>
+      <button (click)="onAskAIClick()" [class.active]="isRouteActive('/ask-ai')" class="text-primary">
+        <span class="material-icons">auto_awesome</span>
+        <span class="btm-nav-label text-xs">Ask AI</span>
+      </button>
+      <button (click)="onProfileClick()" [class.active]="isRouteActive('/profile')" class="text-primary">
+        <span class="material-icons">account_circle</span>
+        <span class="btm-nav-label text-xs">Profile</span>
+      </button>
+    </div>
   </div>
 
-  <!-- PWA Install Prompt -->
-  <app-pwa-install-prompt></app-pwa-install-prompt>
+  <!-- Sidebar (Desktop) -->
+  <div class="drawer-side z-40">
+    <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
+    <ul class="menu p-4 w-80 min-h-full bg-base-100 text-base-content shadow-xl">
+      <!-- Sidebar Content -->
+      <li class="mb-8">
+        <a class="text-2xl font-bold text-primary px-4 hover:bg-transparent">Cheapsy</a>
+      </li>
 
-  <!-- Floating Camera Button -->
-  <button 
-    mat-fab 
-    class="camera-fab"
-    (click)="onCameraClick()"
-    aria-label="Open Camera">
-    <mat-icon>photo_camera</mat-icon>
-  </button>
+      <li>
+        <a (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="gap-4 py-3">
+          <span class="material-icons">home</span>
+          Home
+        </a>
+      </li>
+      <li>
+        <a (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="gap-4 py-3">
+          <span class="material-icons">map</span>
+          Explore
+        </a>
+      </li>
+      <li>
+        <a (click)="onCameraClick()" [class.active]="isRouteActive('/camera')" class="gap-4 py-3">
+          <span class="material-icons">photo_camera</span>
+          Scan Receipt
+        </a>
+      </li>
+      <li>
+        <a (click)="onRewardsClick()" [class.active]="isRouteActive('/rewards')" class="gap-4 py-3">
+          <span class="material-icons">card_giftcard</span>
+          Rewards
+        </a>
+      </li>
 
-  <!-- Floating Ask AI Button -->
-  @if (!isOnAskAIPage()) {
-    <button 
-      mat-raised-button
-      class="ai-fab"
-      (click)="onAskAIClick()"
-      aria-label="Ask AI">
-      <mat-icon>auto_awesome</mat-icon>
-      <span>Ask AI</span>
-    </button>
-  }
+      <div class="divider"></div>
 
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <mat-tab-group 
-      [(selectedIndex)]="activeTabIndex"
-      (selectedIndexChange)="onTabChange($event)"
-      mat-stretch-tabs="false"
-      mat-align-tabs="center"
-      animationDuration="200ms">
-      
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>dashboard</mat-icon>
-          <span>Dashboard</span>
-        </ng-template>
-      </mat-tab>
-      
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon>receipt_long</mat-icon>
-          <span>History</span>
-        </ng-template>
-      </mat-tab>
-    </mat-tab-group>
-  </nav>
+      <li>
+        <a (click)="onProfileClick()" [class.active]="isRouteActive('/profile')" class="gap-4 py-3">
+          <span class="material-icons">account_circle</span>
+          Profile
+        </a>
+      </li>
+      <li>
+        <a (click)="onAskAIClick()" [class.active]="isRouteActive('/ask-ai')" class="gap-4 py-3">
+          <span class="material-icons">auto_awesome</span>
+          Ask AI
+        </a>
+      </li>
+    </ul>
+
+  </div>
 </div>
+
+<app-pwa-install-prompt></app-pwa-install-prompt>

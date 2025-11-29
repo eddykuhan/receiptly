@@ -15,7 +15,14 @@ public class MappingProfile : Profile
         CreateMap<Receipt, ReceiptDto>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items));
         
+        // ReceiptDto -> Receipt (reverse mapping for updates)
+        CreateMap<ReceiptDto, Receipt>()
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items));
+        
         // Item -> ItemDto (exclude Receipt to prevent circular reference)
         CreateMap<Item, ItemDto>();
+        
+        // ItemDto -> Item (reverse mapping for updates)
+        CreateMap<ItemDto, Item>();
     }
 }

@@ -244,6 +244,11 @@ public static class ServiceCollectionExtensions
 
         // Business services
         services.AddScoped<IReceiptProcessingService, ReceiptProcessingService>();
+        services.AddScoped<IPurchaseAnalyticsService, PurchaseAnalyticsService>();
+
+        // LLM Services
+        services.AddHttpClient<LlmServiceClient>();
+        services.AddScoped<CanonicalizationService>();
 
         // AutoMapper
         services.AddAutoMapper(typeof(Program).Assembly);

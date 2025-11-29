@@ -3,11 +3,20 @@ Debug utilities for saving images at various processing stages.
 """
 import os
 import json
-from datetime import datetime
+from datetime import datetime, date, time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 import io
 from PIL import Image
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    """Custom JSON encoder that handles datetime, date, and time objects."""
+    
+    def default(self, obj: Any) -> Any:
+        if isinstance(obj, (datetime, date, time)):
+            return obj.isoformat()
+        return super().default(obj)
 
 
 class ImageDebugger:
@@ -183,7 +192,7 @@ class ImageDebugger:
             }
             
             with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump(full_data, f, indent=2, ensure_ascii=False)
+                json.dump(full_data, f, indent=2, ensure_ascii=False, cls=DateTimeEncoder)
             
             print(f"   💾 Saved: {stage} (JSON)")
             
