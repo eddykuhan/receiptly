@@ -124,20 +124,20 @@ async def analyze_receipt(
         # We don't run EasyOCR yet - only if Azure fails to extract merchant info
         location_data = None
         
-        # Step 4: Preprocess image for Azure
-        print("Preprocessing image...")
-        processed_bytes = doc_service.preprocessor.process(file_bytes)
-        print(f"Image preprocessing complete. Output: {len(processed_bytes)} bytes")
+        # # Step 4: Preprocess image for Azure
+        # print("Preprocessing image...")
+        # processed_bytes = doc_service.preprocessor.process(file_bytes)
+        # print(f"Image preprocessing complete. Output: {len(processed_bytes)} bytes")
 
-        if debugger:
-            debugger.save_image(processed_bytes, "04_preprocessed_for_azure", {
-                "size_bytes": len(processed_bytes),
-                "preprocessor": doc_service.preprocessor.__class__.__name__
-            })
+        # if debugger:
+        #     debugger.save_image(processed_bytes, "04_preprocessed_for_azure", {
+        #         "size_bytes": len(processed_bytes),
+        #         "preprocessor": doc_service.preprocessor.__class__.__name__
+        #     })
         
         # Step 5: Send preprocessed image to Azure Document Intelligence
         print("Analyzing with Azure Document Intelligence...")
-        receipt = await doc_service._analyze_document(processed_bytes)
+        receipt = await doc_service._analyze_document(file_bytes)
         
         if not receipt:
             if debugger:
