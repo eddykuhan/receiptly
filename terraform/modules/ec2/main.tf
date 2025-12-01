@@ -257,8 +257,8 @@ locals {
     cat > /etc/systemd/system/receiptly-api.service <<'EOF'
     [Unit]
     Description=Receiptly .NET API Service
-    After=docker.service
-    Requires=docker.service
+    After=docker.service receiptly-ocr.service receiptly-llm.service
+    Requires=docker.service receiptly-ocr.service receiptly-llm.service
     
     [Service]
     Type=simple
