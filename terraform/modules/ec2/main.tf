@@ -330,7 +330,48 @@ locals {
     # Install Nginx and Certbot
     dnf install -y nginx certbot python3-certbot-nginx
     
-    # Create Nginx configuration for subdomain-based reverse proxy
+    # Create directory for Let's Encrypt challenges
+    mkdir -p /var/www/certbot
+    
+    # STAGE 1: Create temporary HTTP-only Nginx config for certificate acquisition
+    cat > /etc/nginx/conf.d/receiptly.conf <<'NGINXEOF'
+    # Temporary HTTP-only configuration for Let's Encrypt
+    server {
+        listen 80;
+        server_name ${var.domain_name} api.${var.domain_name} ocr.${var.domain_name} llm.${var.domain_name};
+        
+        # Let's Encrypt challenge location
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+        
+        # Temporary allow all HTTP traffic for initial setup
+        location / {
+            return 200 'Server starting up...';
+            add_header Content-Type text/plain;
+        }
+    }
+    NGINXEOF
+    
+    # Start Nginx with HTTP-only config
+    systemctl start nginx
+    systemctl enable nginx
+    
+    # Wait for Nginx to be ready
+    sleep 5
+    
+    # Obtain SSL certificate from Let's Encrypt for all subdomains
+    certbot certonly --nginx \
+      --non-interactive \
+      --agree-tos \
+      --email ${var.letsencrypt_email} \
+      -d ${var.domain_name} \
+      -d api.${var.domain_name} \
+      -d ocr.${var.domain_name} \
+      -d llm.${var.domain_name} \
+      --expand
+    
+    # STAGE 2: Replace with full HTTPS configuration
     cat > /etc/nginx/conf.d/receiptly.conf <<'NGINXEOF'
     # Redirect HTTP to HTTPS for all domains
     server {
@@ -350,7 +391,8 @@ locals {
     
     # Main domain - redirect to API Swagger
     server {
-        listen 443 ssl http2;
+        listen 443 ssl;
+        http2 on;
         server_name ${var.domain_name};
         
         ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
@@ -366,7 +408,8 @@ locals {
     
     # API subdomain - .NET API service
     server {
-        listen 443 ssl http2;
+        listen 443 ssl;
+        http2 on;
         server_name api.${var.domain_name};
         
         ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
@@ -392,7 +435,8 @@ locals {
     
     # OCR subdomain - Python OCR service
     server {
-        listen 443 ssl http2;
+        listen 443 ssl;
+        http2 on;
         server_name ocr.${var.domain_name};
         
         ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
@@ -409,6 +453,9 @@ locals {
             proxy_set_header X-Real-IP $${remote_addr};
             proxy_set_header X-Forwarded-For $${proxy_add_x_forwarded_for};
             proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $${host};
+            proxy_set_header Upgrade $${http_upgrade};
+            proxy_set_header Connection "upgrade";
             proxy_cache_bypass $${http_upgrade};
             proxy_read_timeout 300;
             client_max_body_size 15M;
@@ -417,7 +464,8 @@ locals {
     
     # LLM subdomain - LLM service
     server {
-        listen 443 ssl http2;
+        listen 443 ssl;
+        http2 on;
         server_name llm.${var.domain_name};
         
         ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
@@ -434,35 +482,18 @@ locals {
             proxy_set_header X-Real-IP $${remote_addr};
             proxy_set_header X-Forwarded-For $${proxy_add_x_forwarded_for};
             proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $${host};
+            proxy_set_header Upgrade $${http_upgrade};
+            proxy_set_header Connection "upgrade";
             proxy_cache_bypass $${http_upgrade};
-            proxy_read_timeout 90;
+            proxy_read_timeout 300;
+            client_max_body_size 15M;
         }
     }
     NGINXEOF
     
-    # Create directory for Let's Encrypt challenges
-    mkdir -p /var/www/certbot
-    
-    # Start and enable Nginx
-    systemctl start nginx
-    systemctl enable nginx
-    
-    # Wait for services to be ready
-    sleep 10
-    
-    # Obtain SSL certificate from Let's Encrypt for all subdomains
-    certbot certonly --nginx \
-      --non-interactive \
-      --agree-tos \
-      --email ${var.letsencrypt_email} \
-      -d ${var.domain_name} \
-      -d api.${var.domain_name} \
-      -d ocr.${var.domain_name} \
-      -d llm.${var.domain_name} \
-      --expand
-    
-    # Reload Nginx to apply SSL certificate
-    systemctl reload nginx
+    # Test and reload Nginx with HTTPS configuration
+    nginx -t && systemctl reload nginx
     
     # Set up automatic certificate renewal
     echo "0 12 * * * root certbot renew --quiet --post-hook 'systemctl reload nginx'" > /etc/cron.d/certbot-renew
