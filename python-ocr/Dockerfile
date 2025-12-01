@@ -33,9 +33,14 @@ RUN pip install --upgrade pip && \
     find /opt/venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
     find /opt/venv -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
     find /opt/venv -type f -name "*.pyc" -delete && \
-    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
-    # Remove EasyOCR models - they'll be downloaded on first use
-    rm -rf /root/.EasyOCR 2>/dev/null || true
+    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+
+# Pre-download EasyOCR models during build to avoid runtime downloads
+# This increases image size but ensures fast, reliable startup
+RUN python -c "import easyocr; reader = easyocr.Reader(['en'], gpu=False, download_enabled=True)" && \
+    # Move models to app directory for proper permissions
+    mkdir -p /app/.EasyOCR && \
+    cp -r /root/.EasyOCR/* /app/.EasyOCR/ 2>/dev/null || true
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.11-slim
@@ -68,6 +73,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
+# Copy pre-downloaded EasyOCR models from builder
+COPY --from=builder /app/.EasyOCR /app/.EasyOCR
+
 # Set environment variables
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
@@ -79,7 +87,6 @@ COPY ./app ./app
 
 # Create non-root user and set permissions
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app/.EasyOCR && \
     chown -R appuser:appuser /app
 USER appuser
 
