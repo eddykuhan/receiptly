@@ -19,14 +19,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy only requirements first for better caching
 COPY requirements.txt .
 
-# Create virtual environment and install dependencies
+# Create virtual environment
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install dependencies with pip caching
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Install dependencies with optimizations
+# Use --no-cache-dir to reduce layer size
+# Install torch CPU-only version to save 1.5GB+
+RUN pip install --upgrade pip && \
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu --no-cache-dir && \
+    pip install --no-cache-dir -r requirements.txt && \
+    # Remove unnecessary files from site-packages
+    find /opt/venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    find /opt/venv -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
+    find /opt/venv -type f -name "*.pyc" -delete && \
+    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    # Remove EasyOCR models - they'll be downloaded on first use
+    rm -rf /root/.EasyOCR 2>/dev/null || true
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.11-slim
@@ -41,7 +50,7 @@ LABEL org.opencontainers.image.created=$BUILD_DATE \
 
 WORKDIR /app
 
-# Install only runtime dependencies
+# Install only runtime dependencies (minimal)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     libsm6 \
@@ -53,7 +62,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
@@ -61,13 +71,15 @@ COPY --from=builder /opt/venv /opt/venv
 # Set environment variables
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    EASYOCR_MODULE_PATH=/app/.EasyOCR
 
-# Copy application code
+# Copy application code (only app directory, not entire context)
 COPY ./app ./app
 
-# Create non-root user
+# Create non-root user and set permissions
 RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app/.EasyOCR && \
     chown -R appuser:appuser /app
 USER appuser
 
