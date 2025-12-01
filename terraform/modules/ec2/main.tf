@@ -258,7 +258,7 @@ locals {
     [Unit]
     Description=Receiptly .NET API Service
     After=docker.service receiptly-ocr.service receiptly-llm.service
-    Requires=docker.service receiptly-ocr.service receiptly-llm.service
+    Requires=docker.service
     
     [Service]
     Type=simple
