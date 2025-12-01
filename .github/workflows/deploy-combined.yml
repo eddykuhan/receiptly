@@ -114,6 +114,17 @@ jobs:
           
           LLM_SERVICE_URL=$(echo "$OCR_SERVICE_SECRET" | jq -r '.llm_service_url')
           
+          # Get LLM service config (includes API keys)
+          LLM_SERVICE_SECRET=$(aws secretsmanager get-secret-value \
+            --secret-id receiptly/llm/service \
+            --query 'SecretString' \
+            --output text)
+          
+          OPENAI_API_KEY=$(echo "$LLM_SERVICE_SECRET" | jq -r '.openai_api_key')
+          GROQ_API_KEY=$(echo "$LLM_SERVICE_SECRET" | jq -r '.groq_api_key')
+          USE_GROQ=$(echo "$LLM_SERVICE_SECRET" | jq -r '.use_groq')
+          MODEL_NAME=$(echo "$LLM_SERVICE_SECRET" | jq -r '.model_name')
+          
           echo "azure_endpoint=$AZURE_ENDPOINT" >> $GITHUB_OUTPUT
           echo "azure_key=$AZURE_KEY" >> $GITHUB_OUTPUT
           echo "db_connection=Host=$DB_HOST;Port=$DB_PORT;Database=$DB_NAME;Username=$DB_USER;Password=$DB_PASS" >> $GITHUB_OUTPUT
@@ -124,6 +135,10 @@ jobs:
           echo "llm_service_repo=$LLM_SERVICE_REPO" >> $GITHUB_OUTPUT
           echo "registry_id=$REGISTRY_ID" >> $GITHUB_OUTPUT
           echo "llm_service_url=$LLM_SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "openai_api_key=$OPENAI_API_KEY" >> $GITHUB_OUTPUT
+          echo "groq_api_key=$GROQ_API_KEY" >> $GITHUB_OUTPUT
+          echo "use_groq=$USE_GROQ" >> $GITHUB_OUTPUT
+          echo "model_name=$MODEL_NAME" >> $GITHUB_OUTPUT
           echo "✅ Retrieved all credentials from Secrets Manager"
 
       - name: Free Disk Space
@@ -196,10 +211,10 @@ jobs:
           
           # Create .env for LLM Service
           cat > llm.env <<EOF
-          USE_GROQ=${{ secrets.USE_GROQ || 'false' }}
-          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          MODEL_NAME=${{ secrets.MODEL_NAME || 'gpt-4o-mini' }}
-          GROQ_API_KEY=${{ secrets.GROQ_API_KEY || '' }}
+          USE_GROQ=${{ steps.secrets.outputs.use_groq }}
+          OPENAI_API_KEY=${{ steps.secrets.outputs.openai_api_key }}
+          MODEL_NAME=${{ steps.secrets.outputs.model_name }}
+          GROQ_API_KEY=${{ steps.secrets.outputs.groq_api_key }}
           HOST=0.0.0.0
           PORT=8500
           EOF

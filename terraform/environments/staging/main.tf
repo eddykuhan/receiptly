@@ -281,6 +281,10 @@ module "secrets" {
       value = jsonencode({
         base_url         = "http://localhost:8500"
         health_check_url = "http://localhost:8500/health"
+        openai_api_key   = var.openai_api_key
+        groq_api_key     = var.groq_api_key
+        use_groq         = var.use_groq
+        model_name       = var.model_name
       })
     }
     "receiptly/ecr/repositories" = {
