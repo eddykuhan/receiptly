@@ -30,7 +30,11 @@ public static class ServiceCollectionExtensions
                         "capacitor://localhost",  // Capacitor iOS
                         "ionic://localhost",      // Capacitor Android
                         "http://localhost",        // Generic localhost
-                        "https://d3c72tjxsq9089.cloudfront.net"
+                        "https://d3c72tjxsq9089.cloudfront.net",
+                        "https://cheap-sy.com",    // Production domain
+                        "https://api.cheap-sy.com", // API subdomain
+                        "https://ocr.cheap-sy.com", // OCR subdomain
+                        "https://llm.cheap-sy.com"  // LLM subdomain
                     )
                     .AllowAnyMethod()
                     .AllowAnyHeader()

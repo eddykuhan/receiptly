@@ -61,13 +61,13 @@ variable "enable_https" {
 variable "domain_name" {
   description = "Domain name for SSL certificate (e.g., api.receiptly.com)"
   type        = string
-  default     = "cheapsy.duckdns.org" # Set your domain name here
+  default     = "cheap-sy.com"
 }
 
 variable "letsencrypt_email" {
   description = "Email address for Let's Encrypt SSL certificate notifications"
   type        = string
-  default     = "your-email@example.com" # Set your email here
+  default     = "eddykuhan92@gmail.com"
 }
 
 variable "db_backup_retention_period" {
