@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://47.130.211.237:5000/api'
+  apiUrl: 'https://api.cheap-sy.com/api'
 };

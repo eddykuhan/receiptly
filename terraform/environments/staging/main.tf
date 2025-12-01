@@ -103,8 +103,8 @@ module "ocr_service" {
   vpc_id    = module.vpc.vpc_id
   subnet_id = module.vpc.public_subnet_ids[0] # Deploy to first public subnet
 
-  # Free Tier Configuration
-  instance_type = "t3.micro" # Free tier eligible (or t2.micro)
+  # Instance Configuration
+  instance_type = "t3.small" # t3.micro (1GB) insufficient for 3 Docker containers
 
   # Allow access from anywhere for staging (API calls, SSH if needed)
   allowed_cidr_blocks     = ["0.0.0.0/0"]
