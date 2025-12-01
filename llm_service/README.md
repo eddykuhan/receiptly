@@ -12,7 +12,42 @@ FastAPI service for LLM-powered receipt processing features including item canon
 
 ## Setup
 
-### 1. Install Dependencies
+### Option 1: Docker (Recommended)
+
+#### Using Docker Compose (with full stack)
+```bash
+# From project root
+docker-compose up llm-service
+
+# Or run the entire stack
+docker-compose up
+```
+
+#### Using standalone Docker
+```bash
+cd llm_service
+
+# Build the image
+docker build -t receiptly-llm-service .
+
+# Run the container
+docker run -p 8500:8500 \
+  -e OPENAI_API_KEY=your-key \
+  -e USE_GROQ=false \
+  --name receiptly-llm-service \
+  receiptly-llm-service
+
+# Or use docker-compose in llm_service directory
+docker-compose up
+```
+
+The service will be available at:
+- API: http://localhost:8500
+- Documentation: http://localhost:8500/docs
+
+### Option 2: Local Development
+
+#### 1. Install Dependencies
 
 ```bash
 cd llm_service
@@ -21,7 +56,7 @@ source venv/bin/activate  # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment Variables
+#### 2. Configure Environment Variables
 
 Copy the example environment file and configure your API keys:
 
@@ -43,7 +78,7 @@ MODEL_NAME=gpt-4o-mini
 GROQ_API_KEY=your-actual-groq-key
 ```
 
-### 3. Run the Service
+#### 3. Run the Service
 
 ```bash
 # Make sure virtual environment is activated
@@ -56,6 +91,36 @@ uvicorn main:app --host 0.0.0.0 --port 8500 --reload
 The service will be available at:
 - API: http://localhost:8500
 - Documentation: http://localhost:8500/docs
+
+## Docker Configuration
+
+The service includes:
+- **Multi-stage build** for optimized image size
+- **Health checks** for container monitoring
+- **Environment variable configuration** for flexible deployment
+- **Network isolation** when using docker-compose
+
+### Docker Environment Variables
+
+When running with Docker, you can pass environment variables via:
+1. `.env` file (recommended for local development)
+2. `-e` flags in `docker run` command
+3. `environment` section in docker-compose.yml
+
+### Integration with OCR Service
+
+When running the full stack with docker-compose, the Python OCR service will automatically connect to the LLM service using the internal Docker network:
+
+```yaml
+# In docker-compose.yml
+environment:
+  - LLM_SERVICE_URL=http://llm-service:8500
+```
+
+For local development (services running outside Docker), configure the OCR service to use:
+```
+LLM_SERVICE_URL=http://localhost:8500
+```
 
 ## Environment Variables
 

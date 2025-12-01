@@ -119,6 +119,51 @@ module "ocr_service" {
 }
 
 # ==========================================
+# ECR Repositories for Docker Images
+# ==========================================
+module "ecr_dotnet_api" {
+  source = "../../modules/ecr"
+
+  repository_name      = "${var.project_name}-${var.environment}-dotnet-api"
+  image_tag_mutability = "MUTABLE"
+  scan_on_push         = true
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Service     = "dotnet-api"
+  }
+}
+
+module "ecr_python_ocr" {
+  source = "../../modules/ecr"
+
+  repository_name      = "${var.project_name}-${var.environment}-python-ocr"
+  image_tag_mutability = "MUTABLE"
+  scan_on_push         = true
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Service     = "python-ocr"
+  }
+}
+
+module "ecr_llm_service" {
+  source = "../../modules/ecr"
+
+  repository_name      = "${var.project_name}-${var.environment}-llm-service"
+  image_tag_mutability = "MUTABLE"
+  scan_on_push         = true
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Service     = "llm-service"
+  }
+}
+
+# ==========================================
 # S3 Bucket for Receipt Storage
 # ==========================================
 module "receipts_bucket" {
@@ -226,15 +271,26 @@ module "secrets" {
     "receiptly/ocr/service" = {
       description = "Python OCR service configuration for Receiptly ${var.environment}"
       value = jsonencode({
-        base_url = "http://localhost:8000"
+        base_url         = "http://localhost:8000"
         health_check_url = "http://localhost:8000/health"
+        llm_service_url  = "http://localhost:8500"
       })
     }
     "receiptly/llm/service" = {
       description = "LLM service configuration for Receiptly ${var.environment}"
       value = jsonencode({
-        base_url = "http://localhost:8500"
+        base_url         = "http://localhost:8500"
         health_check_url = "http://localhost:8500/health"
+      })
+    }
+    "receiptly/ecr/repositories" = {
+      description = "ECR repository information for Receiptly ${var.environment}"
+      value = jsonencode({
+        dotnet_api_repository   = module.ecr_dotnet_api.repository_url
+        python_ocr_repository   = module.ecr_python_ocr.repository_url
+        llm_service_repository  = module.ecr_llm_service.repository_url
+        registry_id             = module.ecr_dotnet_api.registry_id
+        region                  = var.aws_region
       })
     }
   }

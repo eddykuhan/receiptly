@@ -42,6 +42,15 @@ resource "aws_security_group" "ocr_service" {
     cidr_blocks = var.allowed_cidr_blocks
   }
 
+  # Allow HTTP access to LLM service (port 8500)
+  ingress {
+    description = "LLM service"
+    from_port   = 8500
+    to_port     = 8500
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_cidr_blocks
+  }
+
   # Allow HTTPS access (port 443)
   ingress {
     description = "HTTPS"
@@ -195,6 +204,7 @@ locals {
     # Create deployment directories
     mkdir -p /opt/receiptly/api
     mkdir -p /opt/receiptly/ocr
+    mkdir -p /opt/receiptly/llm
     mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
     
     # Configure CloudWatch Agent
@@ -255,7 +265,8 @@ locals {
     WorkingDirectory=/opt/receiptly/api
     ExecStartPre=-/usr/bin/docker stop receiptly-api
     ExecStartPre=-/usr/bin/docker rm receiptly-api
-    ExecStart=/usr/bin/docker run --name receiptly-api --network receiptly_default -p 5000:5000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/api --log-opt awslogs-stream=receiptly-api --env-file /opt/receiptly/api/.env receiptly-api:latest
+    ExecStartPre=/usr/bin/bash -c 'eval $(aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com)'
+    ExecStart=/usr/bin/bash -c 'docker run --name receiptly-api --network receiptly_default -p 5000:5000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/api --log-opt awslogs-stream=receiptly-api --env-file /opt/receiptly/api/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .dotnet_api_repository):latest'
     ExecStop=/usr/bin/docker stop receiptly-api
     Restart=always
     
@@ -267,7 +278,7 @@ locals {
     cat > /etc/systemd/system/receiptly-ocr.service <<'EOF'
     [Unit]
     Description=Receiptly Python OCR Service
-    After=docker.service
+    After=docker.service receiptly-llm.service
     Requires=docker.service
     
     [Service]
@@ -275,8 +286,30 @@ locals {
     WorkingDirectory=/opt/receiptly/ocr
     ExecStartPre=-/usr/bin/docker stop receiptly-ocr
     ExecStartPre=-/usr/bin/docker rm receiptly-ocr
-    ExecStart=/usr/bin/docker run --name receiptly-ocr --network receiptly_default -p 8000:8000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/ocr --log-opt awslogs-stream=receiptly-ocr --env-file /opt/receiptly/ocr/.env python-ocr:latest
+    ExecStartPre=/usr/bin/bash -c 'eval $(aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com)'
+    ExecStart=/usr/bin/bash -c 'docker run --name receiptly-ocr --network receiptly_default -p 8000:8000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/ocr --log-opt awslogs-stream=receiptly-ocr --env-file /opt/receiptly/ocr/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .python_ocr_repository):latest'
     ExecStop=/usr/bin/docker stop receiptly-ocr
+    Restart=always
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+    
+    # Create systemd service for LLM Service
+    cat > /etc/systemd/system/receiptly-llm.service <<'EOF'
+    [Unit]
+    Description=Receiptly LLM Service
+    After=docker.service
+    Requires=docker.service
+    
+    [Service]
+    Type=simple
+    WorkingDirectory=/opt/receiptly/llm
+    ExecStartPre=-/usr/bin/docker stop receiptly-llm
+    ExecStartPre=-/usr/bin/docker rm receiptly-llm
+    ExecStartPre=/usr/bin/bash -c 'eval $(aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com)'
+    ExecStart=/usr/bin/bash -c 'docker run --name receiptly-llm --network receiptly_default -p 8500:8500 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/llm --log-opt awslogs-stream=receiptly-llm --env-file /opt/receiptly/llm/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .llm_service_repository):latest'
+    ExecStop=/usr/bin/docker stop receiptly-llm
     Restart=always
     
     [Install]

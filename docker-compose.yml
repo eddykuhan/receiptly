@@ -18,6 +18,31 @@ services:
       timeout: 5s
       retries: 5
 
+  llm-service:
+    build:
+      context: ./llm_service
+      dockerfile: Dockerfile
+    container_name: receiptly-llm-service
+    ports:
+      - "8500:8500"
+    environment:
+      - USE_GROQ=${USE_GROQ:-false}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MODEL_NAME=${MODEL_NAME:-gpt-4o-mini}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - HOST=0.0.0.0
+      - PORT=8500
+    env_file:
+      - ./llm_service/.env
+    networks:
+      - receiptly-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8500/docs').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
   python-ocr:
     build:
       context: ./python-ocr
@@ -28,10 +53,14 @@ services:
     environment:
       - AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=${AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT}
       - AZURE_DOCUMENT_INTELLIGENCE_KEY=${AZURE_DOCUMENT_INTELLIGENCE_KEY}
+      - LLM_SERVICE_URL=http://llm-service:8500
     env_file:
       - ./python-ocr/.env
     networks:
       - receiptly-network
+    depends_on:
+      llm-service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

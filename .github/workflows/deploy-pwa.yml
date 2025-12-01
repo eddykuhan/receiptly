@@ -16,7 +16,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-lates'
+    runs-on: ubuntu-latest
     
     permissions:
       contents: read
