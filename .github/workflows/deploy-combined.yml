@@ -160,36 +160,99 @@ jobs:
         run: |
           echo "🏗️ Building and pushing .NET API..."
           cd dotnet-api
-          docker build --platform linux/amd64 -t ${{ steps.secrets.outputs.dotnet_api_repo }}:latest .
-          docker tag ${{ steps.secrets.outputs.dotnet_api_repo }}:latest ${{ steps.secrets.outputs.dotnet_api_repo }}:${{ github.sha }}
+          
+          # Enable BuildKit for better caching
+          export DOCKER_BUILDKIT=1
+          
+          # Build with cache from ECR
+          docker build \
+            --platform linux/amd64 \
+            --cache-from ${{ steps.secrets.outputs.dotnet_api_repo }}:cache \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ steps.secrets.outputs.dotnet_api_repo }}:latest \
+            -t ${{ steps.secrets.outputs.dotnet_api_repo }}:${{ github.sha }} \
+            .
+          
+          # Push all tags
           docker push ${{ steps.secrets.outputs.dotnet_api_repo }}:latest
           docker push ${{ steps.secrets.outputs.dotnet_api_repo }}:${{ github.sha }}
+          
+          # Push cache layer for next build
+          docker tag ${{ steps.secrets.outputs.dotnet_api_repo }}:latest ${{ steps.secrets.outputs.dotnet_api_repo }}:cache
+          docker push ${{ steps.secrets.outputs.dotnet_api_repo }}:cache
+          
           echo "✅ .NET API pushed to ECR"
-          docker rmi ${{ steps.secrets.outputs.dotnet_api_repo }}:latest ${{ steps.secrets.outputs.dotnet_api_repo }}:${{ github.sha }}
+          
+          # Clean up to save disk space
+          docker rmi ${{ steps.secrets.outputs.dotnet_api_repo }}:latest \
+            ${{ steps.secrets.outputs.dotnet_api_repo }}:${{ github.sha }} \
+            ${{ steps.secrets.outputs.dotnet_api_repo }}:cache 2>/dev/null || true
           df -h
 
       - name: Build and Push Python OCR to ECR
         run: |
           echo "🏗️ Building and pushing Python OCR..."
           cd python-ocr
-          docker build --platform linux/amd64 -t ${{ steps.secrets.outputs.python_ocr_repo }}:latest .
-          docker tag ${{ steps.secrets.outputs.python_ocr_repo }}:latest ${{ steps.secrets.outputs.python_ocr_repo }}:${{ github.sha }}
+          
+          # Enable BuildKit for better caching
+          export DOCKER_BUILDKIT=1
+          
+          # Build with cache from ECR
+          docker build \
+            --platform linux/amd64 \
+            --cache-from ${{ steps.secrets.outputs.python_ocr_repo }}:cache \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ steps.secrets.outputs.python_ocr_repo }}:latest \
+            -t ${{ steps.secrets.outputs.python_ocr_repo }}:${{ github.sha }} \
+            .
+          
+          # Push all tags
           docker push ${{ steps.secrets.outputs.python_ocr_repo }}:latest
           docker push ${{ steps.secrets.outputs.python_ocr_repo }}:${{ github.sha }}
+          
+          # Push cache layer for next build
+          docker tag ${{ steps.secrets.outputs.python_ocr_repo }}:latest ${{ steps.secrets.outputs.python_ocr_repo }}:cache
+          docker push ${{ steps.secrets.outputs.python_ocr_repo }}:cache
+          
           echo "✅ Python OCR pushed to ECR"
-          docker rmi ${{ steps.secrets.outputs.python_ocr_repo }}:latest ${{ steps.secrets.outputs.python_ocr_repo }}:${{ github.sha }}
+          
+          # Clean up to save disk space
+          docker rmi ${{ steps.secrets.outputs.python_ocr_repo }}:latest \
+            ${{ steps.secrets.outputs.python_ocr_repo }}:${{ github.sha }} \
+            ${{ steps.secrets.outputs.python_ocr_repo }}:cache 2>/dev/null || true
           df -h
 
       - name: Build and Push LLM Service to ECR
         run: |
           echo "🏗️ Building and pushing LLM Service..."
           cd llm_service
-          docker build --platform linux/amd64 -t ${{ steps.secrets.outputs.llm_service_repo }}:latest .
-          docker tag ${{ steps.secrets.outputs.llm_service_repo }}:latest ${{ steps.secrets.outputs.llm_service_repo }}:${{ github.sha }}
+          
+          # Enable BuildKit for better caching
+          export DOCKER_BUILDKIT=1
+          
+          # Build with cache from ECR
+          docker build \
+            --platform linux/amd64 \
+            --cache-from ${{ steps.secrets.outputs.llm_service_repo }}:cache \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ steps.secrets.outputs.llm_service_repo }}:latest \
+            -t ${{ steps.secrets.outputs.llm_service_repo }}:${{ github.sha }} \
+            .
+          
+          # Push all tags
           docker push ${{ steps.secrets.outputs.llm_service_repo }}:latest
           docker push ${{ steps.secrets.outputs.llm_service_repo }}:${{ github.sha }}
+          
+          # Push cache layer for next build
+          docker tag ${{ steps.secrets.outputs.llm_service_repo }}:latest ${{ steps.secrets.outputs.llm_service_repo }}:cache
+          docker push ${{ steps.secrets.outputs.llm_service_repo }}:cache
+          
           echo "✅ LLM Service pushed to ECR"
-          docker rmi ${{ steps.secrets.outputs.llm_service_repo }}:latest ${{ steps.secrets.outputs.llm_service_repo }}:${{ github.sha }}
+          
+          # Clean up to save disk space
+          docker rmi ${{ steps.secrets.outputs.llm_service_repo }}:latest \
+            ${{ steps.secrets.outputs.llm_service_repo }}:${{ github.sha }} \
+            ${{ steps.secrets.outputs.llm_service_repo }}:cache 2>/dev/null || true
           df -h
 
       - name: Create environment files
