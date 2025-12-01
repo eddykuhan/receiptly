@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Receiptly.Infrastructure.Configuration;
 
 namespace Receiptly.Infrastructure.Services;
 
@@ -8,13 +9,12 @@ public class LlmServiceClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<LlmServiceClient> _logger;
-    private const string BaseUrl = "http://localhost:8500";
 
-    public LlmServiceClient(HttpClient httpClient, ILogger<LlmServiceClient> logger)
+    public LlmServiceClient(HttpClient httpClient, LlmServiceSecretsConfig llmConfig, ILogger<LlmServiceClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
-        _httpClient.BaseAddress = new Uri(BaseUrl);
+        _httpClient.BaseAddress = new Uri(llmConfig.BaseUrl);
     }
 
     public async Task<string> CanonicalizeItemAsync(string rawItem)

@@ -246,12 +246,87 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReceiptProcessingService, ReceiptProcessingService>();
         services.AddScoped<IPurchaseAnalyticsService, PurchaseAnalyticsService>();
 
-        // LLM Services
-        services.AddHttpClient<LlmServiceClient>();
+        // LLM Services - configuration added via AddLlmService method
         services.AddScoped<CanonicalizationService>();
 
         // AutoMapper
         services.AddAutoMapper(typeof(Program).Assembly);
+
+        return services;
+    }
+
+    public static async Task<IServiceCollection> AddLlmService(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
+    {
+        LlmServiceSecretsConfig llmConfig;
+
+        // In Development mode, prioritize appsettings configuration
+        if (environment.IsDevelopment())
+        {
+            var configuredBaseUrl = configuration["LlmService:BaseUrl"];
+            
+            if (!string.IsNullOrEmpty(configuredBaseUrl))
+            {
+                Log.Information("Development mode: Using LLM service URL from configuration: {BaseUrl}", configuredBaseUrl);
+                
+                llmConfig = new LlmServiceSecretsConfig
+                {
+                    BaseUrl = configuredBaseUrl,
+                    HealthCheckUrl = configuration["LlmService:HealthCheckUrl"] ?? $"{configuredBaseUrl}/health"
+                };
+                
+                services.AddSingleton(llmConfig);
+                services.AddHttpClient<LlmServiceClient>()
+                    .ConfigureHttpClient(client =>
+                    {
+                        client.Timeout = TimeSpan.FromMinutes(2); // LLM processing timeout
+                    })
+                    .AddPolicyHandler(GetRetryPolicy());
+
+                return services;
+            }
+        }
+
+        // Retrieve LLM service configuration from AWS Secrets Manager (Production)
+        try
+        {
+            var secretId = configuration["AWS:LlmSecretId"] ?? "receiptly/llm/service";
+            var region = configuration["AWS:Region"] ?? "ap-southeast-1";
+
+            Log.Information("Retrieving LLM service configuration from Secrets Manager: {SecretId}", secretId);
+
+            using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
+            var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+            {
+                SecretId = secretId
+            });
+
+            llmConfig = JsonSerializer.Deserialize<LlmServiceSecretsConfig>(secretResponse.SecretString)
+                ?? throw new InvalidOperationException("Failed to deserialize LLM service configuration from Secrets Manager");
+
+            Log.Information("Successfully retrieved LLM service configuration: {BaseUrl}", llmConfig.BaseUrl);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to retrieve LLM service configuration from Secrets Manager. Falling back to configuration.");
+
+            // Fallback to appsettings.json/user secrets for local development
+            llmConfig = new LlmServiceSecretsConfig
+            {
+                BaseUrl = configuration["LlmService:BaseUrl"] ?? "http://localhost:8500",
+                HealthCheckUrl = configuration["LlmService:HealthCheckUrl"] ?? "http://localhost:8500/health"
+            };
+        }
+
+        services.AddSingleton(llmConfig);
+        services.AddHttpClient<LlmServiceClient>()
+            .ConfigureHttpClient(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(2); // LLM processing timeout
+            })
+            .AddPolicyHandler(GetRetryPolicy());
 
         return services;
     }

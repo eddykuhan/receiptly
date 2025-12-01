@@ -50,6 +50,9 @@ try
     // Configure OCR Service
     await builder.Services.AddOcrService(builder.Configuration, builder.Environment);
 
+    // Configure LLM Service
+    await builder.Services.AddLlmService(builder.Configuration, builder.Environment);
+
     // Add Application Services
     builder.Services.AddApplicationServices();
 

@@ -1,3 +1,4 @@
+import config  # Load environment variables first
 from fastapi import FastAPI
 from services.canonicalizer import canonicalize_item, canonicalize_batch
 from services.merchant import normalize_merchant

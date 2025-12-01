@@ -230,6 +230,13 @@ module "secrets" {
         health_check_url = "http://localhost:8000/health"
       })
     }
+    "receiptly/llm/service" = {
+      description = "LLM service configuration for Receiptly ${var.environment}"
+      value = jsonencode({
+        base_url = "http://localhost:8500"
+        health_check_url = "http://localhost:8500/health"
+      })
+    }
   }
 
   recovery_window_days = 7

@@ -2,8 +2,15 @@
 EasyOCR Service for extracting store location and address information from receipts.
 """
 import easyocr
-from PIL import Image
 import io
+import re
+import PIL.Image
+
+# Patch for Pillow 10.0.0+ compatibility with EasyOCR
+if not hasattr(PIL.Image, 'ANTIALIAS'):
+    PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
+
+from PIL import Image
 import re
 from typing import Dict, Any, Optional, List
 import cv2
