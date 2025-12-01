@@ -12,6 +12,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "llm"}
+
 @app.post("/canonicalize_item")
 async def api_canonicalize_item(body: dict):
     raw = body["raw_item"]
