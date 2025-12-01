@@ -73,6 +73,7 @@ resource "aws_iam_role_policy" "cloudwatch_logs" {
         Resource = [
           "${aws_cloudwatch_log_group.ocr_service.arn}:*",
           "${aws_cloudwatch_log_group.api_service.arn}:*",
+          "${aws_cloudwatch_log_group.llm_service.arn}:*",
           "${aws_cloudwatch_log_group.system.arn}:*"
         ]
       }
