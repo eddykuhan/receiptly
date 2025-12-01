@@ -27,10 +27,6 @@ wheels/
 .env
 .env.local
 
-# Cache
-cache/
-*.cache
-
 # IDE
 .vscode/
 .idea/

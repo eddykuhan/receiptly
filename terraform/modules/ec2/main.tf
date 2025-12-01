@@ -265,7 +265,7 @@ locals {
     WorkingDirectory=/opt/receiptly/api
     ExecStartPre=-/usr/bin/docker stop receiptly-api
     ExecStartPre=-/usr/bin/docker rm receiptly-api
-    ExecStartPre=/usr/bin/bash -c 'eval $(aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com)'
+    ExecStartPre=/usr/bin/bash -c 'aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com'
     ExecStart=/usr/bin/bash -c 'docker run --name receiptly-api --network receiptly_default -p 5000:5000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/api --log-opt awslogs-stream=receiptly-api --env-file /opt/receiptly/api/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .dotnet_api_repository):latest'
     ExecStop=/usr/bin/docker stop receiptly-api
     Restart=always
@@ -286,7 +286,7 @@ locals {
     WorkingDirectory=/opt/receiptly/ocr
     ExecStartPre=-/usr/bin/docker stop receiptly-ocr
     ExecStartPre=-/usr/bin/docker rm receiptly-ocr
-    ExecStartPre=/usr/bin/bash -c 'eval $(aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com)'
+    ExecStartPre=/usr/bin/bash -c 'aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com'
     ExecStart=/usr/bin/bash -c 'docker run --name receiptly-ocr --network receiptly_default -p 8000:8000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/ocr --log-opt awslogs-stream=receiptly-ocr --env-file /opt/receiptly/ocr/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .python_ocr_repository):latest'
     ExecStop=/usr/bin/docker stop receiptly-ocr
     Restart=always
@@ -307,7 +307,7 @@ locals {
     WorkingDirectory=/opt/receiptly/llm
     ExecStartPre=-/usr/bin/docker stop receiptly-llm
     ExecStartPre=-/usr/bin/docker rm receiptly-llm
-    ExecStartPre=/usr/bin/bash -c 'eval $(aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com)'
+    ExecStartPre=/usr/bin/bash -c 'aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com'
     ExecStart=/usr/bin/bash -c 'docker run --name receiptly-llm --network receiptly_default -p 8500:8500 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/llm --log-opt awslogs-stream=receiptly-llm --env-file /opt/receiptly/llm/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .llm_service_repository):latest'
     ExecStop=/usr/bin/docker stop receiptly-llm
     Restart=always
@@ -316,8 +316,11 @@ locals {
     WantedBy=multi-user.target
     EOF
     
-    # Reload systemd
+    # Reload systemd and enable services
     systemctl daemon-reload
+    systemctl enable receiptly-llm
+    systemctl enable receiptly-ocr
+    systemctl enable receiptly-api
     
     ${var.enable_https ? <<-HTTPS
     # ==========================================
@@ -431,11 +434,12 @@ locals {
 
 # EC2 Instance
 resource "aws_instance" "ocr_service" {
-  ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = var.instance_type
-  subnet_id              = var.subnet_id
-  vpc_security_group_ids = [aws_security_group.ocr_service.id]
-  iam_instance_profile   = aws_iam_instance_profile.ocr_instance.name
+  ami                         = data.aws_ami.amazon_linux_2023.id
+  instance_type               = var.instance_type
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = [aws_security_group.ocr_service.id]
+  iam_instance_profile        = aws_iam_instance_profile.ocr_instance.name
+  user_data_replace_on_change = true
   
   user_data = local.user_data
 
