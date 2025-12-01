@@ -1,17 +1,16 @@
-import os
 from openai import AsyncOpenAI
 from groq import AsyncGroq
-
-USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"
+from config import get_settings
 
 class LLMClient:
     def __init__(self):
-        if USE_GROQ:
-            self.client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
+        settings = get_settings()
+        if settings.USE_GROQ:
+            self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
             self.model = "llama-3.1-8b-instant"
         else:
-            self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            self.model = os.getenv("MODEL_NAME", "gpt-4o-mini")
+            self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+            self.model = settings.MODEL_NAME
 
     async def chat(self, system_prompt, user_prompt):
         response = await self.client.chat.completions.create(

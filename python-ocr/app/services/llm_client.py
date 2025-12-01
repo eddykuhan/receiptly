@@ -1,11 +1,13 @@
 import httpx
 from typing import List, Dict, Any, Optional
+from app.core.config import get_settings
 
 class LlmServiceClient:
     """Client for calling the LLM microservice."""
     
-    def __init__(self, base_url: str = "http://localhost:8500"):
-        self.base_url = base_url
+    def __init__(self, base_url: str = None):
+        settings = get_settings()
+        self.base_url = base_url or settings.LLM_SERVICE_URL
         self.timeout = 30.0  # 30 second timeout for LLM calls
     
     async def select_best_location(self, candidates: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:

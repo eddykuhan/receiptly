@@ -112,6 +112,29 @@ output "s3_secret_retrieval_command" {
 }
 
 # ==========================================
+# ECR Outputs
+# ==========================================
+output "ecr_dotnet_api_repository_url" {
+  description = "ECR repository URL for .NET API"
+  value       = module.ecr_dotnet_api.repository_url
+}
+
+output "ecr_python_ocr_repository_url" {
+  description = "ECR repository URL for Python OCR"
+  value       = module.ecr_python_ocr.repository_url
+}
+
+output "ecr_llm_service_repository_url" {
+  description = "ECR repository URL for LLM Service"
+  value       = module.ecr_llm_service.repository_url
+}
+
+output "ecr_registry_id" {
+  description = "ECR registry ID"
+  value       = module.ecr_dotnet_api.registry_id
+}
+
+# ==========================================
 # Setup Instructions
 # ==========================================
 output "setup_complete" {

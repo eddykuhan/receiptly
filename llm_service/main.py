@@ -6,7 +6,11 @@ from services.category import classify_category
 from services.cleaner import clean_receipt
 from services.location_selector import select_best_location
 
-app = FastAPI(title="Receiptly LLM Service")
+app = FastAPI(
+    title="Receiptly LLM Service",
+    description="Microservice for LLM-powered receipt processing tasks",
+    version="1.0.0"
+)
 
 @app.post("/canonicalize_item")
 async def api_canonicalize_item(body: dict):

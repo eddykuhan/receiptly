@@ -116,3 +116,32 @@ variable "azure_cv_api_key" {
   sensitive   = true
   default     = ""
 }
+
+# ==========================================
+# LLM Service Configuration
+# ==========================================
+variable "openai_api_key" {
+  description = "OpenAI API key for LLM service"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "groq_api_key" {
+  description = "Groq API key for LLM service (alternative to OpenAI)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "use_groq" {
+  description = "Use Groq instead of OpenAI for LLM service"
+  type        = bool
+  default     = false
+}
+
+variable "model_name" {
+  description = "LLM model name to use"
+  type        = string
+  default     = "gpt-4o-mini"
+}
