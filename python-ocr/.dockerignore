@@ -1,12 +1,16 @@
-# Python
+# Python virtual environments (CRITICAL - prevents 900MB+ from being copied)
+venv/
+.venv/
+env/
+ENV/
+*.venv
+
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
-venv/
-ENV/
 build/
 develop-eggs/
 dist/
@@ -22,6 +26,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Environment
 .env
