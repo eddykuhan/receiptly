@@ -330,12 +330,12 @@ locals {
     # Install Nginx and Certbot
     dnf install -y nginx certbot python3-certbot-nginx
     
-    # Create Nginx configuration for reverse proxy
+    # Create Nginx configuration for subdomain-based reverse proxy
     cat > /etc/nginx/conf.d/receiptly.conf <<'NGINXEOF'
-    # HTTP server - redirect to HTTPS
+    # Redirect HTTP to HTTPS for all domains
     server {
         listen 80;
-        server_name ${var.domain_name};
+        server_name ${var.domain_name} api.${var.domain_name} ocr.${var.domain_name} llm.${var.domain_name};
         
         # Let's Encrypt challenge location
         location /.well-known/acme-challenge/ {
@@ -344,57 +344,98 @@ locals {
         
         # Redirect all other HTTP traffic to HTTPS
         location / {
-            return 301 https://$server_name$request_uri;
+            return 301 https://$${server_name}$${request_uri};
         }
     }
     
-    # HTTPS server
+    # Main domain - redirect to API Swagger
     server {
         listen 443 ssl http2;
         server_name ${var.domain_name};
         
-        # SSL certificate paths (will be configured by certbot)
         ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
-        
-        # SSL configuration
         ssl_protocols TLSv1.2 TLSv1.3;
         ssl_ciphers HIGH:!aNULL:!MD5;
         ssl_prefer_server_ciphers on;
         
-        # API endpoints
-        location /api/ {
-            proxy_pass http://localhost:5000/api/;
+        location / {
+            return 301 https://api.${var.domain_name}/swagger;
+        }
+    }
+    
+    # API subdomain - .NET API service
+    server {
+        listen 443 ssl http2;
+        server_name api.${var.domain_name};
+        
+        ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+        
+        # Proxy all requests to .NET API
+        location / {
+            proxy_pass http://localhost:5000;
             proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_cache_bypass $http_upgrade;
+            proxy_set_header Host $${host};
+            proxy_set_header X-Real-IP $${remote_addr};
+            proxy_set_header X-Forwarded-For $${proxy_add_x_forwarded_for};
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $${host};
+            proxy_cache_bypass $${http_upgrade};
             proxy_read_timeout 90;
+            client_max_body_size 15M;
         }
+    }
+    
+    # OCR subdomain - Python OCR service
+    server {
+        listen 443 ssl http2;
+        server_name ocr.${var.domain_name};
         
-        # OCR endpoints
-        location /ocr/ {
-            proxy_pass http://localhost:8000/;
+        ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+        
+        # Proxy all requests to OCR service
+        location / {
+            proxy_pass http://localhost:8000;
             proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_cache_bypass $http_upgrade;
+            proxy_set_header Host $${host};
+            proxy_set_header X-Real-IP $${remote_addr};
+            proxy_set_header X-Forwarded-For $${proxy_add_x_forwarded_for};
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_cache_bypass $${http_upgrade};
             proxy_read_timeout 300;
-            client_max_body_size 10M;
+            client_max_body_size 15M;
         }
+    }
+    
+    # LLM subdomain - LLM service
+    server {
+        listen 443 ssl http2;
+        server_name llm.${var.domain_name};
         
-        # Health check endpoint
-        location /health {
-            return 200 'OK';
-            add_header Content-Type text/plain;
+        ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+        
+        # Proxy all requests to LLM service
+        location / {
+            proxy_pass http://localhost:8500;
+            proxy_http_version 1.1;
+            proxy_set_header Host $${host};
+            proxy_set_header X-Real-IP $${remote_addr};
+            proxy_set_header X-Forwarded-For $${proxy_add_x_forwarded_for};
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_cache_bypass $${http_upgrade};
+            proxy_read_timeout 90;
         }
     }
     NGINXEOF
@@ -409,13 +450,16 @@ locals {
     # Wait for services to be ready
     sleep 10
     
-    # Obtain SSL certificate from Let's Encrypt
+    # Obtain SSL certificate from Let's Encrypt for all subdomains
     certbot certonly --nginx \
       --non-interactive \
       --agree-tos \
       --email ${var.letsencrypt_email} \
       -d ${var.domain_name} \
-      --redirect
+      -d api.${var.domain_name} \
+      -d ocr.${var.domain_name} \
+      -d llm.${var.domain_name} \
+      --expand
     
     # Reload Nginx to apply SSL certificate
     systemctl reload nginx
