@@ -1,6 +1,6 @@
 # Multi-stage build for Python OCR Service
 # Stage 1: Builder - Install dependencies
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # Build arguments for metadata
 ARG BUILD_DATE
@@ -14,6 +14,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     gcc \
     g++ \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    libgl1 \
+    libglvnd0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only requirements first for better caching
@@ -33,9 +40,12 @@ RUN pip install --upgrade pip && \
     find /opt/venv -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
     find /opt/venv -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
     find /opt/venv -type f -name "*.pyc" -delete && \
-    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
-    # Remove EasyOCR models - they'll be downloaded on first use
-    rm -rf /root/.EasyOCR 2>/dev/null || true
+    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+
+# Pre-download EasyOCR models during build to avoid runtime downloads
+# This increases image size but ensures fast, reliable startup
+# Models download to /root/.EasyOCR by default
+RUN python -c "import easyocr; reader = easyocr.Reader(['en'], gpu=False, download_enabled=True)"
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.11-slim
@@ -68,6 +78,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
+# Copy pre-downloaded EasyOCR models from builder
+# Models are downloaded to /root/.EasyOCR, copy to /app/.EasyOCR for non-root user
+COPY --from=builder /root/.EasyOCR /app/.EasyOCR
+
 # Set environment variables
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
@@ -79,7 +93,6 @@ COPY ./app ./app
 
 # Create non-root user and set permissions
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app/.EasyOCR && \
     chown -R appuser:appuser /app
 USER appuser
 
