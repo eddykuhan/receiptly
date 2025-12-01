@@ -57,9 +57,44 @@ README.md
 
 # Tests
 tests/
+test_*.py
+reproduce_*.py
+demo_*.py
+manual_test_*.py
 pytest.ini
 .pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+.tox/
 
 # CI/CD
 .github/
 .gitlab-ci.yml
+
+# Debug directories
+debug_ocr/
+
+# Migration and status files
+MIGRATION_*.md
+*_STATUS.md
+*_COMPLETE.md
+PHASE*.md
+EASYOCR_STATUS.md
+
+# Example and demo files
+examples/
+demo_*.py
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Additional Python
+.Python
+.venv
+*.egg
+.installed.cfg
