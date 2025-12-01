@@ -101,26 +101,54 @@ jobs:
           echo "s3_region=$S3_REGION" >> $GITHUB_OUTPUT
           echo "✅ Retrieved all credentials from Secrets Manager"
 
-      - name: Build .NET API Docker image
+      - name: Free Disk Space
         run: |
+          echo "🧹 Freeing up disk space..."
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker system prune -af
+          echo "✅ Disk space freed"
+          df -h
+
+      - name: Build and Upload .NET API
+        run: |
+          echo "🏗️ Building .NET API..."
           cd dotnet-api
           docker build --platform linux/amd64 -t receiptly-api:latest .
+          cd ..
+          
+          echo "💾 Saving .NET API image..."
+          docker save receiptly-api:latest | gzip > api-image.tar.gz
+          
+          echo "☁️ Uploading .NET API to S3..."
+          aws s3 cp api-image.tar.gz s3://receiptly-terraform-state/deployments/api-image.tar.gz
+          
+          echo "🧹 Cleaning up .NET API artifacts..."
+          rm api-image.tar.gz
+          docker rmi receiptly-api:latest
+          echo "✅ .NET API processed and cleaned up"
+          df -h
 
-      - name: Build Python OCR Docker image
+      - name: Build and Upload Python OCR
         run: |
+          echo "🏗️ Building Python OCR..."
           cd python-ocr
           docker build --platform linux/amd64 -t python-ocr:latest .
-
-      - name: Save Docker images
-        run: |
-          docker save receiptly-api:latest | gzip > api-image.tar.gz
+          cd ..
+          
+          echo "💾 Saving Python OCR image..."
           docker save python-ocr:latest | gzip > ocr-image.tar.gz
-
-      - name: Upload images to S3
-        run: |
-          aws s3 cp api-image.tar.gz s3://receiptly-terraform-state/deployments/api-image.tar.gz
+          
+          echo "☁️ Uploading Python OCR to S3..."
           aws s3 cp ocr-image.tar.gz s3://receiptly-terraform-state/deployments/ocr-image.tar.gz
-          echo "✅ Uploaded Docker images to S3"
+          
+          echo "🧹 Cleaning up Python OCR artifacts..."
+          rm ocr-image.tar.gz
+          docker rmi python-ocr:latest
+          echo "✅ Python OCR processed and cleaned up"
+          df -h
 
       - name: Create environment files
         run: |
@@ -159,12 +187,14 @@ jobs:
               "aws s3 cp s3://receiptly-terraform-state/deployments/api-image.tar.gz .",
               "aws s3 cp s3://receiptly-terraform-state/deployments/api.env .env",
               "docker load < api-image.tar.gz",
+              "rm api-image.tar.gz",
               "systemctl restart receiptly-api",
               "echo \"=== Downloading Python OCR image ===\"",
               "cd /opt/receiptly/ocr",
               "aws s3 cp s3://receiptly-terraform-state/deployments/ocr-image.tar.gz .",
               "aws s3 cp s3://receiptly-terraform-state/deployments/ocr.env .env",
               "docker load < ocr-image.tar.gz",
+              "rm ocr-image.tar.gz",
               "systemctl restart receiptly-ocr",
               "echo \"=== Checking services ===\"",
               "systemctl status receiptly-api --no-pager || true",
