@@ -4,3 +4,5 @@ openai
 groq
 python-dotenv
 pydantic-settings
+python-multipart
+httpx

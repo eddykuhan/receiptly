@@ -1,0 +1,34 @@
+{
+    "project": {
+        "name": "Receipt Merchant Extractor",
+        "version": "1.0.0",
+        "description": "Extract merchant name and address from receipt images using GPT-4 Vision",
+        "author": "Your Name",
+        "license": "MIT"
+    },
+    "api": {
+        "provider": "OpenAI",
+        "model": "gpt-4o",
+        "max_tokens": 500,
+        "temperature": 0.2
+    },
+    "extraction": {
+        "fields": [
+            "merchant_name",
+            "merchant_address"
+        ],
+        "fallback_value": "Not found"
+    },
+    "supported_formats": [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".bmp",
+        ".tiff",
+        ".webp"
+    ],
+    "directories": {
+        "input": "receipts",
+        "output": "output"
+    }
+}
