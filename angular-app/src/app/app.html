@@ -21,7 +21,8 @@
 
 
     <!-- Bottom Navigation (Mobile) -->
-    <div class="btm-nav lg:hidden z-30 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+    <div class="btm-nav lg:hidden z-30 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]"
+      style="padding-bottom: env(safe-area-inset-bottom)">
       <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
         <span class="material-icons">home</span>
         <span class="btm-nav-label text-xs">Home</span>

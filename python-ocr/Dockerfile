@@ -42,11 +42,6 @@ RUN pip install --upgrade pip && \
     find /opt/venv -type f -name "*.pyc" -delete && \
     find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
-# Pre-download EasyOCR models during build to avoid runtime downloads
-# This increases image size but ensures fast, reliable startup
-# Models download to /root/.EasyOCR by default
-RUN python -c "import easyocr; reader = easyocr.Reader(['en'], gpu=False, download_enabled=True)"
-
 # Stage 2: Runtime - Minimal production image
 FROM python:3.11-slim
 
@@ -69,8 +64,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     libgl1 \
     libglvnd0 \
-    tesseract-ocr \
-    tesseract-ocr-eng \
     curl \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
@@ -78,15 +71,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
-# Copy pre-downloaded EasyOCR models from builder
-# Models are downloaded to /root/.EasyOCR, copy to /app/.EasyOCR for non-root user
-COPY --from=builder /root/.EasyOCR /app/.EasyOCR
-
 # Set environment variables
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    EASYOCR_MODULE_PATH=/app/.EasyOCR
+    PYTHONDONTWRITEBYTECODE=1
 
 # Copy application code (only app directory, not entire context)
 COPY ./app ./app
