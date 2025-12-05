@@ -24,7 +24,7 @@ class ReceiptMerchantExtractor:
             )
         
         self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = "gpt-4o"  # GPT-4 with vision capabilities
+        self.model = "gpt-4.1"  # GPT-4 with vision capabilities
     
     def _encode_image_bytes(self, image_bytes: bytes) -> str:
         """
