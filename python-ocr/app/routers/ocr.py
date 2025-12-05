@@ -4,7 +4,6 @@ from typing import Dict, Any, Literal, List
 from ..services.document_intelligence import DocumentIntelligenceService
 from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
-from ..services.store_name_extractor import StoreNameExtractor
 from ..services.store_location_service import StoreLocationService
 from ..services.llm_client import LlmServiceClient
 from ..utils.image_utils import download_image
@@ -437,31 +436,11 @@ async def override_merchant_data_with_llm(
     
     # Step 4: Fuzzy Match Correction
     # Initialize StoreNameExtractor for fuzzy matching
-    extractor = StoreNameExtractor()
-    
+
     # Regardless of source, try to match against known chains
     current_merchant = fields.get('MerchantName', {})
     current_value = current_merchant.get('value', '') if isinstance(current_merchant, dict) else str(current_merchant)
-    
-    if current_value and len(current_value.strip()) >= 2:
-        print(f"  🔍 Checking '{current_value}' against known chains...")
-        fuzzy_match = extractor.find_best_match(current_value)
-        
-        if fuzzy_match:
-            canonical_name = fuzzy_match['store_name']
-            confidence = fuzzy_match['confidence']
-            print(f"  ✨ Fuzzy match found! Correcting '{current_value}' -> '{canonical_name}' (confidence: {confidence:.2f})")
-            
-            fields['MerchantName'] = {
-                'type': 'string',
-                'value': canonical_name,
-                'content': canonical_name,
-                'confidence': max(current_merchant.get('confidence', 0.0), confidence),
-                'source': f"{current_merchant.get('source', 'unknown')}_fuzzy_corrected"
-            }
-            merchant_name_set = True
-    
-    # If still no merchant name, set placeholder
+  # If still no merchant name, set placeholder
     if not merchant_name_set:
         fields['MerchantName'] = {
             'type': 'string',
