@@ -17,8 +17,6 @@ class DocumentIntelligenceService:
         
         self._validate_credentials(settings)
         self.client = self._create_client(settings)
-        self.preprocessor = ImagePreprocessor()
-    
     async def analyze_receipt_from_url(self, image_url: str) -> Dict[str, Any]:
         """
         Analyze a receipt from a URL using Azure Document Intelligence.
