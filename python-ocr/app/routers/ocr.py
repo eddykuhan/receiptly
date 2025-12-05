@@ -4,7 +4,6 @@ from typing import Dict, Any, Literal, List
 from ..services.document_intelligence import DocumentIntelligenceService
 from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
-from ..services.store_name_extractor import StoreNameExtractor
 from ..services.store_location_service import StoreLocationService
 from ..services.llm_client import LlmServiceClient
 from ..utils.image_utils import download_image

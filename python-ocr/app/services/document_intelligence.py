@@ -2,7 +2,6 @@ from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from typing import Dict, Any, Optional, List
 import io
-from .image_preprocessor import ImagePreprocessor
 from ..utils.image_utils import download_image
 
 
