@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, HttpUrl
 from typing import Dict, Any, Literal, List
 from ..services.document_intelligence import DocumentIntelligenceService
-from ..services.easyocr_service import EasyOCRService
 from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
 from ..services.store_name_extractor import StoreNameExtractor
@@ -13,12 +12,6 @@ from ..utils.debug import ImageDebugger, enable_debug, disable_debug
 from ..core.config import get_settings
 
 router = APIRouter()
-
-
-def get_easyocr_service() -> EasyOCRService:
-    """Factory function to create EasyOCRService with debug mode from settings."""
-    settings = get_settings()
-    return EasyOCRService(debug_mode=settings.DEBUG_TESSERACT)
 
 
 class AnalyzeRequest(BaseModel):
@@ -32,8 +25,7 @@ class AnalyzeRequest(BaseModel):
 @router.post("/analyze")
 async def analyze_receipt(
     request: AnalyzeRequest,
-    doc_service: DocumentIntelligenceService = Depends(DocumentIntelligenceService),
-    easyocr_service: EasyOCRService = Depends(get_easyocr_service)
+    doc_service: DocumentIntelligenceService = Depends(DocumentIntelligenceService)
 ) -> Dict[str, Any]:
     """
     Analyze a receipt image from a URL and return structured data with store location.
@@ -41,12 +33,11 @@ async def analyze_receipt(
     Uses:
     - Azure Layout model OR OpenCV for receipt boundary detection (optional)
     - Azure Document Intelligence for structured receipt data extraction
-    - EasyOCR for store location/address extraction (fallback if Azure fails)
+    - LLM Vision (GPT-4) for merchant name/address extraction
     
     Args:
         request: Request containing the image URL and extraction options
         doc_service: Azure Document Intelligence service instance
-        easyocr_service: EasyOCR service instance
         
     Returns:
         Dictionary containing:
@@ -120,8 +111,8 @@ async def analyze_receipt(
                         "size_bytes": len(file_bytes)
                     })
         
-        # Step 3: Store original bytes for potential EasyOCR fallback later
-        # We don't run EasyOCR yet - only if Azure fails to extract merchant info
+        # Step 3: Store original bytes for potential LLM fallback later
+        # We don't run LLM extraction yet - only if Azure fails to extract merchant info
         location_data = None
         
         # # Step 4: Preprocess image for Azure
@@ -160,17 +151,15 @@ async def analyze_receipt(
         # Step 6: Override Azure's merchant data with LLM-enhanced selection
         # Collects candidates from all strategies and uses LLM to select best
         if request.extract_location:
-            result = await override_merchant_data_with_easyocr(
+            result = await override_merchant_data_with_llm(
                 result, 
-                easyocr_service, 
                 file_bytes,
                 debugger
             )
         else:
             # Even if extraction was disabled, try fallback if Azure has missing/low-confidence merchant data
-            result = await override_merchant_data_with_easyocr(
+            result = await override_merchant_data_with_llm(
                 result, 
-                easyocr_service, 
                 file_bytes,
                 debugger
             )
@@ -265,17 +254,16 @@ def validate_receipt_confidence(azure_result: Dict[str, Any]) -> Dict[str, Any]:
 
 async def collect_location_candidates(
     azure_result: Dict[str, Any],
-    easyocr_service: 'EasyOCRService',
     image_bytes: bytes,
     debugger = None
 ) -> List[Dict[str, Any]]:
     """
     Collect all possible location candidates from different OCR strategies.
     
-    Returns a list of candidates with metadata for LLM selection.
+    Returns a list of candidates with metadata for selection.
     """
     candidates = []
-    extractor = StoreNameExtractor()
+    llm_client = LlmServiceClient()
     
     # Helper to extract field value safely
     def get_field_value(field_data, default=''):
@@ -309,61 +297,46 @@ async def collect_location_candidates(
         })
         print(f"  📋 Candidate {len(candidates)-1} (Azure): {azure_merchant_value}")
     
-    # Candidate 2: EasyOCR extraction
+    # Candidate 2: LLM Vision extraction (GPT-4 Vision)
     try:
-        easyocr_result = easyocr_service.extract_location_from_bytes(image_bytes)
-        if easyocr_result and easyocr_result.get('success'):
-            easyocr_location = easyocr_result.get('location', {})
-            easyocr_store = easyocr_location.get('store_name')
+        llm_result = await llm_client.extract_merchant_from_image(image_bytes)
+        if llm_result and llm_result.get('success'):
+            llm_store = llm_result.get('merchant_name', '').strip()
+            llm_address = llm_result.get('merchant_address', '').strip()
             
-            if easyocr_store and len(easyocr_store.strip()) >= 2:
-                candidates.append({
-                    "store_name": easyocr_store,
-                    "address": easyocr_location.get('address'),
-                    "phone": easyocr_location.get('phone'),
-                    "postal_code": easyocr_location.get('postal_code'),
-                    "source": "easyocr",
-                    "confidence": easyocr_location.get('confidence', 0.0),
-                    "metadata": {
-                        "method": "EasyOCR",
-                        "country": easyocr_location.get('country')
-                    }
-                })
-                print(f"  📋 Candidate {len(candidates)-1} (EasyOCR): {easyocr_store}")
+            if llm_store and len(llm_store) >= 2:
+                # Check if store name is different from Azure (avoid duplicates)
+                existing_names = [c['store_name'].lower() for c in candidates]
+                if llm_store.lower() not in existing_names:
+                    candidates.append({
+                        "store_name": llm_store,
+                        "address": llm_address if llm_address else None,
+                        "phone": None,
+                        "postal_code": None,
+                        "source": "llm_vision",
+                        "confidence": 0.9,  # High confidence for GPT-4 Vision
+                        "metadata": {
+                            "method": "GPT-4 Vision"
+                        }
+                    })
+                    print(f"  📋 Candidate {len(candidates)-1} (LLM Vision): {llm_store}")
+                else:
+                    # Update existing Azure candidate with LLM address if better
+                    for c in candidates:
+                        if c['store_name'].lower() == llm_store.lower():
+                            if llm_address and (not c.get('address') or len(llm_address) > len(c.get('address', ''))):
+                                c['address'] = llm_address
+                                print(f"  📝 Enhanced Azure candidate with LLM address: {llm_address[:50]}...")
+                            break
     except Exception as e:
-        print(f"  ⚠️ EasyOCR extraction failed: {str(e)}")
-    
-    # Candidate 3: Fallback heuristics
-    try:
-        fallback_result = extractor.extract_from_full_image(image_bytes)
-        if fallback_result and fallback_result.get('store_name'):
-            fallback_name = fallback_result['store_name']
-            
-            # Only add if different from existing candidates
-            existing_names = [c['store_name'].lower() for c in candidates]
-            if fallback_name.lower() not in existing_names:
-                candidates.append({
-                    "store_name": fallback_name,
-                    "address": None,
-                    "phone": None,
-                    "postal_code": None,
-                    "source": "fallback",
-                    "confidence": fallback_result.get('confidence', 0.0),
-                    "metadata": {
-                        "method": f"Fallback {fallback_result.get('method', 'unknown')}"
-                    }
-                })
-                print(f"  📋 Candidate {len(candidates)-1} (Fallback): {fallback_name}")
-    except Exception as e:
-        print(f"  ⚠️ Fallback extraction failed: {str(e)}")
+        print(f"  ⚠️ LLM Vision extraction failed: {str(e)}")
     
     print(f"  ✅ Collected {len(candidates)} location candidates")
     return candidates
 
 
-async def override_merchant_data_with_easyocr(
+async def override_merchant_data_with_llm(
     azure_result: Dict[str, Any],
-    easyocr_service: 'EasyOCRService',
     image_bytes: bytes = None,
     debugger = None
 ) -> Dict[str, Any]:
@@ -371,14 +344,13 @@ async def override_merchant_data_with_easyocr(
     Override Azure Document Intelligence merchant/store fields using LLM-enhanced selection.
     
     **New Logic:**
-    1. Collect location candidates from all strategies (Azure, EasyOCR, Fallback)
-    2. Use LLM to select the best candidate
+    1. Collect location candidates from Azure and LLM Vision
+    2. Select best candidate based on confidence
     3. Apply fuzzy matching correction
     4. Match against Google Places
     
     Args:
         azure_result: Azure Document Intelligence result dictionary
-        easyocr_service: EasyOCR service instance
         image_bytes: Original image bytes for extraction
         debugger: Optional debugger instance
         
@@ -395,7 +367,6 @@ async def override_merchant_data_with_easyocr(
     print("  🔍 Collecting location candidates from all strategies...")
     candidates = await collect_location_candidates(
         azure_result,
-        easyocr_service,
         image_bytes,
         debugger
     )
@@ -403,77 +374,30 @@ async def override_merchant_data_with_easyocr(
     if debugger:
         debugger.save_json(candidates, "03_location_candidates")
     
-    # Step 2: Use LLM to select best candidate (if multiple)
+    # Step 2: Select best candidate based on confidence (prefer LLM Vision > Azure)
     selected_candidate = None
-    address_candidate = None
-    llm_selection_result = None
     
-    if len(candidates) > 1:
-        print(f"  🤖 Using LLM to combine best parts from {len(candidates)} candidates...")
-        try:
-            llm_client = LlmServiceClient()
-            llm_selection_result = await llm_client.select_best_location(candidates)
-            
-            if llm_selection_result:
-                store_idx = llm_selection_result.get('best_store_name_index', 0)
-                address_idx = llm_selection_result.get('best_address_index', store_idx)
-                reasoning = llm_selection_result.get('reasoning', 'No reasoning provided')
-                llm_confidence = llm_selection_result.get('confidence', 0.5)
-                
-                selected_candidate = candidates[store_idx]
-                address_candidate = candidates[address_idx] if address_idx != store_idx else None
-                
-                print(f"  ✨ LLM combined data:")
-                print(f"     Store Name from: Candidate {store_idx} ({candidates[store_idx]['source']})")
-                if address_candidate:
-                    print(f"     Address from: Candidate {address_idx} ({candidates[address_idx]['source']})")
-                print(f"     Reasoning: {reasoning}")
-                print(f"     LLM Confidence: {llm_confidence:.2f}")
-                
-                if debugger:
-                    debugger.save_json(llm_selection_result, "04_llm_selection")
-            else:
-                # Fallback to highest confidence for store name
-                store_idx = max(range(len(candidates)), key=lambda i: candidates[i].get("confidence", 0.0))
-                selected_candidate = candidates[store_idx]
-                address_candidate = None # No separate address candidate in fallback
-                print(f"  ⚠️ LLM selection failed, using highest confidence candidate {store_idx} for all fields")
-        except Exception as e:
-            print(f"  ⚠️ LLM selection error: {str(e)}")
-            # Fallback to highest confidence for store name
-            store_idx = max(range(len(candidates)), key=lambda i: candidates[i].get("confidence", 0.0))
-            selected_candidate = candidates[store_idx]
-            address_candidate = None # No separate address candidate in fallback
-            print(f"  ⚠️ Using fallback: highest confidence candidate {store_idx} for all fields")
-    elif len(candidates) == 1:
-        selected_candidate = candidates[0]
-        print(f"  ℹ️ Only one candidate available, using: {selected_candidate['source']}")
+    if len(candidates) > 0:
+        # Sort by confidence and prefer llm_vision source
+        def candidate_priority(c):
+            # LLM Vision gets priority, then sort by confidence
+            source_priority = 1 if c.get('source') == 'llm_vision' else 0
+            return (source_priority, c.get('confidence', 0.0))
+        
+        sorted_candidates = sorted(candidates, key=candidate_priority, reverse=True)
+        selected_candidate = sorted_candidates[0]
+        print(f"  ✨ Selected best candidate: {selected_candidate['source']} (confidence: {selected_candidate.get('confidence', 0.0):.2f})")
     else:
         print("  ⚠️ No location candidates found")
     
-    # Step 3: Apply combined data to fields
+    # Step 3: Apply selected candidate data to fields
     merchant_name_set = False
     
     if selected_candidate:
-        # Use LLM-parsed values if available, otherwise use candidate values
-        if llm_selection_result:
-            store_name = llm_selection_result.get('parsed_store_name') or selected_candidate.get('store_name')
-            # If LLM provided parsed_location, use it; otherwise check address_candidate
-            parsed_location = llm_selection_result.get('parsed_location')
-            if parsed_location:
-                address = parsed_location
-            elif address_candidate:
-                # Use address from different candidate
-                address = address_candidate.get('address')
-            else:
-                address = selected_candidate.get('address')
-        else:
-            store_name = selected_candidate.get('store_name')
-            address = selected_candidate.get('address')
-        
-        # Combine phone and postal from either candidate
-        phone = selected_candidate.get('phone') or (address_candidate.get('phone') if address_candidate else None)
-        postal_code = selected_candidate.get('postal_code') or (address_candidate.get('postal_code') if address_candidate else None)
+        store_name = selected_candidate.get('store_name')
+        address = selected_candidate.get('address')
+        phone = selected_candidate.get('phone')
+        postal_code = selected_candidate.get('postal_code')
         source = selected_candidate.get('source')
         confidence = selected_candidate.get('confidence', 0.0)
         
@@ -484,28 +408,21 @@ async def override_merchant_data_with_easyocr(
                 'value': store_name,
                 'content': store_name,
                 'confidence': confidence,
-                'source': f'{source}_llm_parsed' if llm_selection_result and llm_selection_result.get('parsed_store_name') else f'{source}_llm_selected' if llm_selection_result else source
+                'source': source
             }
             merchant_name_set = True
             print(f"  ✓ Set MerchantName: {store_name}")
-            if llm_selection_result and llm_selection_result.get('parsed_store_name'):
-                print(f"     (LLM parsed from: {selected_candidate.get('store_name')})")
         
         # Set MerchantAddress if available
         if address:
-            address_source = address_candidate.get('source') if address_candidate else source
             fields['MerchantAddress'] = {
                 'type': 'string',
                 'value': address,
                 'content': address,
-                'confidence': address_candidate.get('confidence', confidence) if address_candidate else confidence,
-                'source': f'{address_source}_llm_parsed' if llm_selection_result and llm_selection_result.get('parsed_location') else f'{address_source}_llm_combined' if address_candidate else source
+                'confidence': confidence,
+                'source': source
             }
             print(f"  ✓ Set MerchantAddress: {address[:50]}...")
-            if llm_selection_result and llm_selection_result.get('parsed_location'):
-                print(f"     (LLM extracted location from mixed data)")
-            elif address_candidate:
-                print(f"     (Combined from {address_source} candidate)")
         
         # Set MerchantPhoneNumber if available
         if phone and not fields.get('MerchantPhoneNumber'):
@@ -514,7 +431,7 @@ async def override_merchant_data_with_easyocr(
                 'value': phone,
                 'content': phone,
                 'confidence': confidence,
-                'source': f'{source}_llm_selected' if llm_selection_result else source
+                'source': source
             }
             print(f"  ✓ Set MerchantPhoneNumber: {phone}")
     
@@ -657,16 +574,8 @@ async def override_merchant_data_with_easyocr(
             'postal_code': selected_candidate.get('postal_code'),
             'selected_source': selected_candidate.get('source'),
             'selected_confidence': selected_candidate.get('confidence'),
-            'extraction_strategy': 'llm_enhanced_selection',
-            'llm_selection_used': llm_selection_result is not None
+            'extraction_strategy': 'confidence_based_selection'
         }
-        
-        if llm_selection_result:
-            azure_result['metadata']['llm_selection'] = {
-                'reasoning': llm_selection_result.get('reasoning'),
-                'confidence': llm_selection_result.get('confidence'),
-                'num_candidates': len(candidates)
-            }
     
     # Add Google Places metadata if match was found
     if google_places_match:

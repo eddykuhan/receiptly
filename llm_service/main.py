@@ -1,10 +1,11 @@
 import config  # Load environment variables first
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from services.canonicalizer import canonicalize_item, canonicalize_batch
 from services.merchant import normalize_merchant
 from services.category import classify_category
 from services.cleaner import clean_receipt
 from services.location_selector import select_best_location
+from services.receipt_extractor import extract_merchant_from_image
 
 app = FastAPI(
     title="Receiptly LLM Service",
@@ -43,3 +44,40 @@ async def api_select_best_location(body: dict):
     candidates = body.get("candidates", [])
     result = await select_best_location(candidates)
     return result
+
+
+@app.post("/extract_merchant")
+async def api_extract_merchant(file: UploadFile = File(...)):
+    """
+    Extract merchant name and address from receipt image using GPT-4 Vision.
+    
+    This endpoint accepts a receipt image file and uses GPT-4 Vision to extract
+    the merchant/store name and address directly from the image.
+    
+    Args:
+        file: Receipt image file (JPEG, PNG, etc.)
+        
+    Returns:
+        {
+            "merchant_name": "Extracted merchant/store name",
+            "merchant_address": "Extracted address/location",
+            "success": true/false,
+            "error": "Error message if failed"
+        }
+    """
+    try:
+        # Read image bytes from uploaded file
+        image_bytes = await file.read()
+        
+        # Extract merchant info using GPT-4 Vision
+        result = await extract_merchant_from_image(image_bytes)
+        
+        return result
+        
+    except Exception as e:
+        return {
+            "merchant_name": "",
+            "merchant_address": "",
+            "success": False,
+            "error": str(e)
+        }

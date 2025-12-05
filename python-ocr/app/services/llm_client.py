@@ -39,3 +39,33 @@ class LlmServiceClient:
         except Exception as e:
             print(f"⚠️ LLM service call failed: {str(e)}")
             return None
+
+    async def extract_merchant_from_image(self, image_bytes: bytes) -> Optional[Dict[str, Any]]:
+        """
+        Call LLM service to extract merchant info from receipt image using GPT-4 Vision.
+        
+        Args:
+            image_bytes: Receipt image data in bytes
+            
+        Returns:
+            {
+                "merchant_name": str,
+                "merchant_address": str,
+                "success": bool,
+                "error": str (optional)
+            }
+            or None if the call fails
+        """
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:  # Longer timeout for vision API
+                # Send as multipart form data
+                files = {"file": ("receipt.jpg", image_bytes, "image/jpeg")}
+                response = await client.post(
+                    f"{self.base_url}/extract_merchant",
+                    files=files
+                )
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            print(f"⚠️ LLM vision extraction failed: {str(e)}")
+            return None
