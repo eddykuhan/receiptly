@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
@@ -14,6 +14,12 @@ import { PwaInstallPromptComponent } from './shared/components/pwa-install-promp
 export class App {
   activeTabIndex = 0;
   currentRoute = signal('');
+  
+  // Check if current route is an authentication page
+  isAuthPage = computed(() => {
+    const route = this.currentRoute();
+    return route.includes('/sign-in') || route.includes('/sign-up');
+  });
 
   constructor(private router: Router) {
     // Update active tab based on route
