@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 import heic2any from 'heic2any';
+
+// Dynamic import types for Capacitor Camera
+type Camera = typeof import('@capacitor/camera').Camera;
+type Photo = import('@capacitor/camera').Photo;
+type CameraResultType = typeof import('@capacitor/camera').CameraResultType;
+type CameraSource = typeof import('@capacitor/camera').CameraSource;
 
 export interface CapturedImage {
   dataUrl: string;
@@ -12,11 +18,36 @@ export interface CapturedImage {
   providedIn: 'root'
 })
 export class CameraService {
+  private isNative = Capacitor.isNativePlatform();
   
   /**
    * Take a photo using device camera
    */
   async takePhoto(): Promise<CapturedImage> {
+    if (this.isNative) {
+      return this.takePhotoNative();
+    } else {
+      return this.takePhotoWeb('camera');
+    }
+  }
+  
+  /**
+   * Select image from gallery
+   */
+  async selectFromGallery(): Promise<CapturedImage> {
+    if (this.isNative) {
+      return this.selectFromGalleryNative();
+    } else {
+      return this.takePhotoWeb('gallery');
+    }
+  }
+
+  /**
+   * Take photo using Capacitor (native platforms)
+   */
+  private async takePhotoNative(): Promise<CapturedImage> {
+    const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+    
     const image = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
@@ -26,11 +57,13 @@ export class CameraService {
     
     return this.processPhoto(image);
   }
-  
+
   /**
-   * Select image from gallery
+   * Select from gallery using Capacitor (native platforms)
    */
-  async selectFromGallery(): Promise<CapturedImage> {
+  private async selectFromGalleryNative(): Promise<CapturedImage> {
+    const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+    
     const image = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
@@ -39,6 +72,70 @@ export class CameraService {
     });
     
     return this.processPhoto(image);
+  }
+
+  /**
+   * Take photo using web browser (HTML5)
+   */
+  private async takePhotoWeb(mode: 'camera' | 'gallery'): Promise<CapturedImage> {
+    return new Promise((resolve, reject) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      
+      // Use camera on mobile web if available
+      if (mode === 'camera') {
+        input.capture = 'environment';
+      }
+      
+      input.onchange = async (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        const file = target.files?.[0];
+        
+        if (!file) {
+          reject(new Error('No file selected'));
+          return;
+        }
+        
+        try {
+          let blob: Blob = file;
+          let filename = file.name;
+          
+          // Convert HEIC if necessary
+          if (file.type === 'image/heic' || file.type === 'image/heif' || 
+              file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+            console.log('HEIC image detected, converting to JPEG...');
+            try {
+              const convertedBlob = await heic2any({
+                blob: file,
+                toType: 'image/jpeg',
+                quality: 0.9
+              });
+              
+              blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+              filename = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+              console.log('HEIC conversion successful');
+            } catch (error) {
+              console.error('HEIC conversion failed:', error);
+              throw new Error('Failed to convert HEIC image. Please try a different format.');
+            }
+          }
+          
+          const dataUrl = await this.blobToDataUrl(blob);
+          
+          resolve({
+            dataUrl,
+            blob,
+            filename
+          });
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      input.onerror = () => reject(new Error('File selection cancelled'));
+      input.click();
+    });
   }
   
   /**
@@ -101,11 +198,17 @@ export class CameraService {
    * Check if camera is available
    */
   async isCameraAvailable(): Promise<boolean> {
-    try {
-      const permissions = await Camera.checkPermissions();
-      return permissions.camera !== 'denied';
-    } catch {
-      return false;
+    if (this.isNative) {
+      try {
+        const { Camera } = await import('@capacitor/camera');
+        const permissions = await Camera.checkPermissions();
+        return permissions.camera !== 'denied';
+      } catch {
+        return false;
+      }
+    } else {
+      // On web, check if getUserMedia is available
+      return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     }
   }
   
@@ -113,11 +216,17 @@ export class CameraService {
    * Request camera permissions
    */
   async requestPermissions(): Promise<boolean> {
-    try {
-      const permissions = await Camera.requestPermissions();
-      return permissions.camera === 'granted';
-    } catch {
-      return false;
+    if (this.isNative) {
+      try {
+        const { Camera } = await import('@capacitor/camera');
+        const permissions = await Camera.requestPermissions();
+        return permissions.camera === 'granted';
+      } catch {
+        return false;
+      }
+    } else {
+      // On web, permissions are handled by the browser when accessing camera
+      return true;
     }
   }
 }
