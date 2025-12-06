@@ -5,6 +5,7 @@ using Receiptly.Core.Interfaces;
 using Receiptly.Domain.Models;
 using Receiptly.API.DTOs;
 using Receiptly.Infrastructure.Services;
+using System.Security.Claims;
 
 namespace Receiptly.API.Controllers;
 
@@ -69,8 +70,8 @@ public class ReceiptsController : ControllerBase
             _logger.LogInformation("File validation passed. Type: {FileType}, Size: {Size} bytes", 
                 validationResult.DetectedFileType, validationResult.FileSize);
 
-            // Use a default user ID for now (since authentication is removed)
-            var userId = "default-user";
+            // Get authenticated user ID from Clerk token or fall back to default
+            var userId = GetAuthenticatedUserId();
             _logger.LogInformation("Processing receipt for user: {UserId}", userId);
 
             // Process receipt through the orchestration service
@@ -116,10 +117,39 @@ public class ReceiptsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all receipts for a user
+    /// Get all receipts for the authenticated user
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<List<ReceiptDto>>> GetUserReceipts(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var userId = GetAuthenticatedUserId();
+            _logger.LogInformation("Retrieving receipts for authenticated user: {UserId}", userId);
+            var receipts = await _receiptRepository.GetByUserIdAsync(userId, cancellationToken);
+            _logger.LogInformation("Found {Count} receipts for user: {UserId}", receipts.Count, userId);
+            
+            // Map to DTOs
+            var receiptDtos = _mapper.Map<List<ReceiptDto>>(receipts);
+            return Ok(receiptDtos);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Request cancelled while retrieving receipts for authenticated user");
+            return StatusCode(499, new { error = "Request cancelled" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving receipts for authenticated user");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get all receipts for a specific user (admin endpoint)
     /// </summary>
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<List<ReceiptDto>>> GetUserReceipts(string userId, CancellationToken cancellationToken)
+    public async Task<ActionResult<List<ReceiptDto>>> GetUserReceiptsByUserId(string userId, CancellationToken cancellationToken)
     {
         try
         {
@@ -268,5 +298,25 @@ public class ReceiptsController : ControllerBase
             _logger.LogError(ex, "Error deleting receipt: {ReceiptId}", id);
             return StatusCode(500, new { error = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Get the authenticated user ID from the current HTTP context
+    /// </summary>
+    private string GetAuthenticatedUserId()
+    {
+        // Try to get from Clerk token first
+        var clerkId = User.FindFirst("clerk_id")?.Value;
+        if (!string.IsNullOrEmpty(clerkId))
+            return clerkId;
+
+        // Fall back to NameIdentifier claim
+        var nameId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(nameId))
+            return nameId;
+
+        // Fall back to default for development
+        _logger.LogWarning("No authenticated user found, using default user ID");
+        return "default-user";
     }
 }

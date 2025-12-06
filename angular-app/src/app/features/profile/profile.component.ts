@@ -1,9 +1,10 @@
-import { Component, signal, ViewChild, ElementRef, inject, AfterViewInit, computed } from '@angular/core';
+import { Component, signal, ViewChild, ElementRef, inject, AfterViewInit, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
+import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 
 Chart.register(...registerables);
@@ -58,10 +59,12 @@ interface UserProfile {
     templateUrl: './profile.component.html',
     styleUrl: './profile.component.scss'
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
     // State
     receipts = signal<any[]>([]);
     isLoading = signal(true);
+    private receiptService = inject(ReceiptService);
+    private authService = inject(ClerkAuthService);
 
     // Computed Stats
     totalReceipts = computed(() => this.receipts().length);
@@ -142,7 +145,8 @@ export class ProfileComponent {
 
     signOut() {
         if (confirm('Are you sure you want to sign out?')) {
-            // In production, clear auth tokens and redirect to login
+            // Use Clerk's sign out when available
+            // this.clerkService.signOut();
             alert('Signed out successfully');
         }
     }
@@ -161,14 +165,29 @@ export class ProfileComponent {
     // Chart references
     @ViewChild('spendingChart') spendingChartRef!: ElementRef;
 
-    private receiptService = inject(ReceiptService);
-
     // Chart instances
     spendingChart: Chart | null = null;
 
-    constructor() {
-        // Load data on init
+    ngOnInit() {
+        this.initializeUserProfile();
         this.loadData();
+    }
+
+    /**
+     * Initialize user profile from Clerk auth service
+     */
+    private initializeUserProfile() {
+        this.authService.user$.subscribe((clerkUser) => {
+            if (clerkUser) {
+                this.profile.update(p => ({
+                    ...p,
+                    id: clerkUser.id,
+                    name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'User',
+                    email: clerkUser.email || p.email,
+                    avatar: clerkUser.imageUrl || undefined
+                }));
+            }
+        });
     }
 
     loadData() {
