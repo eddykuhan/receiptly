@@ -37,9 +37,21 @@ class StoreLocationService:
                           If None, will look for 'store-scraper/data' relative to project root.
         """
         if data_directory is None:
-            # Default to store-scraper/data directory
-            current_dir = Path(__file__).parent.parent.parent  # python-ocr/
-            data_directory = current_dir.parent / "store-scraper" / "data"
+            # Try multiple locations for store data
+            # 1. Docker container location (production)
+            docker_path = Path("/app/store-scraper-data")
+            # 2. Local development location
+            local_path = Path(__file__).parent.parent.parent.parent / "store-scraper" / "data"
+            
+            if docker_path.exists():
+                data_directory = docker_path
+                logger.info(f"Using Docker container store data: {docker_path}")
+            elif local_path.exists():
+                data_directory = local_path
+                logger.info(f"Using local development store data: {local_path}")
+            else:
+                # Fallback - will trigger warning in _load_all_locations
+                data_directory = local_path
         
         self.data_directory = Path(data_directory)
         self.locations: List[Dict] = []
@@ -230,6 +242,12 @@ class StoreLocationService:
         location_keyword_match = bool(ocr_location_keywords & db_location_keywords)
         matched_keywords = ocr_location_keywords & db_location_keywords
         
+        # Debug logging for location matching
+        if ocr_location_keywords:
+            logger.debug(f"OCR location keywords: {ocr_location_keywords}")
+        if matched_keywords:
+            logger.debug(f"Matched keywords: {matched_keywords}")
+        
         # 1. Store name similarity (primary signal)
         name_ratio = fuzz.ratio(ocr_store_name.lower(), db_store_name.lower())
         
@@ -415,7 +433,9 @@ class StoreLocationService:
         known_locations = [
             # Business parks
             'gravitas', 'gravitas business park',
+            'elite business park', 'elite pavilion',
             'menara', 'plaza', 'tower',
+            'business park', 'commercial centre', 'commercial center',
             
             # Major malls
             'sunway pyramid', 'sunway', 'mid valley', 'midvalley',
@@ -451,6 +471,16 @@ class StoreLocationService:
                 # Normalize the keyword (remove spaces, hyphens for matching)
                 normalized = location.replace(' ', '').replace('-', '').replace("'", '')
                 keywords.add(normalized)
+                # Also add the original for better matching
+                keywords.add(location)
+        
+        # Additionally extract any capitalized words (likely proper nouns/landmarks)
+        # e.g., "Gravitas", "Queensbay", "KLCC"
+        import re
+        proper_nouns = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b', text)
+        for noun in proper_nouns:
+            if len(noun) > 3:  # Skip short words like "The", "At"
+                keywords.add(noun.lower())
         
         return keywords
     

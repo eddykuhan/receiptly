@@ -346,7 +346,7 @@ public static class ServiceCollectionExtensions
                 onRetry: (outcome, timespan, retryCount, context) =>
                 {
                     Log.Warning(
-                        "Python OCR request failed. Retry {RetryCount}/3. Waiting {Delay}s before next attempt. Reason: {Reason}",
+                        "Retry {RetryCount}/3. Waiting {Delay}s before next attempt. Reason: {Reason}",
                         retryCount,
                         timespan.TotalSeconds,
                         outcome.Exception?.Message ?? outcome.Result?.StatusCode.ToString() ?? "Unknown");

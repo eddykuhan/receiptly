@@ -79,6 +79,12 @@ ENV PATH="/opt/venv/bin:$PATH" \
 # Copy application code (only app directory, not entire context)
 COPY ./app ./app
 
+# Copy store location data (if available in build context)
+# This directory is created by build-and-push-ocr.sh script
+# Create directory first, then copy data
+RUN mkdir -p /app/store-scraper-data
+COPY ./store-scraper-data/ /app/store-scraper-data/
+
 # Create non-root user and set permissions
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
