@@ -1,11 +1,3 @@
 name = "receiptly"
 compatibility_date = "2025-12-06"
-
-# For Cloudflare Pages deployment
 pages_build_output_dir = "dist/angular-app/browser"
-
-[build]
-command = "npm install && npm run build"
-
-[build.upload]
-format = "service-worker"
