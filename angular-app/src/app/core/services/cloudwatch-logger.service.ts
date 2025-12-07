@@ -32,7 +32,7 @@ export class CloudWatchLoggerService {
   private logBuffer: LogEntry[] = [];
   private sessionId: string;
   private flushTimer: any;
-  private isEnabled = environment.enableCloudWatchLogging !== false && environment.production;
+  private isEnabled = environment.enableCloudWatchLogging === true;
 
   constructor(private http: HttpClient) {
     this.sessionId = this.generateSessionId();
