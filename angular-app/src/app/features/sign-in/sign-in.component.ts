@@ -14,10 +14,10 @@ import { ClerkAuthService } from '../../core/services/clerk-auth.service';
       <div class="text-center space-y-6 animate-bounce-slow">
         <div class="flex items-center justify-center mb-8">
           <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl">
-            <span class="material-icons text-primary text-6xl">receipt_long</span>
+            <span class="material-icons text-primary text-6xl">location_on</span>
           </div>
         </div>
-        <h1 class="text-5xl font-bold text-white drop-shadow-lg">Cheapsy</h1>
+        <h1 class="text-5xl font-bold text-white drop-shadow-lg">Cheap-sy</h1>
         <p class="text-xl text-white/90">Find the Best Deals</p>
         <div class="flex items-center justify-center mt-8">
           <span class="loading loading-dots loading-lg text-white"></span>
