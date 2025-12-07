@@ -190,7 +190,8 @@ export class ProfileComponent implements OnInit {
                     id: clerkUser.id,
                     name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'User',
                     email: clerkUser.email || p.email,
-                    avatar: clerkUser.imageUrl || undefined
+                    avatar: clerkUser.imageUrl || undefined,
+                    memberSince: clerkUser.createdAt ? new Date(clerkUser.createdAt) : p.memberSince
                 }));
             }
         });
@@ -274,15 +275,31 @@ export class ProfileComponent implements OnInit {
     }
 
     getMemberDuration(): string {
-        // Mock member since date for now
-        const memberSince = new Date('2024-01-01');
-        const months = Math.floor(
-            (new Date().getTime() - memberSince.getTime()) / (1000 * 60 * 60 * 24 * 30)
-        );
-        if (months < 1) return 'Less than a month';
-        if (months === 1) return '1 month';
-        if (months < 12) return `${months} months`;
+        const memberSince = this.profile().memberSince;
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - memberSince.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 1) return 'today';
+        if (diffDays === 1) return '1 day';
+        if (diffDays < 7) return `${diffDays} days`;
+        if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            return weeks === 1 ? '1 week' : `${weeks} weeks`;
+        }
+        
+        const months = Math.floor(diffDays / 30);
+        if (months < 12) return months === 1 ? '1 month' : `${months} months`;
+        
         const years = Math.floor(months / 12);
-        return years === 1 ? '1 year' : `${years} years`;
+        const remainingMonths = months % 12;
+        
+        if (remainingMonths === 0) {
+            return years === 1 ? '1 year' : `${years} years`;
+        } else {
+            const yearText = years === 1 ? '1 year' : `${years} years`;
+            const monthText = remainingMonths === 1 ? '1 month' : `${remainingMonths} months`;
+            return `${yearText}, ${monthText}`;
+        }
     }
 }

@@ -9,6 +9,7 @@ export interface AuthUser {
   firstName?: string;
   lastName?: string;
   imageUrl?: string;
+  createdAt?: number;
 }
 
 @Injectable({
@@ -94,7 +95,8 @@ export class ClerkAuthService {
       email: clerkUser.emailAddresses?.[0]?.emailAddress,
       firstName: clerkUser.firstName || undefined,
       lastName: clerkUser.lastName || undefined,
-      imageUrl: clerkUser.imageUrl
+      imageUrl: clerkUser.imageUrl,
+      createdAt: clerkUser.createdAt || undefined
     };
 
     this.userSubject.next(user);
