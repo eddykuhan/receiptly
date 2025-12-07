@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 
@@ -7,29 +7,81 @@ import { ClerkAuthService } from '../../core/services/clerk-auth.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div class="w-full max-w-md">
-        <div class="bg-white rounded-lg shadow-lg p-8">
-          <h1 class="text-3xl font-bold text-center text-gray-900 mb-8">Create Account</h1>
-          <div id="clerk-sign-up"></div>
-          <p class="text-center text-gray-600 mt-6">
-            Already have an account?
-            <a href="/sign-in" class="text-indigo-600 hover:text-indigo-700 font-semibold">
-              Sign in
-            </a>
-          </p>
+    <!-- Splash Screen -->
+    <div *ngIf="showSplash()" 
+         class="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-primary to-secondary z-50">
+      <div class="text-center space-y-6 animate-bounce-slow">
+        <div class="flex items-center justify-center mb-8">
+          <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl">
+            <span class="material-icons text-primary text-6xl">receipt_long</span>
+          </div>
+        </div>
+        <h1 class="text-5xl font-bold text-white drop-shadow-lg">Cheapsy</h1>
+        <p class="text-xl text-white/90">Find the Best Deals</p>
+        <div class="flex items-center justify-center mt-8">
+          <span class="loading loading-dots loading-lg text-white"></span>
         </div>
       </div>
     </div>
+
+    <!-- Sign Up Page -->
+    <div *ngIf="!showSplash()" 
+         class="flex items-center justify-center min-h-screen bg-gradient-to-br from-base-200 to-base-300 animate-fadeIn">
+      <!-- Clerk Sign Up Component -->
+      <div id="clerk-sign-up"></div>
+      
+      <!-- Sign In Link -->
+      <p class="text-center text-base-content/70 mt-6 absolute bottom-8">
+        Already have an account?
+        <a href="/sign-in" class="text-primary hover:text-primary-focus font-semibold ml-1">
+          Sign in
+        </a>
+      </p>
+    </div>
   `,
-  styles: []
+  styles: [`
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounceSlow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .animate-fadeOut {
+      animation: fadeOut 0.5s ease-out forwards;
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    .animate-bounce-slow {
+      animation: bounceSlow 2s ease-in-out infinite;
+    }
+  `]
 })
 export class SignUpComponent implements OnInit {
+  showSplash = signal(true);
+
   constructor(private authService: ClerkAuthService) {}
 
   ngOnInit(): void {
-    // Initialize Clerk sign-up component
-    this.initializeClerkSignUp();
+    // Show splash screen for 5 seconds before initializing Clerk
+    setTimeout(() => {
+      this.showSplash.set(false);
+      // Wait for DOM to render after hiding splash
+      setTimeout(() => {
+        this.initializeClerkSignUp();
+      }, 100);
+    }, 5000);
   }
 
   private async initializeClerkSignUp(): Promise<void> {
