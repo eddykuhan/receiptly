@@ -103,12 +103,8 @@
                 <div class="flex-1">
                   <h3 class="card-title text-lg mb-2">{{ deal.productName }}</h3>
                   
-                  <div class="flex items-baseline gap-3 mb-3">
+                  <div class="mb-3">
                     <span class="text-3xl font-bold text-primary">{{ deal.lowestPrice | myr }}</span>
-                    <div class="flex flex-col">
-                      <span class="text-xs text-base-content/50">avg: {{ deal.averagePrice | myr }}</span>
-                      <span class="badge badge-success badge-sm">Save {{ getSavingsAmount(deal) | myr }}</span>
-                    </div>
                   </div>
 
                   <div class="space-y-2">
@@ -116,9 +112,9 @@
                       <span class="material-icons text-sm text-primary">store</span>
                       <span class="font-medium">{{ deal.storeName }}</span>
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-base-content/60">
-                      <span class="material-icons text-xs">location_on</span>
-                      <span class="truncate">{{ deal.storeAddress }}</span>
+                    <div class="flex items-start gap-2 text-xs text-base-content/60">
+                      <span class="material-icons text-xs mt-0.5 flex-shrink-0">location_on</span>
+                      <span class="line-clamp-2">{{ deal.storeAddress }}</span>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-base-content/50">
                       <span class="material-icons text-xs">schedule</span>
@@ -158,7 +154,7 @@
     </div>
 
     <!-- Recent Community Activity -->
-    <div class="space-y-4">
+    <!-- <div class="space-y-4">
       <h2 class="text-xl font-bold flex items-center gap-2">
         <span class="material-icons text-info">public</span>
         Community Activity
@@ -198,7 +194,8 @@
           </ul>
         </div>
       </div>
-    </div>
+    </div> -->
+    
     </div>
   </app-pull-to-refresh>
 </div>

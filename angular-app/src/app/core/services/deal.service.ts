@@ -121,49 +121,45 @@ export class DealService {
         // Convert to Deal array
         let deals: Deal[] = [];
         productMap.forEach((product, productName) => {
-            // Only show products with at least 2 price points (could be same store at different times)
-            if (product.prices.length >= 2) {
-                // Find the store with the lowest price
-                let cheapestStore: any = null;
-                let lowestPrice = Infinity;
+            // Find the store with the lowest price
+            let cheapestStore: any = null;
+            let lowestPrice = Infinity;
 
-                product.stores.forEach(store => {
-                    if (store.price < lowestPrice) {
-                        lowestPrice = store.price;
-                        cheapestStore = store;
-                    }
-                });
-
-                if (cheapestStore) {
-                    const averagePrice = product.prices.reduce((a, b) => a + b, 0) / product.prices.length;
-                    const savingsPercent = ((averagePrice - lowestPrice) / averagePrice) * 100;
-
-                    // Calculate distance if user location is available
-                    let distance = 0;
-                    if (userLat && userLon && cheapestStore.latitude && cheapestStore.longitude) {
-                        distance = this.calculateDistance(
-                            userLat,
-                            userLon,
-                            cheapestStore.latitude,
-                            cheapestStore.longitude
-                        );
-                    }
-
-                    // Only include if there's at least 1% savings to show price variation
-                    if (savingsPercent >= 1) {
-                        deals.push({
-                            id: `${productName}-${cheapestStore.name}`,
-                            productName,
-                            lowestPrice,
-                            averagePrice,
-                            storeName: cheapestStore.name,
-                            storeAddress: cheapestStore.address,
-                            distance,
-                            imageUrl: this.getProductImage(productName),
-                            lastSeenDate: cheapestStore.date
-                        });
-                    }
+            product.stores.forEach(store => {
+                if (store.price < lowestPrice) {
+                    lowestPrice = store.price;
+                    cheapestStore = store;
                 }
+            });
+
+            if (cheapestStore) {
+                const averagePrice = product.prices.reduce((a, b) => a + b, 0) / product.prices.length;
+                const savingsPercent = product.prices.length > 1 
+                    ? ((averagePrice - lowestPrice) / averagePrice) * 100 
+                    : 0;
+
+                // Calculate distance if user location is available
+                let distance = 0;
+                if (userLat && userLon && cheapestStore.latitude && cheapestStore.longitude) {
+                    distance = this.calculateDistance(
+                        userLat,
+                        userLon,
+                        cheapestStore.latitude,
+                        cheapestStore.longitude
+                    );
+                }
+
+                deals.push({
+                    id: `${productName}-${cheapestStore.name}`,
+                    productName,
+                    lowestPrice,
+                    averagePrice,
+                    storeName: cheapestStore.name,
+                    storeAddress: cheapestStore.address,
+                    distance,
+                    imageUrl: this.getProductImage(productName),
+                    lastSeenDate: cheapestStore.date
+                });
             }
         });
 
