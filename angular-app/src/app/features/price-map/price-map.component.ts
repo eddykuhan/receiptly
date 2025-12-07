@@ -6,11 +6,12 @@ import * as L from 'leaflet';
 import { firstValueFrom } from 'rxjs';
 import { PriceMapService, StoreWithPrice } from './price-map.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
+import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 
 @Component({
     selector: 'app-price-map',
     standalone: true,
-    imports: [CommonModule, FormsModule, MyrPipe],
+    imports: [CommonModule, FormsModule, MyrPipe, TimeAgoPipe],
     templateUrl: './price-map.component.html',
     styleUrl: './price-map.component.scss'
 })
