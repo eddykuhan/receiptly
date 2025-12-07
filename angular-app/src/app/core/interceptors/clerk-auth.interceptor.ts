@@ -1,85 +1,51 @@
-import { Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import {
-  HttpInterceptor,
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
+  HttpInterceptorFn,
   HttpErrorResponse
 } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, filter, take, switchMap } from 'rxjs/operators';
+import { Observable, throwError, race, timer } from 'rxjs';
+import { catchError, switchMap, map } from 'rxjs/operators';
 import { ClerkAuthService } from '../services/clerk-auth.service';
 
-@Injectable()
-export class ClerkAuthInterceptor implements HttpInterceptor {
-  private isRefreshing = false;
-  private refreshTokenSubject = new BehaviorSubject<string | null>(null);
+/**
+ * Functional HTTP interceptor for adding Clerk authentication tokens to requests
+ */
+export const clerkAuthInterceptorFn: HttpInterceptorFn = (req, next) => {
+  const authService = inject(ClerkAuthService);
 
-  constructor(private authService: ClerkAuthService) {}
-
-  intercept(
-    request: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
-    // Get the session token from auth service
-    const token = this.authService.getCurrentToken();
-
-    if (token) {
-      request = this.addToken(request, token);
-    }
-
-    return next.handle(request).pipe(
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
-          return this.handle401Error(request, next);
-        } else {
-          return throwError(() => error);
-        }
-      })
-    );
-  }
-
-  /**
-   * Add token to request headers
-   */
-  private addToken(request: HttpRequest<any>, token: string): HttpRequest<any> {
-    return request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
+  // Race between getting a token and a timeout
+  // This prevents requests from hanging if Clerk hasn't initialized
+  return race(
+    authService.sessionToken$.pipe(map(token => token)),
+    timer(500).pipe(map(() => null))
+  ).pipe(
+    switchMap((token: string | null) => {
+      let request = req;
+      
+      if (token) {
+        request = req.clone({
+          setHeaders: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        console.log('✅ Token added to request:', req.url, 'Token:', token.substring(0, 20) + '...');
+      } else {
+        console.warn('⚠️ No token available for request:', req.url, '- proceeding without token');
+        console.log('Auth state:', {
+          isAuthenticated: authService.isAuthenticated(),
+          user: authService.getCurrentUser(),
+          hasToken: !!authService.getCurrentToken()
+        });
       }
-    });
-  }
 
-  /**
-   * Handle 401 Unauthorized errors
-   */
-  private handle401Error(
-    request: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
-    if (!this.isRefreshing) {
-      this.isRefreshing = true;
-      this.refreshTokenSubject.next(null);
-
-      // Refresh auth state and retry request
-      this.authService.refreshAuthState();
-
-      return this.refreshTokenSubject.pipe(
-        filter((token) => token != null),
-        take(1),
-        switchMap((token: string) => {
-          this.isRefreshing = false;
-          return next.handle(this.addToken(request, token));
+      return next(request).pipe(
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 401) {
+            console.log('Got 401 error, need to implement token refresh');
+          }
+          return throwError(() => error);
         })
       );
-    } else {
-      return this.refreshTokenSubject.pipe(
-        filter((token) => token != null),
-        take(1),
-        switchMap((token: string) => {
-          return next.handle(this.addToken(request, token));
-        })
-      );
-    }
-  }
-}
+    })
+  );
+};

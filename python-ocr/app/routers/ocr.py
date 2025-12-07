@@ -12,6 +12,17 @@ from ..core.config import get_settings
 
 router = APIRouter()
 
+# Initialize StoreLocationService once at module level for efficiency
+# This loads all location data once instead of on every request
+_store_location_service = None
+
+def get_store_location_service() -> StoreLocationService:
+    """Get or create the singleton StoreLocationService instance."""
+    global _store_location_service
+    if _store_location_service is None:
+        _store_location_service = StoreLocationService()
+    return _store_location_service
+
 
 class AnalyzeRequest(BaseModel):
     """Request model for receipt analysis."""
@@ -457,7 +468,7 @@ async def override_merchant_data_with_llm(
     # This will replace OCR-extracted address with verified Google Places data
     google_places_match = None
     try:
-        location_service = StoreLocationService()
+        location_service = get_store_location_service()
         
         # Get current merchant name and address for matching
         current_merchant = fields.get('MerchantName', {})

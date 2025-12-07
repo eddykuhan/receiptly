@@ -294,13 +294,14 @@ public class ReceiptProcessingService : IReceiptProcessingService
     /// </summary>
     private async Task<Receipt> ExtractReceiptData(Guid receiptId, string userId, string imageUrl, string filename, OcrResponse ocrResponse, OcrValidation? validation)
     {
+        var now = DateTime.UtcNow;
         var receipt = new Receipt
         {
             Id = receiptId,
             UserId = userId,
             ImageUrl = imageUrl,
             OriginalFileName = filename,
-            S3Key = $"{userId}/receipts/{receiptId}/original",
+            S3Key = $"users/{userId}/receipts/{now:yyyy}/{now:MM}/{now:dd}/{receiptId}/{filename}",
             OcrProvider = "Azure Document Intelligence + Tesseract",
             OcrConfidence = ocrResponse.Confidence,
             CreatedAt = DateTime.UtcNow,

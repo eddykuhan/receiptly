@@ -9,6 +9,7 @@ export interface AuthUser {
   firstName?: string;
   lastName?: string;
   imageUrl?: string;
+  createdAt?: number;
 }
 
 @Injectable({
@@ -94,7 +95,8 @@ export class ClerkAuthService {
       email: clerkUser.emailAddresses?.[0]?.emailAddress,
       firstName: clerkUser.firstName || undefined,
       lastName: clerkUser.lastName || undefined,
-      imageUrl: clerkUser.imageUrl
+      imageUrl: clerkUser.imageUrl,
+      createdAt: clerkUser.createdAt || undefined
     };
 
     this.userSubject.next(user);
@@ -104,16 +106,12 @@ export class ClerkAuthService {
   /**
    * Get current session token from Clerk
    */
-  private getSessionToken(): void {
+  private async getSessionToken(): Promise<void> {
     try {
       if (this.clerk?.session) {
         // Use default token instead of custom template
-        this.clerk.session.getToken().then((token: string | null) => {
-          this.sessionTokenSubject.next(token);
-        }).catch((error: Error) => {
-          console.error('Error getting session token:', error);
-          this.sessionTokenSubject.next(null);
-        });
+        const token = await this.clerk.session.getToken();
+        this.sessionTokenSubject.next(token);
       }
     } catch (error) {
       console.error('Error retrieving session token:', error);
@@ -160,8 +158,13 @@ export class ClerkAuthService {
   /**
    * Refresh authentication state
    */
-  refreshAuthState(): void {
+  async refreshAuthState(): Promise<void> {
     this.checkAuthStatus();
+    // Give Clerk a moment to update, then get fresh token
+    await new Promise(resolve => setTimeout(resolve, 100));
+    if (this.clerk?.session) {
+      await this.getSessionToken();
+    }
   }
 
   /**

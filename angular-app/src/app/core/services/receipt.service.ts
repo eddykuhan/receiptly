@@ -1,37 +1,57 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject, firstValueFrom } from 'rxjs';
+import { catchError, map, tap, switchMap, filter, take } from 'rxjs/operators';
 import { Receipt, UploadReceiptResponse } from '../models/receipt.model';
 import { environment } from '../../../environments/environment.development';
+import { ClerkAuthService } from './clerk-auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReceiptService {
   private http = inject(HttpClient);
+  private authService = inject(ClerkAuthService);
   private readonly API_URL = `${environment.apiUrl}/receipts`;
-  private readonly USER_ID = 'default-user'; // TODO: Replace with actual user management
 
   // In-memory cache for current session
   private receiptsCache$ = new BehaviorSubject<Receipt[]>([]);
   public receipts$ = this.receiptsCache$.asObservable();
 
   constructor() {
-    this.loadReceipts();
+    // Wait for user authentication before loading receipts
+    this.authService.isAuthenticated$
+      .pipe(
+        filter(isAuth => isAuth === true),
+        take(1)
+      )
+      .subscribe(() => {
+        this.loadReceipts();
+      });
   }
 
   /**
    * Load all receipts for the current user
    */
   loadReceipts(): void {
-    this.http.get<Receipt[]>(`${this.API_URL}/user/${this.USER_ID}`)
+    this.authService.user$
       .pipe(
+        switchMap(user => {
+          if (!user) {
+            return throwError(() => new Error('User not authenticated'));
+          }
+          return this.http.get<Receipt[]>(`${this.API_URL}/user/${user.id}`);
+        }),
         map(receipts => receipts.map(r => this.parseReceiptDates(r))),
         catchError(this.handleError)
       )
-      .subscribe(receipts => {
-        this.receiptsCache$.next(receipts);
+      .subscribe({
+        next: (receipts) => {
+          this.receiptsCache$.next(receipts);
+        },
+        error: (error) => {
+          console.error('Error loading receipts:', error);
+        }
       });
   }
 

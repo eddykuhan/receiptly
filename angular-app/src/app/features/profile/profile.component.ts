@@ -1,10 +1,11 @@
 import { Component, signal, ViewChild, ElementRef, inject, AfterViewInit, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 
 Chart.register(...registerables);
@@ -65,6 +66,8 @@ export class ProfileComponent implements OnInit {
     isLoading = signal(true);
     private receiptService = inject(ReceiptService);
     private authService = inject(ClerkAuthService);
+    private themeService = inject(ThemeService);
+    private router = inject(Router);
 
     // Computed Stats
     totalReceipts = computed(() => this.receipts().length);
@@ -134,20 +137,29 @@ export class ProfileComponent implements OnInit {
     }
 
     toggleTheme() {
-        const current = this.profile();
-        const newTheme = current.preferences.theme === 'light' ? 'dark' : 'light';
+        // Toggle theme using the theme service
+        this.themeService.toggleTheme();
+        
+        // Update profile to match
+        const newTheme = this.themeService.getCurrentTheme();
         this.profile.update(p => ({
             ...p,
             preferences: { ...p.preferences, theme: newTheme }
         }));
-        // In production, apply theme to document and save to backend
+        
+        // TODO: In production, save theme preference to backend
     }
 
-    signOut() {
+    async signOut() {
         if (confirm('Are you sure you want to sign out?')) {
-            // Use Clerk's sign out when available
-            // this.clerkService.signOut();
-            alert('Signed out successfully');
+            try {
+                await this.authService.signOut();
+                console.log('User signed out successfully');
+                this.router.navigate(['/sign-in']);
+            } catch (error) {
+                console.error('Error signing out:', error);
+                alert('Failed to sign out. Please try again.');
+            }
         }
     }
 
@@ -171,6 +183,18 @@ export class ProfileComponent implements OnInit {
     ngOnInit() {
         this.initializeUserProfile();
         this.loadData();
+        this.syncThemeWithProfile();
+    }
+
+    /**
+     * Sync theme service with profile preferences
+     */
+    private syncThemeWithProfile() {
+        const currentTheme = this.themeService.getCurrentTheme();
+        this.profile.update(p => ({
+            ...p,
+            preferences: { ...p.preferences, theme: currentTheme }
+        }));
     }
 
     /**
@@ -184,7 +208,8 @@ export class ProfileComponent implements OnInit {
                     id: clerkUser.id,
                     name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'User',
                     email: clerkUser.email || p.email,
-                    avatar: clerkUser.imageUrl || undefined
+                    avatar: clerkUser.imageUrl || undefined,
+                    memberSince: clerkUser.createdAt ? new Date(clerkUser.createdAt) : p.memberSince
                 }));
             }
         });
@@ -268,15 +293,31 @@ export class ProfileComponent implements OnInit {
     }
 
     getMemberDuration(): string {
-        // Mock member since date for now
-        const memberSince = new Date('2024-01-01');
-        const months = Math.floor(
-            (new Date().getTime() - memberSince.getTime()) / (1000 * 60 * 60 * 24 * 30)
-        );
-        if (months < 1) return 'Less than a month';
-        if (months === 1) return '1 month';
-        if (months < 12) return `${months} months`;
+        const memberSince = this.profile().memberSince;
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - memberSince.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 1) return 'today';
+        if (diffDays === 1) return '1 day';
+        if (diffDays < 7) return `${diffDays} days`;
+        if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            return weeks === 1 ? '1 week' : `${weeks} weeks`;
+        }
+        
+        const months = Math.floor(diffDays / 30);
+        if (months < 12) return months === 1 ? '1 month' : `${months} months`;
+        
         const years = Math.floor(months / 12);
-        return years === 1 ? '1 year' : `${years} years`;
+        const remainingMonths = months % 12;
+        
+        if (remainingMonths === 0) {
+            return years === 1 ? '1 year' : `${years} years`;
+        } else {
+            const yearText = years === 1 ? '1 year' : `${years} years`;
+            const monthText = remainingMonths === 1 ? '1 month' : `${remainingMonths} months`;
+            return `${yearText}, ${monthText}`;
+        }
     }
 }
