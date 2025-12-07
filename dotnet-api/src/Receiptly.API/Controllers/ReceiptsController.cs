@@ -305,13 +305,19 @@ public class ReceiptsController : ControllerBase
     /// </summary>
     private string GetAuthenticatedUserId()
     {
+        // Log all claims for debugging
+        var allClaims = User.Claims.Select(c => $"{c.Type}={c.Value}").ToList();
+        _logger.LogInformation("All claims: {Claims}", string.Join(", ", allClaims));
+
         // Try to get from Clerk token first
         var clerkId = User.FindFirst("clerk_id")?.Value;
+        _logger.LogInformation("clerk_id claim value: {ClerkId}", clerkId ?? "(not found)");
         if (!string.IsNullOrEmpty(clerkId))
             return clerkId;
 
         // Fall back to NameIdentifier claim
         var nameId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        _logger.LogInformation("NameIdentifier claim value: {NameId}", nameId ?? "(not found)");
         if (!string.IsNullOrEmpty(nameId))
             return nameId;
 

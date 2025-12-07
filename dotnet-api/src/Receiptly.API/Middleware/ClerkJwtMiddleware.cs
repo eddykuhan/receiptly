@@ -26,10 +26,19 @@ public class ClerkJwtMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         var token = ExtractToken(context);
+        var isDevelopment = context.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment();
 
         if (string.IsNullOrEmpty(token))
         {
-            // Check if endpoint requires authentication
+            // In development, allow requests without tokens and use default user
+            if (isDevelopment)
+            {
+                _logger.LogWarning("No token provided in development mode for {Path}, proceeding without authentication", context.Request.Path);
+                await _next(context);
+                return;
+            }
+
+            // In production, check if endpoint requires authentication
             var endpoint = context.GetEndpoint();
             if (RequiresAuthentication(endpoint))
             {
@@ -43,11 +52,21 @@ public class ClerkJwtMiddleware
         {
             try
             {
+                _logger.LogInformation("Token provided, validating: {TokenPrefix}...", token.Substring(0, Math.Min(20, token.Length)));
                 await ValidateAndSetUserContext(context, token);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error validating Clerk token");
+                
+                // In development, log error but proceed
+                if (isDevelopment)
+                {
+                    _logger.LogWarning("Token validation failed in development mode, proceeding anyway");
+                    await _next(context);
+                    return;
+                }
+                
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 await context.Response.WriteAsJsonAsync(new { error = "Unauthorized: Invalid token" });
                 return;

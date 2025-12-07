@@ -84,7 +84,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
                         lon: position.coords.longitude
                     });
 
-                    // Add user location marker
+                    // Add user location marker and center map
                     if (this.map) {
                         const blueIcon = L.icon({
                             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
@@ -98,6 +98,9 @@ export class PriceMapComponent implements OnInit, OnDestroy {
                         this.userMarker = L.marker([position.coords.latitude, position.coords.longitude], { icon: blueIcon })
                             .bindPopup('<strong>Your Location</strong>')
                             .addTo(this.map);
+
+                        // Center map on user's location
+                        this.map.setView([position.coords.latitude, position.coords.longitude], 13);
                     }
                 },
                 (error) => {

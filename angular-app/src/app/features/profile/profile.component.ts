@@ -1,7 +1,7 @@
 import { Component, signal, ViewChild, ElementRef, inject, AfterViewInit, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
@@ -65,6 +65,7 @@ export class ProfileComponent implements OnInit {
     isLoading = signal(true);
     private receiptService = inject(ReceiptService);
     private authService = inject(ClerkAuthService);
+    private router = inject(Router);
 
     // Computed Stats
     totalReceipts = computed(() => this.receipts().length);
@@ -143,11 +144,16 @@ export class ProfileComponent implements OnInit {
         // In production, apply theme to document and save to backend
     }
 
-    signOut() {
+    async signOut() {
         if (confirm('Are you sure you want to sign out?')) {
-            // Use Clerk's sign out when available
-            // this.clerkService.signOut();
-            alert('Signed out successfully');
+            try {
+                await this.authService.signOut();
+                console.log('User signed out successfully');
+                this.router.navigate(['/sign-in']);
+            } catch (error) {
+                console.error('Error signing out:', error);
+                alert('Failed to sign out. Please try again.');
+            }
         }
     }
 
