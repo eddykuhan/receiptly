@@ -1,20 +1,25 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DealService, Deal } from '../../core/services/deal.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
+import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
+import { ReceiptService } from '../../core/services/receipt.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, MyrPipe],
+  imports: [CommonModule, FormsModule, MyrPipe, PullToRefreshComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
+  @ViewChild(PullToRefreshComponent) pullToRefresh?: PullToRefreshComponent;
+  
   private router = inject(Router);
   private dealService = inject(DealService);
+  private receiptService = inject(ReceiptService);
 
   // State
   isLoading = signal(false);
@@ -51,6 +56,17 @@ export class DashboardComponent implements OnInit {
         this.dealsLoading.set(false);
       }
     });
+  }
+
+  onRefresh() {
+    // Refresh both deals and receipts
+    this.loadHotDeals();
+    this.receiptService.loadReceipts();
+    
+    // Complete the pull-to-refresh animation after data loads
+    setTimeout(() => {
+      this.pullToRefresh?.completeRefresh();
+    }, 1000);
   }
 
   getSavingsAmount(deal: Deal): number {

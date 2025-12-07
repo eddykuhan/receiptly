@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { PwaInstallPromptComponent } from './shared/components/pwa-install-prompt.component';
+import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, PwaInstallPromptComponent],
+  imports: [CommonModule, RouterOutlet, PwaInstallPromptComponent, ToastContainerComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

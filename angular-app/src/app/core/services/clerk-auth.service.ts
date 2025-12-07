@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Clerk } from '@clerk/clerk-js';
 import { environment } from '../../../environments/environment';
+import { CloudWatchLoggerService } from './cloudwatch-logger.service';
 
 export interface AuthUser {
   id: string;
@@ -16,6 +17,7 @@ export interface AuthUser {
   providedIn: 'root'
 })
 export class ClerkAuthService {
+  private logger = inject(CloudWatchLoggerService);
   private userSubject = new BehaviorSubject<AuthUser | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private sessionTokenSubject = new BehaviorSubject<string | null>(null);
@@ -38,6 +40,7 @@ export class ClerkAuthService {
       
       if (!publishableKey) {
         console.warn('Clerk publishable key not found in environment');
+        this.logger.warn('Clerk publishable key not configured');
         return;
       }
 
@@ -46,6 +49,7 @@ export class ClerkAuthService {
       await this.clerk.load();
 
       console.log('Clerk loaded, user:', this.clerk.user);
+      this.logger.info('Clerk initialized successfully', { userId: this.clerk.user?.id });
 
       // Set up auth state immediately after load
       this.checkAuthStatus();
@@ -53,6 +57,7 @@ export class ClerkAuthService {
       // Listen for auth state changes
       this.clerk.addListener((state: any) => {
         console.log('Clerk state change:', state);
+        this.logger.debug('Auth state changed', { hasUser: !!state.user, hasSession: !!state.session });
         // Only update auth state if we have both user AND session
         if (state.user && state.session) {
           this.updateUserState(state.user);
@@ -63,6 +68,7 @@ export class ClerkAuthService {
       });
     } catch (error) {
       console.error('Error initializing Clerk:', error);
+      this.logger.error('Failed to initialize Clerk', { error });
     }
   }
 
