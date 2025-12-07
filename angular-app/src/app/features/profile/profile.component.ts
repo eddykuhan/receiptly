@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 
 Chart.register(...registerables);
@@ -65,6 +66,7 @@ export class ProfileComponent implements OnInit {
     isLoading = signal(true);
     private receiptService = inject(ReceiptService);
     private authService = inject(ClerkAuthService);
+    private themeService = inject(ThemeService);
     private router = inject(Router);
 
     // Computed Stats
@@ -135,13 +137,17 @@ export class ProfileComponent implements OnInit {
     }
 
     toggleTheme() {
-        const current = this.profile();
-        const newTheme = current.preferences.theme === 'light' ? 'dark' : 'light';
+        // Toggle theme using the theme service
+        this.themeService.toggleTheme();
+        
+        // Update profile to match
+        const newTheme = this.themeService.getCurrentTheme();
         this.profile.update(p => ({
             ...p,
             preferences: { ...p.preferences, theme: newTheme }
         }));
-        // In production, apply theme to document and save to backend
+        
+        // TODO: In production, save theme preference to backend
     }
 
     async signOut() {
@@ -177,6 +183,18 @@ export class ProfileComponent implements OnInit {
     ngOnInit() {
         this.initializeUserProfile();
         this.loadData();
+        this.syncThemeWithProfile();
+    }
+
+    /**
+     * Sync theme service with profile preferences
+     */
+    private syncThemeWithProfile() {
+        const currentTheme = this.themeService.getCurrentTheme();
+        this.profile.update(p => ({
+            ...p,
+            preferences: { ...p.preferences, theme: currentTheme }
+        }));
     }
 
     /**

@@ -1,8 +1,9 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { PwaInstallPromptComponent } from './shared/components/pwa-install-prompt.component';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,9 @@ import { PwaInstallPromptComponent } from './shared/components/pwa-install-promp
 export class App {
   activeTabIndex = 0;
   currentRoute = signal('');
+  
+  // Inject theme service to initialize it on app startup
+  private themeService = inject(ThemeService);
   
   // Check if current route is an authentication page
   isAuthPage = computed(() => {
