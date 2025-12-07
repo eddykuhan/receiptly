@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://api.cheap-sy.com/api',
-  clerkPublishableKey: 'pk_live_Y2xlcmsuY2hlYXAtc3kuY29tJA',
+  apiUrl: 'http://localhost:5188/api',
+  clerkPublishableKey: 'pk_test_YnJpZWYtamF5YmlyZC03Mi5jbGVyay5hY2NvdW50cy5kZXYk',
   enableCloudWatchLogging: false
 };

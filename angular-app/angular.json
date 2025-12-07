@@ -71,8 +71,8 @@
               "serviceWorker": "ngsw-config.json",
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.staging.ts",
-                  "with": "src/environments/environment.ts"
+                  "replace": "src/environments/environment.development.ts",
+                  "with": "src/environments/environment.staging.ts"
                 }
               ]
             },
