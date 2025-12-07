@@ -6,6 +6,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
 import { clerkAuthInterceptorFn } from './core/interceptors/clerk-auth.interceptor';
+import { errorInterceptorFn } from './core/interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,7 +15,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(
       withFetch(),
-      withInterceptors([clerkAuthInterceptorFn])
+      withInterceptors([clerkAuthInterceptorFn, errorInterceptorFn])
     ),
     provideAnimationsAsync(),
     provideServiceWorker('ngsw-worker.js', {

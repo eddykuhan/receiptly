@@ -5,6 +5,7 @@ import { catchError, map, tap, switchMap, filter, take } from 'rxjs/operators';
 import { Receipt, UploadReceiptResponse } from '../models/receipt.model';
 import { environment } from '../../../environments/environment.development';
 import { ClerkAuthService } from './clerk-auth.service';
+import { CloudWatchLoggerService } from './cloudwatch-logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,7 @@ import { ClerkAuthService } from './clerk-auth.service';
 export class ReceiptService {
   private http = inject(HttpClient);
   private authService = inject(ClerkAuthService);
+  private logger = inject(CloudWatchLoggerService);
   private readonly API_URL = `${environment.apiUrl}/receipts`;
 
   // In-memory cache for current session
@@ -34,6 +36,7 @@ export class ReceiptService {
    * Load all receipts for the current user
    */
   loadReceipts(): void {
+    this.logger.info('Loading receipts');
     this.authService.user$
       .pipe(
         switchMap(user => {
@@ -48,9 +51,11 @@ export class ReceiptService {
       .subscribe({
         next: (receipts) => {
           this.receiptsCache$.next(receipts);
+          this.logger.info('Receipts loaded successfully', { count: receipts.length });
         },
         error: (error) => {
           console.error('Error loading receipts:', error);
+          this.logger.error('Failed to load receipts', { error: error.message });
         }
       });
   }
@@ -62,6 +67,7 @@ export class ReceiptService {
     const formData = new FormData();
     formData.append('file', imageFile, filename);
     const apiUrl = `${this.API_URL}/upload`;
+    this.logger.info('Uploading receipt', { filename, size: imageFile.size });
     return this.http.post<Receipt>(apiUrl, formData).pipe(
       map(receipt => ({
         success: true,
@@ -72,17 +78,20 @@ export class ReceiptService {
           // Add to cache
           const currentReceipts = this.receiptsCache$.value;
           this.receiptsCache$.next([response.receipt, ...currentReceipts]);
+          this.logger.info('Receipt uploaded successfully', { receiptId: response.receipt.id });
         }
       }),
       catchError((error: HttpErrorResponse) => {
         if (error.status === 409) {
           // Duplicate receipt
+          this.logger.warn('Duplicate receipt detected', { filename });
           return throwError(() => ({
             success: false,
             error: 'Duplicate receipt detected',
             existingReceiptId: error.error?.existingReceiptId
           }));
         }
+        this.logger.error('Receipt upload failed', { filename, error: error.message });
         return throwError(() => ({
           success: false,
           error: error.error?.message || 'Failed to upload receipt'
