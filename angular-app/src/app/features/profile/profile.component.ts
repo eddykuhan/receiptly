@@ -7,6 +7,7 @@ import { ReceiptService } from '../../core/services/receipt.service';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
+import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
 
 Chart.register(...registerables);
 
@@ -56,11 +57,13 @@ interface UserProfile {
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, MyrPipe],
+    imports: [CommonModule, FormsModule, RouterModule, MyrPipe, PullToRefreshComponent],
     templateUrl: './profile.component.html',
     styleUrl: './profile.component.scss'
 })
 export class ProfileComponent implements OnInit {
+    @ViewChild(PullToRefreshComponent) pullToRefresh?: PullToRefreshComponent;
+    
     // State
     receipts = signal<any[]>([]);
     isLoading = signal(true);
@@ -235,6 +238,16 @@ export class ProfileComponent implements OnInit {
                 this.isLoading.set(false);
             }
         });
+    }
+
+    onRefresh() {
+        // Refresh receipts data
+        this.receiptService.loadReceipts();
+        
+        // Complete the pull-to-refresh animation after data loads
+        setTimeout(() => {
+            this.pullToRefresh?.completeRefresh();
+        }, 1000);
     }
 
     initCharts() {
