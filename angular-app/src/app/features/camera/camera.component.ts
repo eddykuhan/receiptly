@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { CameraService } from '../../core/services/camera.service';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { OpenCVService } from '../../core/services/opencv.service';
-import { ReceiptValidatorService, ValidationResult } from '../../core/services/receipt-validator.service';
 import { Receipt } from '../../core/models/receipt.model';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { CameraOverlayComponent } from './components/camera-overlay.component';
@@ -25,7 +24,6 @@ export class CameraComponent {
   private cameraService = inject(CameraService);
   private receiptService = inject(ReceiptService);
   private opencvService = inject(OpenCVService);
-  private validatorService = inject(ReceiptValidatorService);
 
   // State signals
   capturedImage = signal<string | null>(null);
@@ -40,11 +38,6 @@ export class CameraComponent {
   showCamera = signal(false);
   stream: MediaStream | null = null;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
-
-  // Validation State
-  isValidating = signal(false);
-  validationResult = signal<ValidationResult | null>(null);
-  validationInstruction = signal('Align receipt within the frame');
 
   // Toast state
   toastMessage = signal<string | null>(null);
@@ -93,11 +86,6 @@ export class CameraComponent {
     setTimeout(() => {
       this.loadOpenCV();
     }, 1000);
-
-    // Initialize validator worker
-    this.validatorService.initializeWorker().catch(err =>
-      console.error('Failed to init validator:', err)
-    );
   }
 
   private async loadOpenCV() {
@@ -124,7 +112,6 @@ export class CameraComponent {
 
   ngOnDestroy() {
     this.stopCamera();
-    this.validatorService.terminateWorker();
   }
 
   // ... (keep existing OpenCV methods) ...
@@ -165,58 +152,34 @@ export class CameraComponent {
   async processImage(blob: Blob, filename: string) {
     this.isProcessing.set(true);
     this.processedReceipt.set(null);
-    this.validationResult.set(null);
 
     try {
-      // Step 1: Auto-Crop (if enabled and OpenCV loaded)
+      // Auto-Crop (if enabled and OpenCV loaded)
       let processedBlob = blob;
-      if (this.opencvLoaded()) {
-        if (this.autoCrop()) {
-          console.log('Auto-cropping receipt...');
-          try {
-            const croppedBlob = await this.opencvService.cropReceipt(blob);
-            if (croppedBlob.size > 0) {
-              processedBlob = croppedBlob;
-              console.log('Auto-crop successful');
-            }
-          } catch (cropError) {
-            console.warn('Auto-crop failed, using original image:', cropError);
+      if (this.opencvLoaded() && this.autoCrop()) {
+        console.log('Auto-cropping receipt...');
+        try {
+          const croppedBlob = await this.opencvService.cropReceipt(blob);
+          if (croppedBlob.size > 0) {
+            processedBlob = croppedBlob;
+            console.log('Auto-crop successful');
           }
+        } catch (cropError) {
+          console.warn('Auto-crop failed, using original image:', cropError);
         }
       }
 
       // Update preview with processed image
       const dataUrl = await this.blobToDataUrl(processedBlob);
       this.capturedImage.set(dataUrl);
+      this.isProcessing.set(false);
 
-      // Step 2: Validate
-      this.isValidating.set(true);
-      this.isProcessing.set(false); // Done with heavy processing, now validating
-
-      try {
-        const result = await this.validatorService.validateReceipt(dataUrl);
-        this.validationResult.set(result);
-
-        if (result.isValid) {
-          // Auto-proceed if valid
-          await this.uploadImage(processedBlob, filename);
-        } else {
-          // Show validation feedback
-          this.showError('Receipt quality check failed. Please review suggestions.');
-        }
-      } catch (validationError) {
-        console.error('Validation error:', validationError);
-        // Fallback to upload anyway if validation crashes
-        await this.uploadImage(processedBlob, filename);
-      } finally {
-        this.isValidating.set(false);
-      }
-
+      // Upload directly to backend
+      await this.uploadImage(processedBlob, filename);
     } catch (error) {
       console.error('Processing error:', error);
       this.showError('Failed to process image');
       this.isProcessing.set(false);
-      this.isValidating.set(false);
     }
   }
 
@@ -266,21 +229,7 @@ export class CameraComponent {
     }
   }
 
-  proceedAnyway() {
-    if (this.capturedImage()) {
-      this.isValidating.set(false);
-      this.validationResult.set(null);
-      fetch(this.capturedImage()!)
-        .then(res => res.blob())
-        .then(blob => this.uploadImage(blob, `receipt_${Date.now()}.jpg`));
-    }
-  }
 
-  retakePhoto() {
-    this.capturedImage.set(null);
-    this.validationResult.set(null);
-    this.startCamera();
-  }
 
   /**
    * Convert Blob to Data URL for preview
