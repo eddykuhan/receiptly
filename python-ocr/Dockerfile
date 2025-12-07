@@ -80,10 +80,8 @@ ENV PATH="/opt/venv/bin:$PATH" \
 COPY ./app ./app
 
 # Copy store location data (if available in build context)
-# This directory is created by build-and-push-ocr.sh script
-# Create directory first, then copy data
-RUN mkdir -p /app/store-scraper-data
-COPY ./store-scraper-data/ /app/store-scraper-data/
+# GitHub Actions prepares this directory before building
+COPY --chown=1000:1000 ./store-scraper-data/ /app/store-scraper-data/
 
 # Create non-root user and set permissions
 RUN useradd -m -u 1000 appuser && \

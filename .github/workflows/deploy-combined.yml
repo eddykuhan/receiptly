@@ -192,7 +192,15 @@ jobs:
       - name: Build and Push Python OCR to ECR
         run: |
           echo "🏗️ Building and pushing Python OCR..."
+          
+          # Prepare build context with store location data
+          echo "📦 Preparing build context with store location data..."
           cd python-ocr
+          
+          # Copy store-scraper data into build context
+          mkdir -p store-scraper-data
+          cp -r ../store-scraper/data/* store-scraper-data/
+          echo "✅ Copied $(ls -1 store-scraper-data/*.json | wc -l) location files"
           
           # Enable BuildKit for better caching
           export DOCKER_BUILDKIT=1
@@ -220,6 +228,7 @@ jobs:
           docker rmi ${{ steps.secrets.outputs.python_ocr_repo }}:latest \
             ${{ steps.secrets.outputs.python_ocr_repo }}:${{ github.sha }} \
             ${{ steps.secrets.outputs.python_ocr_repo }}:cache 2>/dev/null || true
+          rm -rf store-scraper-data
           df -h
 
       - name: Build and Push LLM Service to ECR

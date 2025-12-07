@@ -40,18 +40,29 @@ class StoreLocationService:
             # Try multiple locations for store data
             # 1. Docker container location (production)
             docker_path = Path("/app/store-scraper-data")
-            # 2. Local development location
-            local_path = Path(__file__).parent.parent.parent.parent / "store-scraper" / "data"
+            # 2. Local development location - use absolute path resolution
+            current_file = Path(__file__).resolve()  # Resolve to absolute path
+            local_path = current_file.parent.parent.parent.parent / "store-scraper" / "data"
+            
+            # Debug logging
+            logger.info(f"🔍 __file__ location: {current_file}")
+            logger.info(f"🔍 Calculated local_path: {local_path}")
+            logger.info(f"🔍 local_path.exists(): {local_path.exists()}")
+            logger.info(f"🔍 docker_path.exists(): {docker_path.exists()}")
             
             if docker_path.exists():
                 data_directory = docker_path
-                logger.info(f"Using Docker container store data: {docker_path}")
+                logger.info(f"✅ Using Docker container store data: {docker_path}")
             elif local_path.exists():
                 data_directory = local_path
-                logger.info(f"Using local development store data: {local_path}")
+                logger.info(f"✅ Using local development store data: {local_path}")
             else:
                 # Fallback - will trigger warning in _load_all_locations
-                data_directory = local_path
+                logger.warning(f"⚠️ Store location data not found!")
+                logger.warning(f"⚠️ Docker path checked: {docker_path}")
+                logger.warning(f"⚠️ Local path checked: {local_path}")
+                logger.warning(f"⚠️ Google Places matching will be disabled - OCR-only mode")
+                data_directory = docker_path  # Use docker path as fallback (will be empty)
         
         self.data_directory = Path(data_directory)
         self.locations: List[Dict] = []
