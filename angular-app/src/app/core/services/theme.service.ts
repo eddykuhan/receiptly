@@ -21,7 +21,7 @@ export class ThemeService {
   }
 
   /**
-   * Get initial theme from localStorage or system preference
+   * Get initial theme from localStorage or default to light
    */
   private getInitialTheme(): Theme {
     // Check localStorage first
@@ -30,11 +30,7 @@ export class ThemeService {
       return savedTheme;
     }
 
-    // Fall back to system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-
+    // Default to light theme
     return 'light';
   }
 
