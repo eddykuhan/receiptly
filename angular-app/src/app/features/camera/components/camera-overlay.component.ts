@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -20,17 +20,12 @@ import { CommonModule } from '@angular/common';
 
         <!-- Center Line (for alignment) -->
         <div class="absolute top-1/2 left-0 w-full h-px bg-sky-400/30 transform -translate-y-1/2"></div>
-        
-        <!-- Scanning Animation -->
-        @if (isScanning) {
-          <div class="absolute top-0 left-0 w-full h-1 bg-sky-400/80 shadow-[0_0_15px_rgba(56,189,248,0.8)] animate-scan"></div>
-        }
       </div>
 
       <!-- Instructions -->
       <div class="absolute bottom-32 left-0 w-full text-center px-4 pointer-events-auto">
         <div class="inline-block bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
-          {{ instructionText }}
+          Align receipt within the frame
         </div>
       </div>
 
@@ -40,19 +35,7 @@ import { CommonModule } from '@angular/common';
       </div>
     </div>
   `,
-  styles: [`
-    .animate-scan {
-      animation: scan 2s linear infinite;
-    }
-    @keyframes scan {
-      0% { top: 0%; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { top: 100%; opacity: 0; }
-    }
-  `]
+  styles: []
 })
 export class CameraOverlayComponent {
-  @Input() isScanning = false;
-  @Input() instructionText = 'Align receipt within the frame';
 }
