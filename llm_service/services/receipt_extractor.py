@@ -56,22 +56,62 @@ class ReceiptMerchantExtractor:
 You are a Receipt Merchant Extraction Model.
 
 Instructions:
-1. Look only at the printed header of the receipt, not security stamps or red markings.
+1. Look at the printed header of the receipt for merchant information (not security stamps or red markings).
 2. Identify the actual merchant name based on:
-   - Known Malaysian merchant list (Mydin, Lotus's, 99 Speedmart, Jaya Grocer, Giant, Hero Market, NSK, etc.)
+   - Known Malaysian merchant list (Mydin, Lotus's, 99 Speedmart, Jaya Grocer, Giant, Hero Market, NSK, Watsons, Guardian, etc.)
    - Partial text in the top header
-3. Ignore company registration numbers, GST IDs, site codes, timestamps, cashier IDs.
+3. Ignore company registration numbers, GST IDs, site codes, cashier IDs.
 4. If the address is not explicitly printed, return only the location (e.g., "Bukit Mertajam, Malaysia").
 5. If the merchant name is partially occluded or unclear, infer the nearest exact match from the known list.
 6. NEVER return "Not found". Always infer the most likely merchant.
+
+7. Extract the transaction date/time from the receipt:
+   - IMPORTANT: Check BOTH the top (header) AND bottom (footer) of the receipt
+   - Some retailers (e.g., Watsons, Guardian, pharmacies) print the date at the BOTTOM
+   - Look for date stamps in these formats:
+     * DD/MM/YYYY, DD-MM-YYYY, MM/DD/YYYY
+     * YYYY-MM-DD, YYYY/MM/DD
+     * DD MMM YYYY (e.g., "07 Dec 2024")
+   - Look for time stamps: HH:MM:SS, HH:MM
+   - Common labels to look for:
+     * "Date:", "Time:", "Date/Time:", "Transaction Date:"
+     * "Date & Time:", "Txn Date:", "Purchase Date:"
+     * Sometimes just a date/time without a label
+   - Prioritize the transaction date over print date or other dates
+   - If multiple dates exist, choose the one that appears to be the transaction/purchase date
+
+8. Return the date in ISO 8601 format:
+   - With time: YYYY-MM-DDTHH:MM:SS (e.g., "2024-12-07T14:30:00")
+   - Without time: YYYY-MM-DD (e.g., "2024-12-07")
 
 Return JSON only:
 
 {
   "merchantName": "",
-  "merchantAddress": ""
+  "merchantAddress": "",
+  "transactionDateTime": ""
+}
+
+Example responses:
+{
+  "merchantName": "Mydin",
+  "merchantAddress": "Bukit Mertajam, Penang, Malaysia",
+  "transactionDateTime": "2024-12-07T14:30:00"
+}
+
+{
+  "merchantName": "Watsons",
+  "merchantAddress": "Sunway Pyramid, Selangor",
+  "transactionDateTime": "2024-12-07"
+}
+
+{
+  "merchantName": "99 Speedmart",
+  "merchantAddress": "Jalan Sultan Azlan Shah, Kuala Lumpur",
+  "transactionDateTime": "2024-12-07T18:45:30"
 }
 """
+
         
         try:
             # Call GPT-4 Vision API
@@ -113,6 +153,7 @@ Return JSON only:
             return {
                 "merchant_name": result.get("merchantName", ""),
                 "merchant_address": result.get("merchantAddress", ""),
+                "transaction_datetime": result.get("transactionDateTime", ""),
                 "raw_response": content,
                 "success": True
             }

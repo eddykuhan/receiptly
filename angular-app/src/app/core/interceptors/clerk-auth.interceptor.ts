@@ -4,7 +4,7 @@ import {
   HttpErrorResponse
 } from '@angular/common/http';
 import { Observable, throwError, race, timer } from 'rxjs';
-import { catchError, switchMap, map } from 'rxjs/operators';
+import { catchError, switchMap, map, take } from 'rxjs/operators';
 import { ClerkAuthService } from '../services/clerk-auth.service';
 
 /**
@@ -15,8 +15,9 @@ export const clerkAuthInterceptorFn: HttpInterceptorFn = (req, next) => {
 
   // Race between getting a token and a timeout
   // This prevents requests from hanging if Clerk hasn't initialized
+  // Use take(1) to prevent re-execution when sessionToken$ emits due to Clerk state changes
   return race(
-    authService.sessionToken$.pipe(map(token => token)),
+    authService.sessionToken$.pipe(take(1), map(token => token)),
     timer(500).pipe(map(() => null))
   ).pipe(
     switchMap((token: string | null) => {

@@ -244,6 +244,7 @@ export class CameraComponent {
   }
 
   private async uploadImage(blob: Blob, filename: string) {
+    console.log('🚀 Starting upload:', filename);
     this.isUploading.set(true);
     this.uploadProgress.set(0);
 
@@ -257,6 +258,7 @@ export class CameraComponent {
 
     this.receiptService.uploadReceipt(blob, filename).subscribe({
       next: (response) => {
+        console.log('✅ Upload success response:', response);
         clearInterval(progressInterval);
         this.uploadProgress.set(100);
         this.isUploading.set(false);
@@ -267,12 +269,16 @@ export class CameraComponent {
         }
       },
       error: (error) => {
+        console.log('❌ Upload error:', error);
         clearInterval(progressInterval);
         this.isUploading.set(false);
         this.uploadProgress.set(0);
 
         if (error.existingReceiptId) {
-          this.showError('Duplicate receipt detected!');
+          // Show a more helpful message with option to view existing receipt
+          this.showError('This receipt has already been uploaded. You can view it in your receipt history.');
+          // TODO: Optionally navigate to the existing receipt
+          // this.router.navigate(['/receipts', error.existingReceiptId]);
         } else {
           this.showError(error.error || 'Failed to upload receipt');
         }
