@@ -69,6 +69,7 @@ export class PriceMapService {
     /**
      * Fetch cached product suggestions derived from analytics data.
      * Uses canonical names for better grouping.
+     * Only includes items that have valid latitude/longitude coordinates.
      */
     getProductSuggestions(): Observable<string[]> {
         if (this.suggestions$) {
@@ -77,7 +78,7 @@ export class PriceMapService {
 
         const params = new HttpParams()
             .set('pageSize', 200)
-            .set('includeMetadata', false);
+            .set('includeMetadata', true); // Changed to true to get lat/long data
 
         this.suggestions$ = this.http
             .get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params })
@@ -85,6 +86,13 @@ export class PriceMapService {
                 map(response => {
                     const uniqueNames = new Set(
                         response.items
+                            // Filter: Only include items with valid lat/long
+                            .filter(item => {
+                                const metadata = item.metadata;
+                                const latitude = metadata?.latitude;
+                                const longitude = metadata?.longitude;
+                                return latitude != null && longitude != null;
+                            })
                             // Prefer canonical name over raw item name
                             .map(item => (item.canonicalName || item.itemName).trim())
                             .filter(Boolean)

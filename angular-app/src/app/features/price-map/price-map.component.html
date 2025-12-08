@@ -157,9 +157,9 @@
 
     <!-- Mobile Bottom Sheet -->
     @if (hasResults()) {
-    <div
-        class="lg:hidden fixed bottom-16 left-0 right-0 bg-base-100 border-t-2 border-primary shadow-2xl max-h-[50vh] overflow-y-auto z-20 rounded-t-2xl">
-        <div class="p-4">
+    <div class="lg:hidden fixed bottom-16 left-0 right-0 bg-base-100 border-t-2 border-primary shadow-2xl max-h-[60vh] overflow-y-auto z-20 rounded-t-2xl"
+        style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+        <div class="p-4 pb-6">
             <div class="flex items-center justify-between mb-3">
                 <h2 class="font-bold flex items-center gap-2">
                     <span class="material-icons text-primary">store</span>
@@ -170,7 +170,7 @@
                 </button>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-2 pb-4">
                 @for (result of searchResults(); track result.store.id; let i = $index) {
                 <div class="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
                     (click)="selectStore(result)">

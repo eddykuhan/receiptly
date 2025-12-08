@@ -21,29 +21,34 @@
 
 
     <!-- Bottom Navigation (Mobile) - Hidden on auth pages -->
-    <div *ngIf="!isAuthPage()" class="lg:hidden z-30 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] fixed bottom-0 left-0 right-0"
-      style="padding-bottom: env(safe-area-inset-bottom)">
-      <div class="btm-nav bg-transparent shadow-none relative">
-        <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
-          <span class="material-icons">home</span>
-          <span class="btm-nav-label text-xs">Home</span>
-        </button>
-        <button (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="text-primary">
-          <span class="material-icons">map</span>
-          <span class="btm-nav-label text-xs">Explore</span>
-        </button>
-        <button (click)="onCameraClick()" class="text-primary">
-          <span class="material-icons">photo_camera</span>
-          <span class="btm-nav-label text-xs">Scan</span>
-        </button>
-        <button (click)="onAskAIClick()" [class.active]="isRouteActive('/ask-ai')" class="text-primary">
-          <span class="material-icons">auto_awesome</span>
-          <span class="btm-nav-label text-xs">Ask AI</span>
-        </button>
-        <button (click)="onProfileClick()" [class.active]="isRouteActive('/profile')" class="text-primary">
-          <span class="material-icons">account_circle</span>
-          <span class="btm-nav-label text-xs">Profile</span>
-        </button>
+    <div *ngIf="!isAuthPage()" class="lg:hidden z-30 fixed bottom-0 left-0 right-0">
+      <!-- Background with shadow -->
+      <div class="absolute inset-0 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]"></div>
+
+      <!-- Navigation buttons container with safe area padding -->
+      <div class="relative" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+        <div class="btm-nav bg-transparent shadow-none h-16">
+          <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
+            <span class="material-icons">home</span>
+            <span class="btm-nav-label text-xs">Home</span>
+          </button>
+          <button (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="text-primary">
+            <span class="material-icons">map</span>
+            <span class="btm-nav-label text-xs">Explore</span>
+          </button>
+          <button (click)="onCameraClick()" class="text-primary">
+            <span class="material-icons">photo_camera</span>
+            <span class="btm-nav-label text-xs">Scan</span>
+          </button>
+          <button (click)="onAskAIClick()" [class.active]="isRouteActive('/ask-ai')" class="text-primary">
+            <span class="material-icons">auto_awesome</span>
+            <span class="btm-nav-label text-xs">Ask AI</span>
+          </button>
+          <button (click)="onProfileClick()" [class.active]="isRouteActive('/profile')" class="text-primary">
+            <span class="material-icons">account_circle</span>
+            <span class="btm-nav-label text-xs">Profile</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

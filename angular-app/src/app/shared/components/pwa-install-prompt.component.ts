@@ -8,7 +8,8 @@ import { PwaService } from '../../core/services/pwa.service';
   imports: [CommonModule],
   template: `
     @if (showPrompt && !dismissed) {
-      <div class="fixed bottom-20 left-4 right-4 z-[10002] animate-[slideUp_0.3s_ease-out]">
+      <div class="fixed left-4 right-4 z-[10002] animate-[slideUp_0.3s_ease-out]"
+           style="bottom: calc(80px + env(safe-area-inset-bottom, 0px));">
         <div class="card bg-base-100 shadow-xl border border-base-200">
           <div class="card-body p-4 flex-row items-center gap-4">
             <div class="p-3 bg-primary/10 rounded-xl text-primary shrink-0">
@@ -32,7 +33,8 @@ import { PwaService } from '../../core/services/pwa.service';
     }
 
     @if (showIosPrompt && !dismissed) {
-      <div class="fixed bottom-4 left-4 right-4 z-[10002] animate-[slideUp_0.3s_ease-out]">
+      <div class="fixed left-4 right-4 z-[10002] animate-[slideUp_0.3s_ease-out]"
+           style="bottom: calc(16px + env(safe-area-inset-bottom, 0px));">
         <div class="alert bg-base-100 shadow-xl border border-base-200 items-start">
           <div class="p-2 bg-primary/10 rounded-lg text-primary shrink-0 mt-1">
             <span class="material-icons">ios_share</span>
