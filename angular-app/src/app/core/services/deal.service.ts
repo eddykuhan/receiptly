@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 
 export interface Deal {
     id: string;
@@ -64,7 +64,7 @@ export class DealService {
 
     private transformToDeals(response: PurchaseAnalyticsResponseDto, userLat?: number, userLon?: number): Deal[] {
         console.log('Transform to deals - input items:', response.items.length);
-        
+
         // Group items by canonical name or item name
         const productMap = new Map<string, {
             prices: number[];
@@ -84,7 +84,7 @@ export class DealService {
 
             const normalizedPrice = item.totalPrice ?? (item.unitPrice ?? 0) * (item.quantity > 0 ? item.quantity : 1);
             const finalPrice = Number(normalizedPrice) || 0;
-            
+
             if (finalPrice <= 0) return;
 
             const metadata = item.metadata;
@@ -134,8 +134,8 @@ export class DealService {
 
             if (cheapestStore) {
                 const averagePrice = product.prices.reduce((a, b) => a + b, 0) / product.prices.length;
-                const savingsPercent = product.prices.length > 1 
-                    ? ((averagePrice - lowestPrice) / averagePrice) * 100 
+                const savingsPercent = product.prices.length > 1
+                    ? ((averagePrice - lowestPrice) / averagePrice) * 100
                     : 0;
 
                 // Calculate distance if user location is available
@@ -184,7 +184,7 @@ export class DealService {
 
         console.log('Total deals found:', deals.length);
         console.log('Product map size:', productMap.size);
-        
+
         // Return top 10 deals
         return deals.slice(0, 10);
     }
@@ -212,7 +212,7 @@ export class DealService {
 
     private getProductImage(productName: string): string {
         const lowerName = productName.toLowerCase();
-        
+
         // Map product categories to Unsplash images
         if (lowerName.includes('milk') || lowerName.includes('susu')) {
             return 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop';
@@ -231,7 +231,7 @@ export class DealService {
         } else if (lowerName.includes('fruit') || lowerName.includes('buah')) {
             return 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400&h=300&fit=crop';
         }
-        
+
         // Default grocery image
         return 'https://images.unsplash.com/photo-1543168256-418811576931?w=400&h=300&fit=crop';
     }

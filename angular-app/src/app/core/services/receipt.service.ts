@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { catchError, map, tap, switchMap, filter, take } from 'rxjs/operators';
 import { Receipt, UploadReceiptResponse } from '../models/receipt.model';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { ClerkAuthService } from './clerk-auth.service';
 import { CloudWatchLoggerService } from './cloudwatch-logger.service';
 
