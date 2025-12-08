@@ -2,6 +2,7 @@ import { Component, signal, ViewChild, ElementRef, inject, AfterViewInit, comput
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
@@ -63,7 +64,7 @@ interface UserProfile {
 })
 export class ProfileComponent implements OnInit {
     @ViewChild(PullToRefreshComponent) pullToRefresh?: PullToRefreshComponent;
-    
+
     // State
     receipts = signal<any[]>([]);
     isLoading = signal(true);
@@ -142,14 +143,14 @@ export class ProfileComponent implements OnInit {
     toggleTheme() {
         // Toggle theme using the theme service
         this.themeService.toggleTheme();
-        
+
         // Update profile to match
         const newTheme = this.themeService.getCurrentTheme();
         this.profile.update(p => ({
             ...p,
             preferences: { ...p.preferences, theme: newTheme }
         }));
-        
+
         // TODO: In production, save theme preference to backend
     }
 
@@ -243,7 +244,7 @@ export class ProfileComponent implements OnInit {
     onRefresh() {
         // Refresh receipts data
         this.receiptService.loadReceipts();
-        
+
         // Complete the pull-to-refresh animation after data loads
         setTimeout(() => {
             this.pullToRefresh?.completeRefresh();
@@ -253,6 +254,40 @@ export class ProfileComponent implements OnInit {
     initCharts() {
         if (this.receipts().length > 0) {
             this.initSpendingChart();
+        }
+    }
+
+    async deleteReceipt(receipt: any, event?: Event) {
+        // Prevent navigation if it was a click on the swipe action
+        if (event) {
+            event.stopPropagation();
+        }
+
+        if (!confirm('Are you sure you want to delete this receipt?')) {
+            // Reset swipe state if we implemented it via JS, 
+            // but with CSS scroll snap, the user just scrolls back.
+            // If we want to force close, we can use ViewChild references, 
+            // but for now simple confirm is fine.
+            return;
+        }
+
+        try {
+            // Optimistic update
+            const oldReceipts = this.receipts();
+            this.receipts.update(current => current.filter(r => r.id !== receipt.id));
+
+            await firstValueFrom(this.receiptService.deleteReceipt(receipt.id));
+
+            // Recalculate stats
+            // Note: Computed signals update automatically when receipts signal changes
+            console.log('Receipt deleted successfully');
+        } catch (error) {
+            console.error('Error deleting receipt:', error);
+            // Revert on error
+            // This is a bit complex with signals without storing 'oldReceipts' in a wider scope 
+            // or reloading. For now simple reload on error.
+            this.receiptService.loadReceipts();
+            alert('Failed to delete receipt. Please try again.');
         }
     }
 
@@ -310,7 +345,7 @@ export class ProfileComponent implements OnInit {
         const now = new Date();
         const diffTime = Math.abs(now.getTime() - memberSince.getTime());
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays < 1) return 'today';
         if (diffDays === 1) return '1 day';
         if (diffDays < 7) return `${diffDays} days`;
@@ -318,13 +353,13 @@ export class ProfileComponent implements OnInit {
             const weeks = Math.floor(diffDays / 7);
             return weeks === 1 ? '1 week' : `${weeks} weeks`;
         }
-        
+
         const months = Math.floor(diffDays / 30);
         if (months < 12) return months === 1 ? '1 month' : `${months} months`;
-        
+
         const years = Math.floor(months / 12);
         const remainingMonths = months % 12;
-        
+
         if (remainingMonths === 0) {
             return years === 1 ? '1 year' : `${years} years`;
         } else {

@@ -127,7 +127,8 @@ def main():
         "FamilyMart Malaysia",
         "KK Super Mart",
         "Watsons Malaysia",
-        "Guardian Malaysia"
+        "Guardian Malaysia",
+        "Sunshine"
     ]
     
     for store_name in stores:
