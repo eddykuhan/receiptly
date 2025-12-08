@@ -313,6 +313,7 @@ async def collect_location_candidates(
         if llm_result and llm_result.get('success'):
             llm_store = llm_result.get('merchant_name', '').strip()
             llm_address = llm_result.get('merchant_address', '').strip()
+            llm_datetime = llm_result.get('transaction_datetime', '').strip()
             
             if llm_store and len(llm_store) >= 2:
                 # Check if store name is different from Azure (avoid duplicates)
@@ -323,6 +324,7 @@ async def collect_location_candidates(
                         "address": llm_address if llm_address else None,
                         "phone": None,
                         "postal_code": None,
+                        "transaction_datetime": llm_datetime if llm_datetime else None,
                         "source": "llm_vision",
                         "confidence": 0.9,  # High confidence for GPT-4 Vision
                         "metadata": {
@@ -330,6 +332,8 @@ async def collect_location_candidates(
                         }
                     })
                     print(f"  📋 Candidate {len(candidates)-1} (LLM Vision): {llm_store}")
+                    if llm_datetime:
+                        print(f"     Transaction DateTime: {llm_datetime}")
                 else:
                     # Update existing Azure candidate with LLM address if better
                     for c in candidates:
@@ -337,6 +341,10 @@ async def collect_location_candidates(
                             if llm_address and (not c.get('address') or len(llm_address) > len(c.get('address', ''))):
                                 c['address'] = llm_address
                                 print(f"  📝 Enhanced Azure candidate with LLM address: {llm_address[:50]}...")
+                            # Also add transaction datetime if available
+                            if llm_datetime and not c.get('transaction_datetime'):
+                                c['transaction_datetime'] = llm_datetime
+                                print(f"  📝 Enhanced Azure candidate with LLM datetime: {llm_datetime}")
                             break
     except Exception as e:
         print(f"  ⚠️ LLM Vision extraction failed: {str(e)}")
@@ -549,11 +557,37 @@ async def override_merchant_data_with_llm(
         print(f"  ⚠️ Google Places matching error: {str(e)}")
         # Continue without Google Places data
     
-    # Transaction date is handled by Azure - no additional processing needed for location selection
+    
+    # ========== Transaction Date Fallback ==========
+    # Transaction date is critical - use LLM as fallback if Azure fails
     azure_date = fields.get('TransactionDate', {})
     azure_date_value = azure_date.get('value') if isinstance(azure_date, dict) else azure_date
+    
     if azure_date_value:
         print(f"  ℹ️ TransactionDate from Azure: {azure_date_value}")
+    else:
+        # Azure failed to extract date - use LLM fallback
+        print(f"  ⚠️ Azure failed to extract TransactionDate - checking LLM fallback...")
+        
+        # Check if LLM extracted a date during location candidate collection
+        if selected_candidate and selected_candidate.get('transaction_datetime'):
+            llm_date = selected_candidate.get('transaction_datetime')
+            print(f"  ✅ Using LLM-extracted date: {llm_date}")
+            
+            fields['TransactionDate'] = {
+                'type': 'date',
+                'value': llm_date,
+                'content': llm_date,
+                'confidence': 0.85,  # High confidence for GPT-4 Vision
+                'source': 'llm_vision_fallback'
+            }
+        else:
+            print(f"  ⚠️ No transaction date available from any source")
+            # Set a flag for manual review
+            if 'metadata' not in azure_result:
+                azure_result['metadata'] = {}
+            azure_result['metadata']['missing_transaction_date'] = True
+            azure_result['metadata']['requires_manual_review'] = True
     
     # Add additional location metadata
     if 'metadata' not in azure_result:

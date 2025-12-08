@@ -253,11 +253,17 @@ class StoreLocationService:
         location_keyword_match = bool(ocr_location_keywords & db_location_keywords)
         matched_keywords = ocr_location_keywords & db_location_keywords
         
+        # Calculate specificity of matched keywords (prefer multi-word matches)
+        # e.g., "sunway carnival" (2 words) is more specific than "sunway" (1 word)
+        match_specificity = 0
+        if matched_keywords:
+            match_specificity = max(len(kw.split()) for kw in matched_keywords)
+        
         # Debug logging for location matching
         if ocr_location_keywords:
             logger.debug(f"OCR location keywords: {ocr_location_keywords}")
         if matched_keywords:
-            logger.debug(f"Matched keywords: {matched_keywords}")
+            logger.debug(f"Matched keywords: {matched_keywords} (specificity: {match_specificity})")
         
         # 1. Store name similarity (primary signal)
         name_ratio = fuzz.ratio(ocr_store_name.lower(), db_store_name.lower())
@@ -288,10 +294,16 @@ class StoreLocationService:
         if branch_number_match and best_name_ratio >= 80:
             return (0.98, f"Branch number match ({ocr_branch_number}) + name match")
         
-        # Very high: Branch number OR strong location keyword match with good name
+        # Very high: Multi-word location match (e.g., "sunway carnival" not just "sunway")
+        # Even with weaker name match, strong location match is highly reliable
+        if match_specificity >= 2 and best_name_ratio >= 60:
+            keywords_str = ", ".join(list(matched_keywords)[:3])
+            return (0.95, f"Name + specific location match ({keywords_str})")
+        
+        # Very high: Multiple single-word location keywords with good name match
         if best_name_ratio >= 80 and location_keyword_match and len(matched_keywords) >= 2:
             keywords_str = ", ".join(list(matched_keywords)[:3])
-            return (0.95, f"Name + location match ({keywords_str})")
+            return (0.93, f"Name + location match ({keywords_str})")
         
         # High: Exact name + phone
         if best_name_ratio >= 90 and phone_match:
@@ -301,10 +313,11 @@ class StoreLocationService:
         if best_name_ratio >= 90 and postal_match:
             return (0.92, "Exact name + postal code match")
         
-        # High: Name + single strong location keyword
-        if best_name_ratio >= 85 and location_keyword_match:
+        # High: Name + single location keyword (could be ambiguous)
+        if best_name_ratio >= 85 and location_keyword_match and match_specificity == 1:
             keywords_str = ", ".join(list(matched_keywords)[:2])
-            return (0.90, f"Name + location keyword ({keywords_str})")
+            # Lower confidence for single-word generic matches
+            return (0.85, f"Name + location keyword ({keywords_str})")
         
         # Good: Name + city
         if best_name_ratio >= 90 and address_match:
@@ -314,19 +327,19 @@ class StoreLocationService:
         if best_name_ratio >= 85 and (phone_match or postal_match):
             return (0.88, f"Strong name match ({best_name_ratio}%) + additional signal")
         
-        # Moderate: Just name match
+        # Moderate: Just name match (risky for chains with many branches)
         if best_name_ratio >= 90:
-            return (0.85, f"Exact name match ({best_name_ratio}%)")
+            return (0.80, f"Exact name match ({best_name_ratio}%) - no location confirmation")
         
         # Lower: Name + weak signals
         if best_name_ratio >= 80 and address_match:
             return (0.80, f"Strong name match ({best_name_ratio}%) + city match ({city_match})")
         
         elif best_name_ratio >= 80:
-            return (0.75, f"Strong name match ({best_name_ratio}%)")
+            return (0.70, f"Strong name match ({best_name_ratio}%) - no location confirmation")
         
         elif best_name_ratio >= 70:
-            return (0.65, f"Moderate name match ({best_name_ratio}%)")
+            return (0.60, f"Moderate name match ({best_name_ratio}%)")
         
         else:
             return (0.50, f"Weak name match ({best_name_ratio}%)")
@@ -449,7 +462,13 @@ class StoreLocationService:
             'business park', 'commercial centre', 'commercial center',
             
             # Major malls
-            'sunway pyramid', 'sunway', 'mid valley', 'midvalley',
+            'sunway carnival', 'sunway carnival mall',  # Penang location
+            'sunway pyramid', 'sunway pyramid mall',    # Petaling Jaya location
+            'sunway putra', 'sunway putra mall',
+            'sunway velocity', 'sunway velocity mall',
+            'sunway geo', 'sunway giza',
+            'dataran sunway',
+            'mid valley', 'midvalley',
             'pavilion', 'klcc', 'suria klcc',
             'one utama', '1 utama', 'the curve',
             'gurney', 'gurney plaza', 'gurney paragon',
@@ -492,6 +511,11 @@ class StoreLocationService:
         for noun in proper_nouns:
             if len(noun) > 3:  # Skip short words like "The", "At"
                 keywords.add(noun.lower())
+        
+        # Remove overly generic keywords that don't help disambiguation
+        # (Applied at the end to catch all sources of generic keywords)
+        generic_keywords = {'malaysia', 'malaysian', 'my', 'asia', 'wilayah', 'federal', 'territory'}
+        keywords = keywords - generic_keywords
         
         return keywords
     
