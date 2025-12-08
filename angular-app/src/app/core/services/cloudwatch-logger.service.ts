@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 
 export enum LogLevel {
   DEBUG = 'DEBUG',
@@ -28,7 +28,7 @@ export class CloudWatchLoggerService {
   private readonly LOG_STREAM = `frontend-${environment.production ? 'prod' : 'dev'}`;
   private readonly BATCH_SIZE = 10;
   private readonly FLUSH_INTERVAL = 5000; // 5 seconds
-  
+
   private logBuffer: LogEntry[] = [];
   private sessionId: string;
   private flushTimer: any;
@@ -36,7 +36,7 @@ export class CloudWatchLoggerService {
 
   constructor(private http: HttpClient) {
     this.sessionId = this.generateSessionId();
-    
+
     if (this.isEnabled) {
       this.startAutoFlush();
       this.setupBeforeUnloadHandler();

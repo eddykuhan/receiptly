@@ -49,8 +49,8 @@
               "serviceWorker": "ngsw-config.json",
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.development.ts",
-                  "with": "src/environments/environment.ts"
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
                 }
               ]
             },
@@ -71,7 +71,7 @@
               "serviceWorker": "ngsw-config.json",
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.development.ts",
+                  "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.staging.ts"
                 }
               ]
