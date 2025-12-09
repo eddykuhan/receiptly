@@ -1,4 +1,4 @@
-import { Component, signal, inject, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, signal, inject, ViewChild, ElementRef, OnDestroy, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CameraService } from '../../core/services/camera.service';
@@ -6,6 +6,8 @@ import { ReceiptService } from '../../core/services/receipt.service';
 import { OpenCVService } from '../../core/services/opencv.service';
 import { Receipt } from '../../core/models/receipt.model';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
+import { ReceiptProcessingService } from '../../core/services/receipt-processing.service';
+import { Router } from '@angular/router';
 import { CameraOverlayComponent } from './components/camera-overlay.component';
 
 @Component({
@@ -24,10 +26,19 @@ export class CameraComponent {
   private cameraService = inject(CameraService);
   private receiptService = inject(ReceiptService);
   private opencvService = inject(OpenCVService);
+  private receiptProcessingService = inject(ReceiptProcessingService);
+  private router = inject(Router);
 
   // State signals
+  // State signals
   capturedImage = signal<string | null>(null);
-  isUploading = signal(false);
+
+  // Processing state from service
+  activeUploads = this.receiptProcessingService.activeUploads;
+  hasActiveUploads = computed(() => this.activeUploads().length > 0);
+
+  // Local state
+  isUploading = signal(false); // Deprecated, kept for backward compatibility if needed, but logic moved to service
   uploadProgress = signal(0);
   processedReceipt = signal<Receipt | null>(null);
   isProcessing = signal(false);
@@ -244,46 +255,21 @@ export class CameraComponent {
   }
 
   private async uploadImage(blob: Blob, filename: string) {
-    console.log('🚀 Starting upload:', filename);
-    this.isUploading.set(true);
-    this.uploadProgress.set(0);
+    console.log('🚀 Starting background upload:', filename);
 
-    // Simulate progress (real progress tracking would need backend support)
-    const progressInterval = setInterval(() => {
-      const current = this.uploadProgress();
-      if (current < 90) {
-        this.uploadProgress.set(current + 10);
-      }
-    }, 200);
+    // Delegate to processing service
+    this.receiptProcessingService.processReceipt(blob, filename);
 
-    this.receiptService.uploadReceipt(blob, filename).subscribe({
-      next: (response) => {
-        console.log('✅ Upload success response:', response);
-        clearInterval(progressInterval);
-        this.uploadProgress.set(100);
-        this.isUploading.set(false);
+    // Clear local state immediately for next scan
+    this.clearImage();
 
-        if (response.success && response.receipt) {
-          this.processedReceipt.set(response.receipt);
-          this.showSuccess('Receipt processed successfully!');
-        }
-      },
-      error: (error) => {
-        console.log('❌ Upload error:', error);
-        clearInterval(progressInterval);
-        this.isUploading.set(false);
-        this.uploadProgress.set(0);
+    // Provide immediate feedback to user
+    // We rely on the service's toasts, but we can also do a redirect here if preferred.
+    // For now, let's keep the user on the camera screen but reset it, 
+    // effectively allowing them to "Navigate away" or generic use since it's non-blocking.
 
-        if (error.existingReceiptId) {
-          // Show a more helpful message with option to view existing receipt
-          this.showError('This receipt has already been uploaded. You can view it in your receipt history.');
-          // TODO: Optionally navigate to the existing receipt
-          // this.router.navigate(['/receipts', error.existingReceiptId]);
-        } else {
-          this.showError(error.error || 'Failed to upload receipt');
-        }
-      }
-    });
+    // Optional: Redirect to history if that's the desired UX flow "After scan, go to history"
+    // this.router.navigate(['/history']); 
   }
 
   clearImage() {

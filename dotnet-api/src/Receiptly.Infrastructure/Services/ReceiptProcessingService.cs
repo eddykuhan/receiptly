@@ -483,6 +483,14 @@ public class ReceiptProcessingService : IReceiptProcessingService
             }
         }
 
+        // Fallback: If TotalAmount is 0 but SubtotalAmount exists, calculate Total
+        if (receipt.TotalAmount == 0 && receipt.SubtotalAmount.HasValue)
+        {
+            receipt.TotalAmount = receipt.SubtotalAmount.Value + (receipt.TaxAmount ?? 0) + (receipt.TipAmount ?? 0);
+            _logger.LogInformation("TotalAmount fallback triggered. Calculated from Subtotal ({Subtotal}) + Tax ({Tax}) + Tip ({Tip}) = {Total}. ReceiptId: {ReceiptId}", 
+                receipt.SubtotalAmount, receipt.TaxAmount, receipt.TipAmount, receipt.TotalAmount, receiptId);
+        }
+
         // Extract receipt type
         if (ocrResponse.Fields.TryGetValue("ReceiptType", out var receiptType))
         {
