@@ -5,6 +5,7 @@ import { filter } from 'rxjs';
 import { PwaInstallPromptComponent } from './shared/components/pwa-install-prompt.component';
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 import { ThemeService } from './core/services/theme.service';
+import { ToastService } from './core/services/toast.service';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +20,7 @@ export class App {
   
   // Inject theme service to initialize it on app startup
   private themeService = inject(ThemeService);
+  private toastService = inject(ToastService);
   
   // Check if current route is an authentication page
   isAuthPage = computed(() => {
@@ -60,7 +62,8 @@ export class App {
   }
 
   onAskAIClick() {
-    this.router.navigate(['/ask-ai']);
+    this.toastService.info('Coming Soon');
+    // this.router.navigate(['/ask-ai']);
   }
 
   onPriceMapClick() {
