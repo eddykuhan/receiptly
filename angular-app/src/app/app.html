@@ -1,9 +1,9 @@
 <div class="drawer" [class.lg:drawer-open]="!isAuthPage()">
   <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
 
-  <div class="drawer-content flex flex-col bg-base-200 min-h-screen relative">
+  <div class="drawer-content flex flex-col bg-base-200 h-[100dvh] overflow-hidden relative">
     <!-- Navbar (Mobile only) - Hidden on auth pages -->
-    <div *ngIf="!isAuthPage()" class="navbar bg-base-100 lg:hidden shadow-sm z-10">
+    <div *ngIf="!isAuthPage()" class="navbar bg-base-100 lg:hidden shadow-sm z-10 flex-none">
       <div class="flex-1">
         <a class="btn btn-ghost text-xl text-primary font-bold">Cheapsy</a>
       </div>
