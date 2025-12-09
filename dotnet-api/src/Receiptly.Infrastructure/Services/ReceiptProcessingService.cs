@@ -173,6 +173,38 @@ public class ReceiptProcessingService : IReceiptProcessingService
             _logger.LogInformation("Data extracted. MerchantName: {MerchantName}, Items: {ItemCount}, Total: {Total}, Status: {Status}, ReceiptId: {ReceiptId}", 
                 receipt.StoreName, receipt.Items.Count, receipt.TotalAmount, receipt.Status, receiptId);
 
+            // Content-based duplicate check (same store, same date, same amount)
+            if (!string.IsNullOrEmpty(receipt.StoreName) && receipt.TotalAmount > 0)
+            {
+                _logger.LogInformation("Checking for content-based duplicates (Store: {Store}, Date: {Date}, Total: {Total})", 
+                    receipt.StoreName, receipt.PurchaseDate.Date, receipt.TotalAmount);
+                    
+                var existingContentReceipt = await _receiptRepository.FindPotentialDuplicateAsync(
+                    userId, 
+                    receipt.PurchaseDate, 
+                    receipt.TotalAmount, 
+                    receipt.StoreName, 
+                    cancellationToken);
+
+                if (existingContentReceipt != null)
+                {
+                    _logger.LogWarning("Content-based duplicate detected. Existing ID: {ExistingId}. ReceiptId: {ReceiptId}", 
+                        existingContentReceipt.Id, receiptId);
+                    
+                    // Cleanup S3 before throwing
+                    try 
+                    {
+                        await _s3Storage.DeleteReceiptAsync(userId, receiptId);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "Failed to cleanup S3 after content duplicate detection. ReceiptId: {ReceiptId}", receiptId);
+                    }
+
+                    throw new Receiptly.Domain.Exceptions.DuplicateReceiptException(existingContentReceipt.Id, "Duplicate content detected");
+                }
+            }
+
             // Step 8: Save extracted data to S3
             _logger.LogInformation("Step 8/9: Saving extracted data to S3. ReceiptId: {ReceiptId}", receiptId);
             await _s3Storage.SaveExtractedDataAsync(userId, receiptId, receipt);

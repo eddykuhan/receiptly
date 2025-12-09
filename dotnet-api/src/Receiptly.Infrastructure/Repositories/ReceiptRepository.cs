@@ -73,6 +73,25 @@ public class ReceiptRepository : IReceiptRepository
         return true;
     }
 
+    public async Task<Receipt?> FindPotentialDuplicateAsync(string userId, DateTime purchaseDate, decimal totalAmount, string storeName, CancellationToken cancellationToken = default)
+    {
+        // Normalize store name for comparison
+        var normalizedStoreName = storeName.Trim().ToLower();
+        
+        // Ensure date is UTC for comparison
+        var compareDate = purchaseDate.Kind != DateTimeKind.Utc 
+            ? DateTime.SpecifyKind(purchaseDate, DateTimeKind.Utc) 
+            : purchaseDate;
+
+        return await _context.Receipts
+            .FirstOrDefaultAsync(r => 
+                r.UserId == userId && 
+                r.TotalAmount == totalAmount &&
+                r.PurchaseDate.Date == compareDate.Date && 
+                r.StoreName.ToLower() == normalizedStoreName, 
+                cancellationToken);
+    }
+
     /// <summary>
     /// Ensures all DateTime fields are UTC to prevent PostgreSQL timestamp errors
     /// </summary>

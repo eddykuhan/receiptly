@@ -10,4 +10,5 @@ public interface IReceiptRepository
     Task<Receipt?> GetByImageHashAsync(string userId, string imageHash, CancellationToken cancellationToken = default);
     Task<Receipt> UpdateAsync(Receipt receipt, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Receipt?> FindPotentialDuplicateAsync(string userId, DateTime purchaseDate, decimal totalAmount, string storeName, CancellationToken cancellationToken = default);
 }
