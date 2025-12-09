@@ -558,36 +558,38 @@ async def override_merchant_data_with_llm(
         # Continue without Google Places data
     
     
-    # ========== Transaction Date Fallback ==========
-    # Transaction date is critical - use LLM as fallback if Azure fails
+    # ========== Transaction Date Extraction (LLM First, Azure Fallback) ==========
+    # LLM is more reliable for date extraction - use it as primary source
     azure_date = fields.get('TransactionDate', {})
     azure_date_value = azure_date.get('value') if isinstance(azure_date, dict) else azure_date
     
-    if azure_date_value:
-        print(f"  ℹ️ TransactionDate from Azure: {azure_date_value}")
+    # Check if LLM extracted a date during location candidate collection
+    llm_date = None
+    if selected_candidate and selected_candidate.get('transaction_datetime'):
+        llm_date = selected_candidate.get('transaction_datetime')
+    
+    # Priority: LLM > Azure > None
+    if llm_date:
+        print(f"  ✅ Using LLM-extracted TransactionDate: {llm_date}")
+        fields['TransactionDate'] = {
+            'type': 'date',
+            'value': llm_date,
+            'content': llm_date,
+            'confidence': 0.90,  # High confidence for GPT-4 Vision
+            'source': 'llm_vision'
+        }
+    elif azure_date_value:
+        print(f"  ℹ️ LLM date not available - using Azure TransactionDate: {azure_date_value}")
+        # Keep Azure's date as-is (it's already in fields)
+        if isinstance(azure_date, dict):
+            azure_date['source'] = 'azure_fallback'
     else:
-        # Azure failed to extract date - use LLM fallback
-        print(f"  ⚠️ Azure failed to extract TransactionDate - checking LLM fallback...")
-        
-        # Check if LLM extracted a date during location candidate collection
-        if selected_candidate and selected_candidate.get('transaction_datetime'):
-            llm_date = selected_candidate.get('transaction_datetime')
-            print(f"  ✅ Using LLM-extracted date: {llm_date}")
-            
-            fields['TransactionDate'] = {
-                'type': 'date',
-                'value': llm_date,
-                'content': llm_date,
-                'confidence': 0.85,  # High confidence for GPT-4 Vision
-                'source': 'llm_vision_fallback'
-            }
-        else:
-            print(f"  ⚠️ No transaction date available from any source")
-            # Set a flag for manual review
-            if 'metadata' not in azure_result:
-                azure_result['metadata'] = {}
-            azure_result['metadata']['missing_transaction_date'] = True
-            azure_result['metadata']['requires_manual_review'] = True
+        print(f"  ⚠️ No transaction date available from any source")
+        # Set a flag for manual review
+        if 'metadata' not in azure_result:
+            azure_result['metadata'] = {}
+        azure_result['metadata']['missing_transaction_date'] = True
+        azure_result['metadata']['requires_manual_review'] = True
     
     # Add additional location metadata
     if 'metadata' not in azure_result:
