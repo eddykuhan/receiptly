@@ -4,11 +4,12 @@
 // Bottom Navigation Optimization for iPhones
 :host ::ng-deep {
     .btm-nav {
-        // Ensure buttons have proper height and don't extend into safe area
-        height: 4rem; // 64px - standard mobile nav height
+        // Let height be determined by content + safe area padding
+        min-height: 4rem; // 64px minimum - will grow with safe area
 
         button {
             // Ensure buttons are within the safe tappable area
+            height: 4rem; // Fixed button height
             min-height: 44px; // Apple's minimum touch target size
             padding-bottom: 0.25rem;
 
