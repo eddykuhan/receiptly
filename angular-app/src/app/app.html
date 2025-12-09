@@ -24,8 +24,7 @@
     <div *ngIf="!isAuthPage()"
       class="lg:hidden z-30 fixed bottom-0 left-0 right-0 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
       <!-- Navigation buttons container with safe area padding -->
-      <div class="relative" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
-        <div class="btm-nav shadow-none h-16">
+      <div class="btm-nav shadow-none" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
           <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
             <span class="material-icons">home</span>
             <span class="btm-nav-label text-xs">Home</span>
@@ -46,7 +45,6 @@
             <span class="material-icons">account_circle</span>
             <span class="btm-nav-label text-xs">Profile</span>
           </button>
-        </div>
       </div>
     </div>
   </div>
