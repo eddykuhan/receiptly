@@ -10,6 +10,42 @@
     </div>
   </header>
 
+  @if (hasActiveUploads()) {
+  <div class="card bg-base-100 shadow-xl border-t-4 border-primary mt-8 animate-fade-in">
+    <div class="card-body items-center text-center py-12">
+      <!-- Animated Icon -->
+      <div class="relative w-24 h-24 mb-6">
+        <div class="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+        <div class="absolute inset-2 bg-primary/30 rounded-full animate-pulse"></div>
+        <div class="absolute inset-0 flex items-center justify-center bg-base-100 rounded-full m-1">
+          <span class="material-icons text-5xl text-primary">receipt_long</span>
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-bold mb-2">Processing Receipt</h2>
+      <p class="text-base-content/60 max-w-xs mx-auto">
+        We're extracting the details from your receipt. This keeps your spending history accurate!
+      </p>
+
+      <!-- Active Uploads List -->
+      <div class="w-full max-w-sm mt-8 space-y-3">
+        @for (upload of activeUploads(); track upload.id) {
+        <div class="flex items-center gap-3 bg-base-200/50 p-3 rounded-lg border border-base-300">
+          <span class="loading loading-spinner loading-sm text-primary"></span>
+          <div class="flex-1 text-left overflow-hidden">
+            <div class="font-medium text-sm truncate">{{ upload.filename }}</div>
+            <div class="text-xs text-base-content/60">Analyzing text...</div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <div class="mt-8 text-xs text-base-content/40">
+        You can navigate away, we'll notify you when it's done.
+      </div>
+    </div>
+  </div>
+  } @else {
   <!-- Camera Actions (when no image captured) -->
   @if (!capturedImage()) {
   <div class="space-y-6">
@@ -273,6 +309,7 @@
     </div>
     }
   </div>
+  }
   }
 
   <!-- Toast Notification -->

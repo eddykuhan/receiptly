@@ -37,28 +37,30 @@ jobs:
         working-directory: ./angular-app
         run: npm ci
 
-      - name: Build Angular PWA
-        working-directory: ./angular-app
-        run: npm run build
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Determine environment
+      - name: Determine environment and build command
         id: environment
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "env=production" >> $GITHUB_OUTPUT
             echo "bucket=receiptly-production-pwa" >> $GITHUB_OUTPUT
             echo "distribution_id=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "build_command=build" >> $GITHUB_OUTPUT
           else
             echo "env=staging" >> $GITHUB_OUTPUT
             echo "bucket=receiptly-staging-pwa" >> $GITHUB_OUTPUT
             echo "distribution_id=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_STAGING }}" >> $GITHUB_OUTPUT
+            echo "build_command=build:staging" >> $GITHUB_OUTPUT
           fi
+
+      - name: Build Angular PWA
+        working-directory: ./angular-app
+        run: npm run ${{ steps.environment.outputs.build_command }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Sync files to S3
         working-directory: ./angular-app
