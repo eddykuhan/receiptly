@@ -246,9 +246,15 @@ public static class ServiceCollectionExtensions
         // Repository
         services.AddScoped<IReceiptRepository, ReceiptRepository>();
 
+        // Feedback repositories
+        services.AddScoped<IUserCorrectionRepository, UserCorrectionRepository>();
+        services.AddScoped<IIssueReportRepository, IssueReportRepository>();
+        services.AddScoped<IUserDebugSessionRepository, UserDebugSessionRepository>();
+
         // Business services
         services.AddScoped<IReceiptProcessingService, ReceiptProcessingService>();
         services.AddScoped<IPurchaseAnalyticsService, PurchaseAnalyticsService>();
+        services.AddScoped<IFeedbackService, FeedbackService>();
 
         // LLM Services - configuration added via AddLlmService method
         services.AddScoped<CanonicalizationService>();
