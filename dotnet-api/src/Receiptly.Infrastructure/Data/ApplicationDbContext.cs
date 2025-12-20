@@ -13,6 +13,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<CanonicalCache> CanonicalCache { get; set; }
+    public DbSet<UserCorrection> UserCorrections { get; set; }
+    public DbSet<IssueReport> IssueReports { get; set; }
+    public DbSet<UserDebugSession> UserDebugSessions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -176,6 +179,113 @@ public class ApplicationDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.ReceiptId);
             entity.HasIndex(e => e.Name);
+        });
+
+        // Configure UserCorrection entity
+        modelBuilder.Entity<UserCorrection>(entity =>
+        {
+            entity.ToTable("user_corrections");
+            
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(450);
+            
+            entity.Property(e => e.ReceiptId)
+                .IsRequired();
+            
+            entity.Property(e => e.FieldName)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.IncorrectValue)
+                .HasMaxLength(1000);
+            
+            entity.Property(e => e.CorrectedValue)
+                .HasMaxLength(1000);
+            
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.HasOne(e => e.Receipt)
+                .WithMany()
+                .HasForeignKey(e => e.ReceiptId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.ReceiptId);
+            entity.HasIndex(e => new { e.ReceiptId, e.FieldName });
+        });
+
+        // Configure IssueReport entity
+        modelBuilder.Entity<IssueReport>(entity =>
+        {
+            entity.ToTable("issue_reports");
+            
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(450);
+            
+            entity.Property(e => e.ReceiptId)
+                .IsRequired();
+            
+            entity.Property(e => e.IssueType)
+                .IsRequired()
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.Severity)
+                .IsRequired()
+                .HasMaxLength(20);
+            
+            entity.Property(e => e.Description)
+                .HasMaxLength(2000);
+            
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.HasOne(e => e.Receipt)
+                .WithMany()
+                .HasForeignKey(e => e.ReceiptId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.ReceiptId);
+            entity.HasIndex(e => e.IssueType);
+            entity.HasIndex(e => e.Severity);
+        });
+
+        // Configure UserDebugSession entity
+        modelBuilder.Entity<UserDebugSession>(entity =>
+        {
+            entity.ToTable("user_debug_sessions");
+            
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(450);
+            
+            entity.Property(e => e.SessionId)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.Reason)
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.StartedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.ExpiresAt)
+                .IsRequired();
+            
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.SessionId, e.ExpiresAt });
         });
     }
 }
