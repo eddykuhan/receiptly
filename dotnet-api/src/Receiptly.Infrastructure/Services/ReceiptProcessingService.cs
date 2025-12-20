@@ -472,10 +472,11 @@ public class ReceiptProcessingService : IReceiptProcessingService
         {
             if (DateTime.TryParse(transactionDate.Value?.ToString(), out var parsedDate))
             {
-                // Ensure the date is in UTC for PostgreSQL
-                receipt.PurchaseDate = parsedDate.Kind == DateTimeKind.Utc 
-                    ? parsedDate 
-                    : DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
+                // OCR extracts dates from Malaysian receipts (UTC+8)
+                // Convert Malaysia time to UTC for storage
+                var malaysiaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Kuala_Lumpur");
+                var malaysiaTime = DateTime.SpecifyKind(parsedDate, DateTimeKind.Unspecified);
+                receipt.PurchaseDate = TimeZoneInfo.ConvertTimeToUtc(malaysiaTime, malaysiaTimeZone);
             }
         }
 

@@ -82,8 +82,8 @@ export class DealService {
             const productName = (item.canonicalName || item.itemName).trim();
             if (!productName) return;
 
-            const normalizedPrice = item.totalPrice ?? (item.unitPrice ?? 0) * (item.quantity > 0 ? item.quantity : 1);
-            const finalPrice = Number(normalizedPrice) || 0;
+            // Use unit price only, not total price
+            const finalPrice = Number(item.unitPrice) || 0;
 
             if (finalPrice <= 0) return;
 
