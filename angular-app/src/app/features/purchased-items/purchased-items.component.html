@@ -105,25 +105,7 @@
         }
         <!-- Items List -->
         @else {
-        <!-- Summary Stats -->
-        <div class="stats shadow w-full mb-6 bg-base-100">
-            <div class="stat">
-                <div class="stat-figure text-primary">
-                    <span class="material-icons text-4xl">inventory_2</span>
-                </div>
-                <div class="stat-title">Unique Items</div>
-                <div class="stat-value text-primary">{{ getTotalItems() }}</div>
-                <div class="stat-desc">Across all receipts</div>
-            </div>
-            <div class="stat">
-                <div class="stat-figure text-secondary">
-                    <span class="material-icons text-4xl">payments</span>
-                </div>
-                <div class="stat-title">Average Price</div>
-                <div class="stat-value text-secondary">{{ getAveragePrice() | myr }}</div>
-                <div class="stat-desc">Per item</div>
-            </div>
-        </div>
+
 
         <div class="space-y-3">
             @for (item of filteredItems(); track item.name) {
@@ -142,11 +124,6 @@
                                     <span class="flex items-center gap-1">
                                         <span class="material-icons text-sm">calendar_today</span>
                                         {{ item.mostRecentDate | date:'MMM d, y' }}
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <span class="material-icons text-sm">receipt</span>
-                                        {{ item.receipts.length }} {{ item.receipts.length === 1 ? 'receipt' :
-                                        'receipts' }}
                                     </span>
                                 </div>
                             </div>

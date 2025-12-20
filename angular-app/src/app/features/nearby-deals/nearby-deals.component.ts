@@ -22,6 +22,9 @@ export class NearbyDealsComponent implements OnInit {
     radius = 5; // 5km radius
 
     ngOnInit() {
+        // Load deals immediately without location to avoid waiting
+        this.loadNearbyDeals();
+        // Then try to get location for better results
         this.getUserLocation();
     }
 
@@ -33,15 +36,15 @@ export class NearbyDealsComponent implements OnInit {
                         lat: position.coords.latitude,
                         lon: position.coords.longitude
                     });
+                    // Reload with location data
                     this.loadNearbyDeals();
                 },
                 (error) => {
-                    console.log('Location access denied, showing all deals');
-                    this.loadNearbyDeals();
-                }
+                    console.log('Location access denied or failed', error);
+                    // No need to reload, we already loaded default deals
+                },
+                { timeout: 5000, maximumAge: 60000 }
             );
-        } else {
-            this.loadNearbyDeals();
         }
     }
 
