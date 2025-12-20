@@ -59,28 +59,6 @@
         }
         <!-- Deals Grid -->
         @else {
-        <!-- Summary Stats -->
-        <div class="stats shadow w-full mb-6 bg-base-100">
-            <div class="stat">
-                <div class="stat-figure text-primary">
-                    <span class="material-icons text-4xl">local_offer</span>
-                </div>
-                <div class="stat-title">Deals Found</div>
-                <div class="stat-value text-primary">{{ deals().length }}</div>
-                <div class="stat-desc">Within {{ radius }}km</div>
-            </div>
-            @if (userLocation()) {
-            <div class="stat">
-                <div class="stat-figure text-secondary">
-                    <span class="material-icons text-4xl">location_on</span>
-                </div>
-                <div class="stat-title">Your Location</div>
-                <div class="stat-value text-secondary text-sm">{{ userLocation()!.lat.toFixed(4) }}, {{
-                    userLocation()!.lon.toFixed(4) }}</div>
-                <div class="stat-desc">Latitude, Longitude</div>
-            </div>
-            }
-        </div>
 
         <div class="space-y-4">
             @for (deal of deals(); track deal.id) {

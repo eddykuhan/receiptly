@@ -11,6 +11,7 @@ interface AggregatedItem {
     canonicalName?: string;
     totalQuantity: number;
     averagePrice: number;
+    totalSpent: number;
     purchaseCount: number;
     mostRecentDate: Date;
     receipts: {
@@ -74,6 +75,7 @@ export class PurchasedItemsComponent implements OnInit {
                         canonicalName: item.canonicalName,
                         totalQuantity: 0,
                         averagePrice: item.price,
+                        totalSpent: 0,
                         purchaseCount: 0,
                         mostRecentDate: receipt.purchaseDate,
                         receipts: []
@@ -84,6 +86,11 @@ export class PurchasedItemsComponent implements OnInit {
                 aggregated.totalQuantity += item.quantity;
                 // Update average price (simple average of all unit prices seen)
                 aggregated.averagePrice = ((aggregated.averagePrice * aggregated.purchaseCount) + item.price) / (aggregated.purchaseCount + 1);
+
+                // Calculate total spent for this item occurrence
+                const itemTotal = item.quantity * item.price;
+                aggregated.totalSpent += itemTotal;
+
                 aggregated.purchaseCount += 1;
 
                 // Update most recent date
@@ -159,13 +166,5 @@ export class PurchasedItemsComponent implements OnInit {
         return this.expandedItems().has(itemName);
     }
 
-    getTotalItems(): number {
-        return this.aggregatedItems().length;
-    }
 
-    getAveragePrice(): number {
-        const items = this.aggregatedItems();
-        if (items.length === 0) return 0;
-        return items.reduce((sum, item) => sum + item.averagePrice, 0) / items.length;
-    }
 }
