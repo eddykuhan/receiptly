@@ -148,8 +148,11 @@
                                             <div class="flex-1 min-w-0">
                                                 <div class="flex items-center gap-2 mb-1">
                                                     <span class="material-icons text-primary text-sm">storefront</span>
-                                                    <h4 class="font-semibold text-base truncate">{{ receipt.storeName }}
-                                                    </h4>
+                                                    <a [routerLink]="['/purchased-items']"
+                                                        class="font-semibold text-base truncate hover:text-primary hover:underline transition-colors cursor-pointer"
+                                                        (click)="$event.stopPropagation()">
+                                                        {{ receipt.storeName }}
+                                                    </a>
                                                 </div>
                                                 <div class="flex items-center gap-3 text-xs text-base-content/60">
                                                     <div class="flex items-center gap-1">
