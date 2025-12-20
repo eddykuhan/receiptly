@@ -133,9 +133,8 @@ export class PriceMapService {
                 (storeAddress ? `${item.storeName}-${storeAddress}` : item.receiptId);
             const key = storeId;
 
-            const normalizedPrice =
-                item.totalPrice ?? (item.unitPrice ?? 0) * (item.quantity > 0 ? item.quantity : 1);
-            const finalPrice = Number(normalizedPrice) || 0;
+            // Use unit price only, not total price
+            const finalPrice = Number(item.unitPrice) || 0;
             const purchaseDate = new Date(item.purchaseDate);
 
             const storeLocation: StoreLocation = {

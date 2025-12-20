@@ -12,6 +12,8 @@ export interface Deal {
     storeName: string;
     storeAddress: string;
     distance: number; // km
+    latitude?: number;
+    longitude?: number;
     imageUrl: string;
     lastSeenDate: Date; // When this price was last recorded
 }
@@ -157,6 +159,8 @@ export class DealService {
                     storeName: cheapestStore.name,
                     storeAddress: cheapestStore.address,
                     distance,
+                    latitude: cheapestStore.latitude,
+                    longitude: cheapestStore.longitude,
                     imageUrl: this.getProductImage(productName),
                     lastSeenDate: cheapestStore.date
                 });

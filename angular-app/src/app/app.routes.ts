@@ -51,6 +51,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'nearby-deals',
+    loadComponent: () => import('./features/nearby-deals/nearby-deals.component').then(m => m.NearbyDealsComponent),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'camera',
     loadComponent: () => import('./features/camera/camera.component').then(m => m.CameraComponent),
     canActivate: [AuthGuard]
