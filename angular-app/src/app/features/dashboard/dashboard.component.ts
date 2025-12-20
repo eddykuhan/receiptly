@@ -17,7 +17,7 @@ import { ReceiptService } from '../../core/services/receipt.service';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   @ViewChild(PullToRefreshComponent) pullToRefresh?: PullToRefreshComponent;
-  
+
   private router = inject(Router);
   private dealService = inject(DealService);
   private receiptService = inject(ReceiptService);
@@ -29,7 +29,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   searchQuery = signal('');
   currentDealIndex = signal(0);
   userLocation = signal<{ lat: number; lon: number } | null>(null);
-  
+
   private rotationInterval?: number;
 
   // Mock data for summary stats (optional, can be removed if not needed)
@@ -88,7 +88,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loadHotDeals() {
     this.dealsLoading.set(true);
     const location = this.userLocation();
-    
+
     this.dealService.getHotDeals(location?.lat, location?.lon).subscribe({
       next: (deals) => {
         console.log('Hot deals loaded:', deals.length, deals);
@@ -108,7 +108,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Refresh both deals and receipts
     this.loadHotDeals();
     this.receiptService.loadReceipts();
-    
+
     // Complete the pull-to-refresh animation after data loads
     setTimeout(() => {
       this.pullToRefresh?.completeRefresh();
@@ -127,7 +127,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   navigateToMap() {
-    this.router.navigate(['/price-map']);
+    this.router.navigate(['/nearby-deals']);
   }
 
   navigateToScan() {

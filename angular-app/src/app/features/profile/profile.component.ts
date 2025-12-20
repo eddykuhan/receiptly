@@ -167,6 +167,12 @@ export class ProfileComponent implements OnInit {
         }
     }
 
+    navigateToPurchasedItems(event: Event) {
+        event.stopPropagation(); // Prevent navigation to receipt detail
+        event.preventDefault(); // Prevent default link behavior
+        this.router.navigate(['/purchased-items']);
+    }
+
     onAvatarChange(event: Event) {
         const input = event.target as HTMLInputElement;
         if (input.files && input.files[0]) {
