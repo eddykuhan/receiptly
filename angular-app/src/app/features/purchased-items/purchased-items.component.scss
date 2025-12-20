@@ -1,0 +1,14 @@
+// Purchased Items Component Styles
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}

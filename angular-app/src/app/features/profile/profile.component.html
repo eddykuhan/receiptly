@@ -65,65 +65,53 @@
 
         <div class="max-w-3xl mx-auto px-4 py-6 space-y-6">
 
-            <!-- Key Stats (Minimalistic & Important) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Total Receipts (Prominent) -->
-                <div class="card bg-primary text-primary-content shadow-xl">
-                    <div class="card-body p-6 items-center text-center">
-                        <span class="material-icons text-4xl mb-2 opacity-80">receipt_long</span>
-                        <div class="text-4xl font-bold">{{ totalReceipts() }}</div>
-                        <div class="text-sm opacity-80 font-medium">Receipts Uploaded</div>
-                    </div>
-                </div>
-
-                <!-- Total Spent -->
-                <div class="card bg-base-100 shadow-md">
-                    <div class="card-body p-6 items-center text-center">
-                        <span class="material-icons text-3xl text-secondary mb-2">payments</span>
-                        <div class="text-2xl font-bold text-base-content">{{ totalSpent() | myr }}</div>
-                        <div class="text-xs text-base-content/60 font-medium uppercase tracking-wide">Total Spent</div>
-                    </div>
-                </div>
-
-                <!-- Top Store -->
-                <div class="card bg-base-100 shadow-md">
-                    <div class="card-body p-6 items-center text-center">
-                        <span class="material-icons text-3xl text-accent mb-2">storefront</span>
-                        <div class="text-xl font-bold text-base-content truncate w-full" [title]="topStore()">
-                            {{ topStore().split('(')[0] }}
-                        </div>
-                        <div class="text-xs text-base-content/60 font-medium uppercase tracking-wide">Top Store</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rewards Card -->
-            <div class="card bg-gradient-to-br from-secondary to-accent text-white shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
-                routerLink="/rewards">
+            <!-- Compact Stats Card -->
+            <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-6">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            <div class="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                                <span class="material-icons text-4xl">card_giftcard</span>
-                            </div>
-                            <div>
-                                <h3 class="text-2xl font-bold">Rewards</h3>
-                                <p class="text-sm opacity-90">Earn points with every scan</p>
-                            </div>
+                    <div class="grid grid-cols-3 gap-4 divide-x divide-base-200">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-primary">{{ totalReceipts() }}</div>
+                            <div class="text-xs text-base-content/60 mt-1">Receipts</div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-3xl font-bold">{{ profile().stats.totalReceipts * 10 }}</div>
-                            <div class="text-xs opacity-80 uppercase tracking-wide">Points</div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-secondary">{{ totalSpent() | myr }}</div>
+                            <div class="text-xs text-base-content/60 mt-1">Total Spent</div>
                         </div>
-                    </div>
-                    <div class="mt-4 flex items-center gap-2 text-sm opacity-90">
-                        <span class="material-icons text-sm">info</span>
-                        <span>Tap to view available rewards</span>
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-accent truncate px-2" [title]="topStore()">
+                                {{ topStore().split('(')[0] }}
+                            </div>
+                            <div class="text-xs text-base-content/60 mt-1">Top Store</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Receipt History Section -->
+
+            <!-- Quick Actions Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Rewards Card -->
+                <div class="card bg-gradient-to-br from-secondary to-accent text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
+                    routerLink="/rewards">
+                    <div class="card-body p-4 items-center text-center">
+                        <span class="material-icons text-4xl mb-2">card_giftcard</span>
+                        <h3 class="font-bold text-lg">Rewards</h3>
+                        <div class="text-2xl font-bold mt-1">{{ profile().stats.totalReceipts * 10 }}</div>
+                        <div class="text-xs opacity-80">Points</div>
+                    </div>
+                </div>
+
+                <!-- Purchased Items Card -->
+                <div class="card bg-gradient-to-br from-accent to-primary text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
+                    routerLink="/purchased-items">
+                    <div class="card-body p-4 items-center text-center">
+                        <span class="material-icons text-4xl mb-2">shopping_basket</span>
+                        <h3 class="font-bold text-lg">My Items</h3>
+                        <div class="text-xs opacity-90 mt-2">View all purchased items</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="collapse collapse-arrow bg-base-100 shadow-md">
                 <input type="checkbox" checked />
                 <div class="collapse-title text-lg font-semibold flex items-center gap-2">
@@ -206,31 +194,6 @@
                 </div>
             </div>
 
-            <!-- Insights Section -->
-            <div class="card bg-base-100 shadow-md">
-                <div class="card-body p-6">
-                    <h3 class="card-title text-base mb-4 flex items-center gap-2">
-                        <span class="material-icons text-primary text-lg">insights</span>
-                        Spending Trend
-                    </h3>
-
-                    @if (isLoading()) {
-                    <div class="flex justify-center py-8">
-                        <span class="loading loading-spinner loading-md text-primary"></span>
-                    </div>
-                    } @else if (totalReceipts() > 0) {
-                    <div class="h-[200px] w-full relative">
-                        <canvas #spendingChart></canvas>
-                    </div>
-                    } @else {
-                    <div class="text-center py-8 text-base-content/50">
-                        <p>Upload receipts to see your spending trend.</p>
-                        <button class="btn btn-sm btn-outline btn-primary mt-4" routerLink="/camera">Scan
-                            Receipt</button>
-                    </div>
-                    }
-                </div>
-            </div>
 
             <!-- Settings & Preferences (Collapsible/Minimal) -->
             <div class="collapse collapse-arrow bg-base-100 shadow-md">
