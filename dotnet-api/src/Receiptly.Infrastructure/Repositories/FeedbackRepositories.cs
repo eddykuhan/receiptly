@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Dapper;
 using Receiptly.Core.Interfaces;
 using Receiptly.Domain.Models;
 using Receiptly.Infrastructure.Data;
@@ -12,7 +11,7 @@ using Receiptly.Infrastructure.Data;
 namespace Receiptly.Infrastructure.Repositories;
 
 /// <summary>
-/// Repository for user corrections using Dapper for lightweight data access.
+/// Repository for user corrections using Entity Framework Core.
 /// </summary>
 public class UserCorrectionRepository : IUserCorrectionRepository
 {
@@ -25,45 +24,53 @@ public class UserCorrectionRepository : IUserCorrectionRepository
 
     public async Task<Guid> CreateAsync(UserCorrection correction, CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-            INSERT INTO user_corrections (id, receipt_id, user_id, field_name, incorrect_value, corrected_value, created_at)
-            VALUES (@Id, @ReceiptId, @UserId, @FieldName, @IncorrectValue, @CorrectedValue, @CreatedAt)";
-
-        var connection = _context.Database.GetDbConnection();
-        await connection.ExecuteAsync(sql, correction);
+        await _context.UserCorrections.AddAsync(correction, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
         
         return correction.Id;
     }
 
     public async Task<UserCorrection?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        const string sql = "SELECT * FROM user_corrections WHERE id = @Id";
-        
-        var connection = _context.Database.GetDbConnection();
-        return await connection.QueryFirstOrDefaultAsync<UserCorrection>(sql, new { Id = id });
+        return await _context.UserCorrections
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     public async Task<List<UserCorrection>> GetByReceiptIdAsync(Guid receiptId, CancellationToken cancellationToken = default)
     {
-        const string sql = "SELECT * FROM user_corrections WHERE receipt_id = @ReceiptId ORDER BY created_at DESC";
-        
-        var connection = _context.Database.GetDbConnection();
-        var result = await connection.QueryAsync<UserCorrection>(sql, new { ReceiptId = receiptId });
-        return result.ToList();
+        return await _context.UserCorrections
+            .AsNoTracking()
+            .Where(c => c.ReceiptId == receiptId)
+            .OrderByDescending(c => c.CreatedAt)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<List<UserCorrection>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        const string sql = "SELECT * FROM user_corrections WHERE user_id = @UserId ORDER BY created_at DESC LIMIT 100";
-        
-        var connection = _context.Database.GetDbConnection();
-        var result = await connection.QueryAsync<UserCorrection>(sql, new { UserId = userId });
-        return result.ToList();
+        return await _context.UserCorrections
+            .AsNoTracking()
+            .Where(c => c.UserId == userId)
+            .OrderByDescending(c => c.CreatedAt)
+            .Take(100)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<UserCorrection?> GetByReceiptAndFieldAsync(Guid receiptId, string fieldName, CancellationToken cancellationToken = default)
+    {
+        return await _context.UserCorrections
+            .FirstOrDefaultAsync(c => c.ReceiptId == receiptId && c.FieldName == fieldName, cancellationToken);
+    }
+
+    public async Task UpdateAsync(UserCorrection correction, CancellationToken cancellationToken = default)
+    {
+        _context.UserCorrections.Update(correction);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }
 
 /// <summary>
-/// Repository for issue reports using Dapper.
+/// Repository for issue reports using Entity Framework Core.
 /// </summary>
 public class IssueReportRepository : IIssueReportRepository
 {
@@ -76,45 +83,41 @@ public class IssueReportRepository : IIssueReportRepository
 
     public async Task<Guid> CreateAsync(IssueReport issue, CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-            INSERT INTO issue_reports (id, receipt_id, user_id, issue_type, description, severity, created_at)
-            VALUES (@Id, @ReceiptId, @UserId, @IssueType, @Description, @Severity, @CreatedAt)";
-
-        var connection = _context.Database.GetDbConnection();
-        await connection.ExecuteAsync(sql, issue);
+        await _context.IssueReports.AddAsync(issue, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
         
         return issue.Id;
     }
 
     public async Task<IssueReport?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        const string sql = "SELECT * FROM issue_reports WHERE id = @Id";
-        
-        var connection = _context.Database.GetDbConnection();
-        return await connection.QueryFirstOrDefaultAsync<IssueReport>(sql, new { Id = id });
+        return await _context.IssueReports
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
     }
 
     public async Task<List<IssueReport>> GetByReceiptIdAsync(Guid receiptId, CancellationToken cancellationToken = default)
     {
-        const string sql = "SELECT * FROM issue_reports WHERE receipt_id = @ReceiptId ORDER BY created_at DESC";
-        
-        var connection = _context.Database.GetDbConnection();
-        var result = await connection.QueryAsync<IssueReport>(sql, new { ReceiptId = receiptId });
-        return result.ToList();
+        return await _context.IssueReports
+            .AsNoTracking()
+            .Where(i => i.ReceiptId == receiptId)
+            .OrderByDescending(i => i.CreatedAt)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<List<IssueReport>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        const string sql = "SELECT * FROM issue_reports WHERE user_id = @UserId ORDER BY created_at DESC LIMIT 100";
-        
-        var connection = _context.Database.GetDbConnection();
-        var result = await connection.QueryAsync<IssueReport>(sql, new { UserId = userId });
-        return result.ToList();
+        return await _context.IssueReports
+            .AsNoTracking()
+            .Where(i => i.UserId == userId)
+            .OrderByDescending(i => i.CreatedAt)
+            .Take(100)
+            .ToListAsync(cancellationToken);
     }
 }
 
 /// <summary>
-/// Repository for user debug sessions using Dapper.
+/// Repository for user debug sessions using Entity Framework Core.
 /// </summary>
 public class UserDebugSessionRepository : IUserDebugSessionRepository
 {
@@ -127,29 +130,31 @@ public class UserDebugSessionRepository : IUserDebugSessionRepository
 
     public async Task CreateOrUpdateAsync(UserDebugSession session, CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-            INSERT INTO user_debug_sessions (id, user_id, session_id, started_at, expires_at, reason)
-            VALUES (@Id, @UserId, @SessionId, @StartedAt, @ExpiresAt, @Reason)
-            ON CONFLICT (user_id, session_id)
-            DO UPDATE SET expires_at = EXCLUDED.expires_at, reason = EXCLUDED.reason";
+        var existing = await _context.UserDebugSessions
+            .FirstOrDefaultAsync(s => s.UserId == session.UserId && s.SessionId == session.SessionId, cancellationToken);
 
-        var connection = _context.Database.GetDbConnection();
-        await connection.ExecuteAsync(sql, session);
+        if (existing != null)
+        {
+            existing.ExpiresAt = session.ExpiresAt;
+            existing.Reason = session.Reason;
+            _context.UserDebugSessions.Update(existing);
+        }
+        else
+        {
+            await _context.UserDebugSessions.AddAsync(session, cancellationToken);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<UserDebugSession?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        const string sql = @"
-            SELECT * FROM user_debug_sessions 
-            WHERE user_id = @UserId AND expires_at > @Now
-            ORDER BY started_at DESC 
-            LIMIT 1";
-
-        var connection = _context.Database.GetDbConnection();
-        return await connection.QueryFirstOrDefaultAsync<UserDebugSession>(sql, new 
-        { 
-            UserId = userId, 
-            Now = DateTime.UtcNow 
-        });
+        var now = DateTime.UtcNow;
+        
+        return await _context.UserDebugSessions
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && s.ExpiresAt > now)
+            .OrderByDescending(s => s.StartedAt)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

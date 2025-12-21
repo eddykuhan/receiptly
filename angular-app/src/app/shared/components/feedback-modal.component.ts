@@ -1,0 +1,674 @@
+import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { FeedbackService } from '../../core/services/feedback.service';
+import {
+  SubmitCorrectionRequest,
+  ReportIssueRequest,
+  ISSUE_TYPES
+} from '../../core/models/validation.model';
+import { Receipt } from '../../core/models/receipt.model';
+
+@Component({
+  selector: 'app-feedback-modal',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    @if (isOpen()) {
+      <div class="modal-overlay" (click)="close()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>{{ mode() === 'correction' ? 'Submit Correction' : 'Report Issue' }}</h2>
+            <button class="close-btn" (click)="close()" aria-label="Close">&times;</button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Tab Switcher -->
+            <div class="tab-switcher">
+              <button 
+                class="tab-btn" 
+                [class.active]="mode() === 'correction'"
+                (click)="mode.set('correction')">
+                Correct Data
+              </button>
+              <button 
+                class="tab-btn" 
+                [class.active]="mode() === 'issue'"
+                (click)="mode.set('issue')">
+                Report Issue
+              </button>
+            </div>
+
+            <!-- Correction Form -->
+            @if (mode() === 'correction') {
+              <form (ngSubmit)="submitCorrection()" class="feedback-form">
+                <div class="form-group">
+                  <label for="field-name">What field needs correction?</label>
+                  <select 
+                    id="field-name" 
+                    [(ngModel)]="correctionData.fieldName" 
+                    name="fieldName"
+                    required
+                    class="form-control"
+                    (change)="onFieldSelectionChange()">
+                    <option value="">Select a field...</option>
+                    <option value="StoreName">Store Name</option>
+                    <option value="TotalAmount">Total Amount</option>
+                    <option value="PurchaseDate">Purchase Date</option>
+                    <option value="StoreAddress">Store Address</option>
+                    @for (item of receipt.items; track item.id; let i = $index) {
+                      <option [value]="'Items[' + i + '].Name'">Item {{ i + 1 }}: {{ item.name }}</option>
+                      <option [value]="'Items[' + i + '].Price'">Item {{ i + 1 }} Price</option>
+                    }
+                  </select>
+                </div>
+
+                @if (correctionData.incorrectValue) {
+                  <div class="form-group">
+                    <label>Current value (extracted by OCR):</label>
+                    <div class="current-value-display">
+                      {{ correctionData.incorrectValue }}
+                    </div>
+                  </div>
+                }
+
+                <div class="form-group">
+                  <label for="corrected-value">What should it be?</label>
+                  <input 
+                    type="text" 
+                    id="corrected-value"
+                    [(ngModel)]="correctionData.correctedValue" 
+                    name="correctedValue"
+                    required
+                    class="form-control"
+                    placeholder="The correct value"
+                    (input)="onAddressInput($event)"
+                    (focus)="onAddressFocus()"
+                    (blur)="onAddressBlur()">
+                  
+                  @if (showSuggestions() && suggestions().length > 0) {
+                    <div class="suggestions-dropdown">
+                      @for (suggestion of suggestions(); track suggestion.description) {
+                        <div 
+                          class="suggestion-item"
+                          (mousedown)="selectSuggestion(suggestion)">
+                          <span class="material-icons suggestion-icon">place</span>
+                          <div class="suggestion-text">
+                            <div class="suggestion-main">{{ suggestion.mainText }}</div>
+                            <div class="suggestion-secondary">{{ suggestion.secondaryText }}</div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" (click)="close()">Cancel</button>
+                  <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+                    {{ isSubmitting() ? 'Submitting...' : 'Submit Correction' }}
+                  </button>
+                </div>
+              </form>
+            }
+
+            <!-- Issue Report Form -->
+            @if (mode() === 'issue') {
+              <form (ngSubmit)="submitIssue()" class="feedback-form">
+                <div class="form-group">
+                  <label for="issue-type">What type of issue?</label>
+                  <select 
+                    id="issue-type" 
+                    [(ngModel)]="issueData.issueType" 
+                    name="issueType"
+                    required
+                    class="form-control">
+                    <option value="">Select issue type...</option>
+                    @for (type of issueTypes; track type.value) {
+                      <option [value]="type.value">{{ type.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="severity">How severe is this issue?</label>
+                  <select 
+                    id="severity" 
+                    [(ngModel)]="issueData.severity" 
+                    name="severity"
+                    required
+                    class="form-control">
+                    <option value="Low">Low - Minor inconvenience</option>
+                    <option value="Medium">Medium - Affects accuracy</option>
+                    <option value="High">High - Major data error</option>
+                    <option value="Critical">Critical - Completely unusable</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="description">Description (optional)</label>
+                  <textarea 
+                    id="description"
+                    [(ngModel)]="issueData.description" 
+                    name="description"
+                    rows="4"
+                    class="form-control"
+                    placeholder="Please describe the issue in detail..."></textarea>
+                </div>
+
+                <div class="severity-note">
+                  @if (issueData.severity === 'Medium' || issueData.severity === 'High' || issueData.severity === 'Critical') {
+                    <div class="info-box">
+                      <span class="info-icon">ℹ️</span>
+                      <span>Debug mode will be enabled for your next uploads to help us investigate.</span>
+                    </div>
+                  }
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" (click)="close()">Cancel</button>
+                  <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+                    {{ isSubmitting() ? 'Submitting...' : 'Report Issue' }}
+                  </button>
+                </div>
+              </form>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  `,
+  styles: [`
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 0.75rem;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #333;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: #999;
+      cursor: pointer;
+      padding: 0;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+      color: #333;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .tab-switcher {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #eee;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      color: #666;
+      transition: all 0.2s;
+      margin-bottom: -2px;
+    }
+
+    .tab-btn.active {
+      color: #007bff;
+      border-bottom-color: #007bff;
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: #333;
+      background-color: #f8f9fa;
+    }
+
+    .feedback-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .form-control {
+      padding: 0.625rem 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      background-color: white;
+      color: #333;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    select.form-control {
+      color: #333;
+    }
+
+    select.form-control option {
+      color: #333;
+      background-color: white;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      font-family: inherit;
+      color: #333;
+    }
+
+    .severity-note {
+      margin-top: -0.5rem;
+    }
+
+    .info-box {
+      display: flex;
+      align-items: start;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background-color: #e7f3ff;
+      border-left: 3px solid #007bff;
+      border-radius: 0.25rem;
+      font-size: 0.9rem;
+      color: #004085;
+    }
+
+    .info-icon {
+      flex-shrink: 0;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.375rem;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+
+    .suggestions-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 0.375rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1001;
+      margin-top: 0.25rem;
+    }
+
+    .suggestion-item {
+      display: flex;
+      align-items: start;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.2s;
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .suggestion-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .suggestion-icon {
+      color: #007bff;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .suggestion-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .suggestion-main {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 0.25rem;
+    }
+
+    .suggestion-secondary {
+      font-size: 0.875rem;
+      color: #666;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .form-group {
+      position: relative;
+    }
+
+    .current-value-display {
+      padding: 0.75rem;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 0.375rem;
+      color: #495057;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+  `]
+})
+export class FeedbackModalComponent {
+  @Input({ required: true }) receipt!: Receipt;
+  @Output() closed = new EventEmitter<void>();
+
+  private feedbackService = inject(FeedbackService);
+  private http = inject(HttpClient);
+
+  isOpen = signal(false);
+  mode = signal<'correction' | 'issue'>('correction');
+  isSubmitting = signal(false);
+  issueTypes = ISSUE_TYPES;
+  
+  // Google Places autocomplete
+  suggestions = signal<PlaceSuggestion[]>([]);
+  showSuggestions = signal(false);
+  private inputTimeout?: number;
+
+  correctionData: SubmitCorrectionRequest = {
+    receiptId: '',
+    fieldName: '',
+    incorrectValue: '',
+    correctedValue: '',
+    latitude: undefined,
+    longitude: undefined
+  };
+
+  issueData: ReportIssueRequest = {
+    receiptId: '',
+    issueType: '',
+    severity: 'Medium',
+    description: ''
+  };
+
+  open(mode: 'correction' | 'issue' = 'correction') {
+    this.mode.set(mode);
+    this.isOpen.set(true);
+    this.resetForms();
+    this.correctionData.receiptId = this.receipt.id;
+    this.issueData.receiptId = this.receipt.id;
+  }
+
+  close() {
+    this.isOpen.set(false);
+    this.closed.emit();
+  }
+
+  submitCorrection() {
+    if (!this.correctionData.fieldName || !this.correctionData.correctedValue) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.feedbackService.submitCorrection(this.correctionData).subscribe({
+      next: () => {
+        this.close();
+      },
+      error: () => {
+        this.isSubmitting.set(false);
+      },
+      complete: () => {
+        this.isSubmitting.set(false);
+      }
+    });
+  }
+
+  submitIssue() {
+    if (!this.issueData.issueType) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.feedbackService.reportIssue(this.issueData).subscribe({
+      next: () => {
+        this.close();
+      },
+      error: () => {
+        this.isSubmitting.set(false);
+      },
+      complete: () => {
+        this.isSubmitting.set(false);
+      }
+    });
+  }
+
+  onAddressInput(event: Event) {
+    const input = (event.target as HTMLInputElement).value;
+    
+    // Only show suggestions for StoreAddress field
+    if (this.correctionData.fieldName !== 'StoreAddress') {
+      this.showSuggestions.set(false);
+      return;
+    }
+
+    if (input.length < 3) {
+      this.suggestions.set([]);
+      this.showSuggestions.set(false);
+      return;
+    }
+
+    // Debounce API calls
+    if (this.inputTimeout) {
+      clearTimeout(this.inputTimeout);
+    }
+
+    this.inputTimeout = window.setTimeout(() => {
+      this.fetchSuggestions(input);
+    }, 300);
+  }
+
+  onAddressFocus() {
+    if (this.correctionData.fieldName === 'StoreAddress' && this.suggestions().length > 0) {
+      this.showSuggestions.set(true);
+    }
+  }
+
+  onAddressBlur() {
+    // Delay to allow click on suggestion
+    setTimeout(() => {
+      this.showSuggestions.set(false);
+    }, 200);
+  }
+
+  selectSuggestion(suggestion: PlaceSuggestion) {
+    this.correctionData.correctedValue = suggestion.description;
+    this.correctionData.latitude = suggestion.latitude;
+    this.correctionData.longitude = suggestion.longitude;
+    this.suggestions.set([]);
+    this.showSuggestions.set(false);
+  }
+
+  private fetchSuggestions(input: string) {
+    this.http.get<PlacesAutocompleteResponse>('/api/places/autocomplete', {
+      params: { input, location: 'Malaysia' }
+    }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.suggestions.set(response.suggestions);
+          this.showSuggestions.set(true);
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching address suggestions:', err);
+        this.suggestions.set([]);
+      }
+    });
+  }
+
+  onFieldSelectionChange() {
+    const fieldName = this.correctionData.fieldName;
+    if (!fieldName) {
+      this.correctionData.incorrectValue = '';
+      return;
+    }
+
+    // Auto-populate incorrect value from current receipt data
+    if (fieldName === 'StoreName') {
+      this.correctionData.incorrectValue = this.receipt.storeName;
+    } else if (fieldName === 'TotalAmount') {
+      this.correctionData.incorrectValue = this.receipt.totalAmount.toString();
+    } else if (fieldName === 'PurchaseDate') {
+      this.correctionData.incorrectValue = new Date(this.receipt.purchaseDate).toLocaleDateString();
+    } else if (fieldName === 'StoreAddress') {
+      this.correctionData.incorrectValue = this.receipt.storeAddress;
+    } else if (fieldName.startsWith('Items[')) {
+      // Parse item index and field: "Items[0].Name" or "Items[0].Price"
+      const match = fieldName.match(/Items\[(\d+)\]\.(Name|Price)/);
+      if (match) {
+        const index = parseInt(match[1]);
+        const field = match[2];
+        const item = this.receipt.items[index];
+        if (item) {
+          this.correctionData.incorrectValue = field === 'Name' ? item.name : item.price.toString();
+        }
+      }
+    }
+
+    // Clear corrected value when field changes
+    this.correctionData.correctedValue = '';
+    this.correctionData.latitude = undefined;
+    this.correctionData.longitude = undefined;
+    this.suggestions.set([]);
+    this.showSuggestions.set(false);
+  }
+
+  private resetForms() {
+    this.correctionData = {
+      receiptId: this.receipt.id,
+      fieldName: '',
+      incorrectValue: '',
+      correctedValue: '',
+      latitude: undefined,
+      longitude: undefined
+    };
+    this.issueData = {
+      receiptId: this.receipt.id,
+      issueType: '',
+      severity: 'Medium',
+      description: ''
+    };
+    this.suggestions.set([]);
+    this.showSuggestions.set(false);
+  }
+}
+
+interface PlaceSuggestion {
+  description: string;
+  mainText: string;
+  secondaryText: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface PlacesAutocompleteResponse {
+  success: boolean;
+  suggestions: PlaceSuggestion[];
+}

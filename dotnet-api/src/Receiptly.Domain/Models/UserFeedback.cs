@@ -17,6 +17,10 @@ public class UserCorrection
     public string? IncorrectValue { get; set; }  // What OCR extracted
     public string CorrectedValue { get; set; } = string.Empty;  // What user corrected to
     
+    // Location data (for store address corrections)
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     // Navigation properties

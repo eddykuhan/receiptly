@@ -21,6 +21,10 @@ public class SubmitCorrectionDto
     [Required]
     [StringLength(1000)]
     public string CorrectedValue { get; set; } = string.Empty;  // What user corrected to
+    
+    public double? Latitude { get; set; }  // Latitude for address corrections
+    
+    public double? Longitude { get; set; }  // Longitude for address corrections
 }
 
 /// <summary>

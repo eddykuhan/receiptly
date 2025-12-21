@@ -6,9 +6,12 @@ from ..services.receipt_detector import ReceiptDetector
 from ..services.azure_receipt_detector import AzureReceiptDetector
 from ..services.store_location_service import StoreLocationService
 from ..services.llm_client import LlmServiceClient
+from ..services.validation_service import EnhancedValidationService
+from ..models.validation import ProcessedReceipt
 from ..utils.image_utils import download_image
 from ..utils.debug import ImageDebugger, enable_debug, disable_debug
 from ..core.config import get_settings
+import time
 
 router = APIRouter()
 
@@ -36,26 +39,30 @@ class AnalyzeRequest(BaseModel):
 async def analyze_receipt(
     request: AnalyzeRequest,
     doc_service: DocumentIntelligenceService = Depends(DocumentIntelligenceService)
-) -> Dict[str, Any]:
+) -> ProcessedReceipt:
     """
-    Analyze a receipt image from a URL and return structured data with store location.
+    Analyze a receipt image from a URL and return structured data with enhanced validation.
     
     Uses:
     - Azure Layout model OR OpenCV for receipt boundary detection (optional)
     - Azure Document Intelligence for structured receipt data extraction
     - LLM Vision (GPT-4) for merchant name/address extraction
+    - Enhanced validation with confidence scoring
     
     Args:
         request: Request containing the image URL and extraction options
         doc_service: Azure Document Intelligence service instance
         
     Returns:
-        Dictionary containing:
+        ProcessedReceipt containing:
         - success: bool
         - data: Raw Azure Document Intelligence analysis
+        - validation: Enhanced validation with confidence scores and issues
         - location: Extracted store location information (if enabled)
-        - validation: Validation results (is_valid_receipt, confidence, message)
+        - debug_session_id: Debug session ID (if debug mode enabled)
     """
+    start_time = time.time()
+    
     try:
         print(f"Received analyze request. Image URL: {request.image_url}")
         print(f"Auto-crop: {request.auto_crop}, Method: {request.crop_method if request.auto_crop else 'N/A'}")
@@ -181,19 +188,40 @@ async def analyze_receipt(
                 "override_applied": location_data and location_data.get('success', False)
             })
         
-        # Step 7: Validate if it's actually a receipt
-        validation = validate_receipt_confidence(result)
+        # Step 7: Enhanced validation with confidence scoring
+        validation_service = EnhancedValidationService()
         
-        print(f"Analysis completed. Validation: {validation['is_valid_receipt']}, Confidence: {validation['confidence']}")
+        # Track which sources were used
+        sources_used = ["azure"]
+        if result.get('fields', {}).get('MerchantName', {}).get('source') == 'llm_vision':
+            sources_used.append("llm_vision")
+        if location_data:
+            sources_used.append("google_places")
+        
+        validation = validation_service.validate_receipt(
+            azure_result=result,
+            sources_used=sources_used,
+            start_time=start_time
+        )
+        
+        print(f"Analysis completed. Validation: {validation.is_valid_receipt}, Confidence: {validation.overall_confidence:.2%}")
         
         if debugger:
-            debugger.save_json(validation, "07_validation_result")
+            debugger.save_json(validation.dict(), "07_validation_result")
         
-        response = {
-            "success": True,
-            "data": result,
-            "validation": validation
-        }
+        # Include debug session if debug mode enabled
+        debug_session_id = None
+        if debugger and debugger.enabled:
+            debug_session_id = debugger.session_id
+            print(f"🐛 Debug files saved to: {debugger.output_dir}")
+        
+        return ProcessedReceipt(
+            success=True,
+            data=result,
+            validation=validation,
+            location=location_data,
+            debug_session_id=debug_session_id
+        )
         
         # Add location data if extracted
         if location_data:
