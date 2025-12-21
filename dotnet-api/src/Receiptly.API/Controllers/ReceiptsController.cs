@@ -14,20 +14,20 @@ namespace Receiptly.API.Controllers;
 public class ReceiptsController : ControllerBase
 {
     private readonly IReceiptProcessingService _receiptProcessingService;
-    private readonly IReceiptRepository _receiptRepository;
+    private readonly IReceiptService _receiptService;
     private readonly FileValidationService _fileValidationService;
     private readonly IMapper _mapper;
     private readonly ILogger<ReceiptsController> _logger;
 
     public ReceiptsController(
         IReceiptProcessingService receiptProcessingService,
-        IReceiptRepository receiptRepository,
+        IReceiptService receiptService,
         FileValidationService fileValidationService,
         IMapper mapper,
         ILogger<ReceiptsController> logger)
     {
         _receiptProcessingService = receiptProcessingService;
-        _receiptRepository = receiptRepository;
+        _receiptService = receiptService;
         _fileValidationService = fileValidationService;
         _mapper = mapper;
         _logger = logger;
@@ -126,7 +126,7 @@ public class ReceiptsController : ControllerBase
         {
             var userId = GetAuthenticatedUserId();
             _logger.LogInformation("Retrieving receipts for authenticated user: {UserId}", userId);
-            var receipts = await _receiptRepository.GetByUserIdAsync(userId, cancellationToken);
+            var receipts = await _receiptService.GetReceiptsByUserIdAsync(userId, cancellationToken);
             _logger.LogInformation("Found {Count} receipts for user: {UserId}", receipts.Count, userId);
             
             // Map to DTOs
@@ -154,7 +154,7 @@ public class ReceiptsController : ControllerBase
         try
         {
             _logger.LogInformation("Retrieving receipts for user: {UserId}", userId);
-            var receipts = await _receiptRepository.GetByUserIdAsync(userId, cancellationToken);
+            var receipts = await _receiptService.GetReceiptsByUserIdAsync(userId, cancellationToken);
             _logger.LogInformation("Found {Count} receipts for user: {UserId}", receipts.Count, userId);
             
             // Map to DTOs
@@ -182,7 +182,7 @@ public class ReceiptsController : ControllerBase
         try
         {
             _logger.LogInformation("Retrieving receipt: {ReceiptId}", id);
-            var receipt = await _receiptRepository.GetByIdAsync(id, cancellationToken);
+            var receipt = await _receiptService.GetReceiptByIdAsync(id, cancellationToken);
             
             if (receipt == null)
             {
@@ -224,7 +224,7 @@ public class ReceiptsController : ControllerBase
             _logger.LogInformation("Updating receipt: {ReceiptId}", id);
             
             // Verify existence and get the tracked entity
-            var existingReceipt = await _receiptRepository.GetByIdAsync(id, cancellationToken);
+            var existingReceipt = await _receiptService.GetReceiptByIdAsync(id, cancellationToken);
             if (existingReceipt == null)
             {
                 return NotFound(new { error = "Receipt not found" });
@@ -248,7 +248,7 @@ public class ReceiptsController : ControllerBase
                 existingReceipt.Items = _mapper.Map<List<Item>>(receiptDto.Items);
             }
 
-            var result = await _receiptRepository.UpdateAsync(existingReceipt, cancellationToken);
+            var result = await _receiptService.UpdateReceiptAsync(existingReceipt, cancellationToken);
             
             _logger.LogInformation("Receipt updated: {ReceiptId}", id);
             
@@ -277,14 +277,8 @@ public class ReceiptsController : ControllerBase
         try
         {
             _logger.LogInformation("Deleting receipt: {ReceiptId}", id);
-            var deleted = await _receiptRepository.DeleteAsync(id, cancellationToken);
+            await _receiptService.DeleteReceiptAsync(id, cancellationToken);
             
-            if (!deleted)
-            {
-                _logger.LogWarning("Receipt not found for deletion: {ReceiptId}", id);
-                return NotFound(new { error = "Receipt not found" });
-            }
-
             _logger.LogInformation("Receipt deleted: {ReceiptId}", id);
             return NoContent();
         }

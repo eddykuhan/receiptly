@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Receiptly.Core.Interfaces;
+using Receiptly.Domain.Models;
 using Receiptly.Infrastructure.Data;
 
 namespace Receiptly.Infrastructure.Services;
@@ -11,11 +12,16 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
     private const int MaxPageSize = 500;
 
     private readonly ApplicationDbContext _context;
+    private readonly IReceiptCorrectionService _correctionService;
     private readonly ILogger<PurchaseAnalyticsService> _logger;
 
-    public PurchaseAnalyticsService(ApplicationDbContext context, ILogger<PurchaseAnalyticsService> logger)
+    public PurchaseAnalyticsService(
+        ApplicationDbContext context,
+        IReceiptCorrectionService correctionService,
+        ILogger<PurchaseAnalyticsService> logger)
     {
         _context = context;
+        _correctionService = correctionService;
         _logger = logger;
     }
 
@@ -119,12 +125,114 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             })
             .ToListAsync(cancellationToken);
 
+        // Apply user corrections to the records
+        await ApplyCorrectionsToRecordsAsync(records, cancellationToken);
+
         return new PurchaseAnalyticsResult
         {
             Items = records,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize
+        };
+    }
+
+    /// <summary>
+    /// Apply user corrections to analytics records by using ReceiptCorrectionService
+    /// and mapping corrected values back to immutable records
+    /// </summary>
+    private async Task ApplyCorrectionsToRecordsAsync(
+        List<PurchaseAnalyticsRecord> records,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get unique receipt IDs
+            var receiptIds = records.Select(r => r.ReceiptId).Distinct().ToList();
+
+            if (!receiptIds.Any())
+            {
+                _logger.LogInformation("No receipt IDs found in analytics records");
+                return;
+            }
+
+            _logger.LogInformation("Applying corrections to {Count} analytics records from {ReceiptCount} receipts",
+                records.Count, receiptIds.Count);
+
+            // Fetch receipts that might have corrections
+            var receipts = await _context.Receipts
+                .AsNoTracking()
+                .Where(r => receiptIds.Contains(r.Id))
+                .ToListAsync(cancellationToken);
+
+            _logger.LogInformation("Fetched {ReceiptCount} receipts for correction processing", receipts.Count);
+
+            // Apply corrections using the reusable ReceiptCorrectionService
+            await _correctionService.ApplyCorrectionsAsync(receipts, cancellationToken);
+
+            _logger.LogInformation("Corrections applied to receipts");
+
+            // Map corrected receipt values back to analytics records
+            var receiptLookup = receipts.ToDictionary(r => r.Id);
+
+            int updatedCount = 0;
+            for (int i = 0; i < records.Count; i++)
+            {
+                if (receiptLookup.TryGetValue(records[i].ReceiptId, out var correctedReceipt))
+                {
+                    var originalStore = records[i].StoreName;
+                    var originalAddress = records[i].StoreAddress;
+                    
+                    records[i] = MapCorrectedReceiptToRecord(records[i], correctedReceipt);
+                    
+                    // Log if values changed
+                    if (originalStore != records[i].StoreName || originalAddress != records[i].StoreAddress)
+                    {
+                        _logger.LogInformation(
+                            "Updated record {RecordId}: StoreName '{OldStore}' -> '{NewStore}', Address '{OldAddr}' -> '{NewAddr}'",
+                            records[i].ItemId, originalStore, records[i].StoreName, 
+                            originalAddress, records[i].StoreAddress);
+                        updatedCount++;
+                    }
+                }
+            }
+
+            _logger.LogInformation("Applied corrections to {UpdatedCount} out of {TotalCount} records", updatedCount, records.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error applying corrections to analytics records");
+            // Don't throw - return original records if correction fails
+        }
+    }
+
+    /// <summary>
+    /// Map corrected receipt values to a new analytics record
+    /// </summary>
+    private static PurchaseAnalyticsRecord MapCorrectedReceiptToRecord(
+        PurchaseAnalyticsRecord originalRecord,
+        Receipt correctedReceipt)
+    {
+        return new PurchaseAnalyticsRecord
+        {
+            ItemId = originalRecord.ItemId,
+            ReceiptId = originalRecord.ReceiptId,
+            ItemName = originalRecord.ItemName,
+            Description = originalRecord.Description,
+            CanonicalName = originalRecord.CanonicalName,
+            UnitPrice = originalRecord.UnitPrice,
+            TotalPrice = originalRecord.TotalPrice,
+            Quantity = originalRecord.Quantity,
+            PurchaseDate = originalRecord.PurchaseDate,
+            StoreName = correctedReceipt.StoreName,  // Use corrected value
+            StoreAddress = correctedReceipt.StoreAddress,  // Use corrected value
+            StorePhoneNumber = correctedReceipt.StorePhoneNumber,
+            Latitude = correctedReceipt.Latitude,  // Use corrected value (may include lat from address correction)
+            Longitude = correctedReceipt.Longitude,  // Use corrected value (may include long from address correction)
+            ReceiptType = correctedReceipt.ReceiptType,
+            TransactionId = correctedReceipt.TransactionId,
+            PaymentMethod = correctedReceipt.PaymentMethod,
+            Status = correctedReceipt.Status
         };
     }
 

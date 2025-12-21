@@ -255,6 +255,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReceiptProcessingService, ReceiptProcessingService>();
         services.AddScoped<IPurchaseAnalyticsService, PurchaseAnalyticsService>();
         services.AddScoped<IFeedbackService, FeedbackService>();
+        
+        // Receipt services (with automatic correction application)
+        services.AddScoped<IReceiptCorrectionService, ReceiptCorrectionService>();
+        services.AddScoped<IReceiptService, ReceiptService>();
 
         // LLM Services - configuration added via AddLlmService method
         services.AddScoped<CanonicalizationService>();
