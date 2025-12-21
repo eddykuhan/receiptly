@@ -341,6 +341,82 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static async Task<IServiceCollection> AddGooglePlacesService(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
+    {
+        GooglePlacesSecretsConfig googleConfig;
+
+        // In Development mode, prioritize appsettings configuration
+        if (environment.IsDevelopment())
+        {
+            var configuredApiKey = configuration["GooglePlaces:ApiKey"];
+            
+            if (!string.IsNullOrEmpty(configuredApiKey))
+            {
+                Log.Information("Development mode: Using Google Places API key from configuration");
+                
+                googleConfig = new GooglePlacesSecretsConfig
+                {
+                    ApiKey = configuredApiKey,
+                    Enabled = bool.Parse(configuration["GooglePlaces:Enabled"] ?? "true")
+                };
+                
+                services.AddSingleton(googleConfig);
+                services.AddHttpClient<GooglePlacesClient>()
+                    .ConfigureHttpClient(client =>
+                    {
+                        client.Timeout = TimeSpan.FromSeconds(10); // Quick autocomplete timeout
+                    })
+                    .AddPolicyHandler(GetRetryPolicy());
+
+                return services;
+            }
+        }
+
+        // Retrieve Google Places configuration from AWS Secrets Manager (Production)
+        try
+        {
+            var secretId = configuration["AWS:GooglePlacesSecretId"] ?? "receiptly/google/credentials";
+            var region = configuration["AWS:Region"] ?? "ap-southeast-1";
+
+            Log.Information("Retrieving Google Places configuration from Secrets Manager: {SecretId}", secretId);
+
+            using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
+            var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+            {
+                SecretId = secretId
+            });
+
+            googleConfig = JsonSerializer.Deserialize<GooglePlacesSecretsConfig>(secretResponse.SecretString)
+                ?? throw new InvalidOperationException("Failed to deserialize Google Places configuration from Secrets Manager");
+
+            Log.Information("Successfully retrieved Google Places configuration");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to retrieve Google Places configuration from Secrets Manager. Service will be disabled.");
+
+            // Disable service if credentials not available
+            googleConfig = new GooglePlacesSecretsConfig
+            {
+                ApiKey = string.Empty,
+                Enabled = false
+            };
+        }
+
+        services.AddSingleton(googleConfig);
+        services.AddHttpClient<GooglePlacesClient>()
+            .ConfigureHttpClient(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(10); // Quick autocomplete timeout
+            })
+            .AddPolicyHandler(GetRetryPolicy());
+
+        return services;
+    }
+
     private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
         return HttpPolicyExtensions

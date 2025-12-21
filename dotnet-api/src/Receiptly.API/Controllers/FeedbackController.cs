@@ -9,7 +9,6 @@ namespace Receiptly.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class FeedbackController : ControllerBase
 {
     private readonly IFeedbackService _feedbackService;
@@ -41,13 +40,19 @@ public class FeedbackController : ControllerBase
                 ?? User.FindFirst("sub")?.Value
                 ?? throw new UnauthorizedAccessException("User ID not found in claims");
             
+            _logger.LogInformation(
+                "Received correction: ReceiptId={ReceiptId}, Field={FieldName}, Lat={Latitude}, Long={Longitude}",
+                dto.ReceiptId, dto.FieldName, dto.Latitude, dto.Longitude);
+            
             // Map DTO to request model
             var request = new SubmitCorrectionRequest
             {
                 ReceiptId = dto.ReceiptId,
                 FieldName = dto.FieldName,
                 IncorrectValue = dto.IncorrectValue,
-                CorrectedValue = dto.CorrectedValue
+                CorrectedValue = dto.CorrectedValue,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude
             };
             
             var correctionId = await _feedbackService.SubmitCorrectionAsync(

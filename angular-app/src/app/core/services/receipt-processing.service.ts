@@ -57,7 +57,7 @@ export class ReceiptProcessingService {
                     // Note: ToastService currently doesn't support actions based on the definition I saw.
                     // I will just show the warning for now.
                     // Ideally we could add action support to ToastService, but let's stick to existing capabilities.
-                    setTimeout(() => this.router.navigate(['/history']), 1500);
+                    setTimeout(() => this.router.navigate(['/purchased-items']), 1500);
                 } else {
                     this.toastService.show(`Failed to process ${filename}`, 'error');
                 }

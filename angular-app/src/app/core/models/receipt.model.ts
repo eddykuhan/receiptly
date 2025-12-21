@@ -37,11 +37,14 @@ export interface Receipt {
   locationConfidence?: number;
   ocrStrategy?: string;
 
-  // Validation fields
+  // Validation fields (legacy)
   status: ReceiptStatus;
   validationConfidence?: number;
   validationMessage?: string;
   isValidReceipt: boolean;
+
+  // Enhanced validation (from Python OCR service)
+  validation?: any; // ReceiptValidation from validation.model.ts
 
   // Audit fields
   createdAt: Date;

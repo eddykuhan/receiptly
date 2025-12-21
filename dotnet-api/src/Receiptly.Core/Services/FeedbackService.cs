@@ -31,6 +31,26 @@ public class FeedbackService : IFeedbackService
         SubmitCorrectionRequest request,
         CancellationToken cancellationToken = default)
     {
+        // Check if correction already exists for this receipt and field
+        var existingCorrection = await _correctionRepo.GetByReceiptAndFieldAsync(
+            request.ReceiptId, 
+            request.FieldName, 
+            cancellationToken);
+
+        if (existingCorrection != null)
+        {
+            // Update existing correction
+            existingCorrection.IncorrectValue = request.IncorrectValue;
+            existingCorrection.CorrectedValue = request.CorrectedValue;
+            existingCorrection.Latitude = request.Latitude;
+            existingCorrection.Longitude = request.Longitude;
+            existingCorrection.CreatedAt = DateTime.UtcNow;  // Update timestamp
+            
+            await _correctionRepo.UpdateAsync(existingCorrection, cancellationToken);
+            return existingCorrection.Id;
+        }
+        
+        // Create new correction
         var correction = new UserCorrection
         {
             Id = Guid.NewGuid(),
@@ -39,6 +59,8 @@ public class FeedbackService : IFeedbackService
             FieldName = request.FieldName,
             IncorrectValue = request.IncorrectValue,
             CorrectedValue = request.CorrectedValue,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
             CreatedAt = DateTime.UtcNow
         };
         

@@ -145,3 +145,19 @@ variable "model_name" {
   type        = string
   default     = "gpt-4o-mini"
 }
+
+# ==========================================
+# Google Places API Configuration
+# ==========================================
+variable "google_places_api_key" {
+  description = "Google Places API key for address autocomplete"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "google_places_enabled" {
+  description = "Enable Google Places API autocomplete functionality"
+  type        = bool
+  default     = true
+}

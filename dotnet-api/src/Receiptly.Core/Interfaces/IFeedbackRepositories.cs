@@ -15,6 +15,8 @@ public interface IUserCorrectionRepository
     Task<UserCorrection?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<List<UserCorrection>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default);
     Task<List<UserCorrection>> GetByReceiptIdAsync(Guid receiptId, CancellationToken cancellationToken = default);
+    Task<UserCorrection?> GetByReceiptAndFieldAsync(Guid receiptId, string fieldName, CancellationToken cancellationToken = default);
+    Task UpdateAsync(UserCorrection correction, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

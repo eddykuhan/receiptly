@@ -53,6 +53,9 @@ try
     // Configure LLM Service
     await builder.Services.AddLlmService(builder.Configuration, builder.Environment);
 
+    // Configure Google Places Service
+    await builder.Services.AddGooglePlacesService(builder.Configuration, builder.Environment);
+
     // Add Application Services
     builder.Services.AddApplicationServices();
 

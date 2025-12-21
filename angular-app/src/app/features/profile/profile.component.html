@@ -142,17 +142,15 @@
                                 style="scrollbar-width: none; -ms-overflow-style: none;">
                                 <!-- Main Content -->
                                 <div class="min-w-full flex-shrink-0 snap-start bg-base-200 hover:bg-base-300 transition-colors cursor-pointer"
-                                    [routerLink]="['/purchased-items']">
+                                    [routerLink]="['/receipt', receipt.id]">
                                     <div class="card-body p-4">
                                         <div class="flex items-start justify-between gap-4">
                                             <div class="flex-1 min-w-0">
                                                 <div class="flex items-center gap-2 mb-1">
                                                     <span class="material-icons text-primary text-sm">storefront</span>
-                                                    <a [routerLink]="['/purchased-items']"
-                                                        class="font-semibold text-base hover:text-primary hover:underline transition-colors cursor-pointer break-words leading-tight"
-                                                        (click)="$event.stopPropagation()">
+                                                    <span class="font-semibold text-base break-words leading-tight">
                                                         {{ receipt.storeName }}
-                                                    </a>
+                                                    </span>
                                                 </div>
                                                 <div class="flex items-center gap-3 text-xs text-base-content/60">
                                                     <div class="flex items-center gap-1">
@@ -186,7 +184,7 @@
 
                         @if (receipts().length > 5) {
                         <div class="text-center pt-2">
-                            <button class="btn btn-outline btn-primary btn-sm" routerLink="/history">
+                            <button class="btn btn-outline btn-primary btn-sm" routerLink="/purchased-items">
                                 <span class="material-icons text-sm">visibility</span>
                                 View All {{ receipts().length }} Receipts
                             </button>

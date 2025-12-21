@@ -73,7 +73,7 @@ module "database" {
   # Free Tier Configuration
   postgres_version  = "16.8"
   instance_class    = "db.t3.micro" # Free tier eligible
-  allocated_storage = 20             # Free tier: up to 20GB
+  allocated_storage = 20            # Free tier: up to 20GB
 
   # Database Configuration
   database_name   = "receiptly"
@@ -290,11 +290,18 @@ module "secrets" {
     "receiptly/ecr/repositories" = {
       description = "ECR repository information for Receiptly ${var.environment}"
       value = jsonencode({
-        dotnet_api_repository   = module.ecr_dotnet_api.repository_url
-        python_ocr_repository   = module.ecr_python_ocr.repository_url
-        llm_service_repository  = module.ecr_llm_service.repository_url
-        registry_id             = module.ecr_dotnet_api.registry_id
-        region                  = var.aws_region
+        dotnet_api_repository  = module.ecr_dotnet_api.repository_url
+        python_ocr_repository  = module.ecr_python_ocr.repository_url
+        llm_service_repository = module.ecr_llm_service.repository_url
+        registry_id            = module.ecr_dotnet_api.registry_id
+        region                 = var.aws_region
+      })
+    }
+    "receiptly/google/credentials" = {
+      description = "Google Places API credentials for Receiptly ${var.environment}"
+      value = jsonencode({
+        api_key = var.google_places_api_key
+        enabled = var.google_places_enabled
       })
     }
   }

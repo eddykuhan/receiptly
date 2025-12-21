@@ -205,6 +205,12 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.CorrectedValue)
                 .HasMaxLength(1000);
             
+            entity.Property(e => e.Latitude)
+                .HasPrecision(10, 7);
+            
+            entity.Property(e => e.Longitude)
+                .HasPrecision(10, 7);
+            
             entity.Property(e => e.CreatedAt)
                 .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");

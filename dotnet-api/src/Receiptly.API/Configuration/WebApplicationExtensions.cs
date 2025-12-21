@@ -54,13 +54,14 @@ public static class WebApplicationExtensions
 
     public static WebApplication MapEndpoints(this WebApplication app)
     {
-        // Health check endpoint
+        // Health check endpoint (public - no authentication required)
         app.MapGet("/health", () => Results.Ok(new
         {
             status = "healthy",
             service = "receiptly-api",
             timestamp = DateTime.UtcNow
-        }));
+        }))
+        .AllowAnonymous(); // Allow health checks without authentication
 
         // Controllers
         app.MapControllers();

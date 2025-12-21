@@ -68,14 +68,27 @@ public class OcrValidation
     [JsonPropertyName("is_valid_receipt")]
     public bool IsValidReceipt { get; set; }
     
-    [JsonPropertyName("confidence")]
+    [JsonPropertyName("overall_confidence")]
     public float Confidence { get; set; }
     
-    [JsonPropertyName("message")]
+    [JsonPropertyName("confidence_message")]
     public string Message { get; set; } = string.Empty;
     
     [JsonPropertyName("doc_type")]
     public string DocType { get; set; } = string.Empty;
+    
+    // Additional fields from enhanced validation
+    [JsonPropertyName("merchant_confidence")]
+    public float MerchantConfidence { get; set; }
+    
+    [JsonPropertyName("items_confidence")]
+    public float ItemsConfidence { get; set; }
+    
+    [JsonPropertyName("total_confidence")]
+    public float TotalConfidence { get; set; }
+    
+    [JsonPropertyName("requires_manual_review")]
+    public bool RequiresManualReview { get; set; }
 }
 
 public class OcrResponse

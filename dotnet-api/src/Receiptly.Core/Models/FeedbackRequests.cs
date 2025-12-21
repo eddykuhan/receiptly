@@ -26,6 +26,16 @@ public class SubmitCorrectionRequest
     /// Corrected value provided by user.
     /// </summary>
     public string CorrectedValue { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Latitude of corrected store location (optional, for address corrections).
+    /// </summary>
+    public double? Latitude { get; set; }
+    
+    /// <summary>
+    /// Longitude of corrected store location (optional, for address corrections).
+    /// </summary>
+    public double? Longitude { get; set; }
 }
 
 /// <summary>

@@ -30,23 +30,20 @@ public class ClerkJwtMiddleware
 
         if (string.IsNullOrEmpty(token))
         {
-            // In development, allow requests without tokens and use default user
-            if (isDevelopment)
-            {
-                _logger.LogWarning("No token provided in development mode for {Path}, proceeding without authentication", context.Request.Path);
-                await _next(context);
-                return;
-            }
-
-            // In production, check if endpoint requires authentication
+            // Check if endpoint allows anonymous access
             var endpoint = context.GetEndpoint();
             if (RequiresAuthentication(endpoint))
             {
-                _logger.LogWarning("No token provided for protected endpoint");
+                _logger.LogWarning("No token provided for protected endpoint: {Path}", context.Request.Path);
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 await context.Response.WriteAsJsonAsync(new { error = "Unauthorized: No token provided" });
                 return;
             }
+            
+            // Allow anonymous access for endpoints with [AllowAnonymous]
+            _logger.LogInformation("Anonymous access allowed for {Path}", context.Request.Path);
+            await _next(context);
+            return;
         }
         else
         {
@@ -57,16 +54,7 @@ public class ClerkJwtMiddleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error validating Clerk token");
-                
-                // In development, log error but proceed
-                if (isDevelopment)
-                {
-                    _logger.LogWarning("Token validation failed in development mode, proceeding anyway");
-                    await _next(context);
-                    return;
-                }
-                
+                _logger.LogError(ex, "Error validating Clerk token for {Path}", context.Request.Path);
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 await context.Response.WriteAsJsonAsync(new { error = "Unauthorized: Invalid token" });
                 return;

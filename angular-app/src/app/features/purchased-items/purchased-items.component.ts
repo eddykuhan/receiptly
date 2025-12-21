@@ -24,6 +24,7 @@ interface AggregatedItem {
 }
 
 type SortOption = 'name' | 'quantity' | 'spent' | 'recent';
+type GroupOption = 'all' | 'store';
 
 @Component({
     selector: 'app-purchased-items',
@@ -40,7 +41,9 @@ export class PurchasedItemsComponent implements OnInit {
     isLoading = signal(true);
     searchQuery = signal('');
     selectedSort = signal<SortOption>('recent');
+    selectedGroup = signal<GroupOption>('all');
     expandedItems = signal<Set<string>>(new Set());
+    expandedStores = signal<Set<string>>(new Set());
 
     ngOnInit() {
         this.loadReceipts();
@@ -152,6 +155,10 @@ export class PurchasedItemsComponent implements OnInit {
         this.selectedSort.set(sort);
     }
 
+    onGroupChange(group: GroupOption) {
+        this.selectedGroup.set(group);
+    }
+
     toggleItemExpanded(itemName: string) {
         const expanded = new Set(this.expandedItems());
         if (expanded.has(itemName)) {
@@ -165,6 +172,100 @@ export class PurchasedItemsComponent implements OnInit {
     isItemExpanded(itemName: string): boolean {
         return this.expandedItems().has(itemName);
     }
+
+    toggleStoreExpanded(storeName: string) {
+        const expanded = new Set(this.expandedStores());
+        if (expanded.has(storeName)) {
+            expanded.delete(storeName);
+        } else {
+            expanded.add(storeName);
+        }
+        this.expandedStores.set(expanded);
+    }
+
+    isStoreExpanded(storeName: string): boolean {
+        return this.expandedStores().has(storeName);
+    }
+
+    // Group items by store
+    itemsByStore = computed(() => {
+        const storeMap = new Map<string, AggregatedItem[]>();
+        
+        this.receipts().forEach(receipt => {
+            const storeName = receipt.storeName;
+            
+            if (!storeMap.has(storeName)) {
+                storeMap.set(storeName, []);
+            }
+            
+            receipt.items.forEach(item => {
+                const storeItems = storeMap.get(storeName)!;
+                const existingItem = storeItems.find(i => 
+                    (i.canonicalName || i.name).toLowerCase() === (item.canonicalName || item.name).toLowerCase()
+                );
+                
+                if (existingItem) {
+                    existingItem.totalQuantity += item.quantity;
+                    existingItem.averagePrice = ((existingItem.averagePrice * existingItem.purchaseCount) + item.price) / (existingItem.purchaseCount + 1);
+                    existingItem.totalSpent += item.quantity * item.price;
+                    existingItem.purchaseCount += 1;
+                    
+                    if (new Date(receipt.purchaseDate) > new Date(existingItem.mostRecentDate)) {
+                        existingItem.mostRecentDate = receipt.purchaseDate;
+                    }
+                    
+                    existingItem.receipts.push({
+                        id: receipt.id,
+                        storeName: receipt.storeName,
+                        purchaseDate: receipt.purchaseDate,
+                        quantity: item.quantity,
+                        price: item.price
+                    });
+                } else {
+                    storeItems.push({
+                        name: item.canonicalName || item.name,
+                        canonicalName: item.canonicalName,
+                        totalQuantity: item.quantity,
+                        averagePrice: item.price,
+                        totalSpent: item.quantity * item.price,
+                        purchaseCount: 1,
+                        mostRecentDate: receipt.purchaseDate,
+                        receipts: [{
+                            id: receipt.id,
+                            storeName: receipt.storeName,
+                            purchaseDate: receipt.purchaseDate,
+                            quantity: item.quantity,
+                            price: item.price
+                        }]
+                    });
+                }
+            });
+        });
+        
+        return storeMap;
+    });
+
+    // Filtered items by store with search
+    filteredItemsByStore = computed(() => {
+        const query = this.searchQuery().toLowerCase();
+        const storeMap = new Map<string, AggregatedItem[]>();
+        
+        this.itemsByStore().forEach((items, storeName) => {
+            let filteredItems = items;
+            
+            if (query) {
+                filteredItems = items.filter(item =>
+                    item.name.toLowerCase().includes(query)
+                );
+            }
+            
+            if (filteredItems.length > 0) {
+                storeMap.set(storeName, filteredItems);
+            }
+        });
+        
+        return storeMap;
+    });
 
 
 }
