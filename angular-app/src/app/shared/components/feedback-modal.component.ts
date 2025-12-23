@@ -9,6 +9,7 @@ import {
   ISSUE_TYPES
 } from '../../core/models/validation.model';
 import { Receipt } from '../../core/models/receipt.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-feedback-modal',
@@ -462,6 +463,7 @@ export class FeedbackModalComponent {
 
   private feedbackService = inject(FeedbackService);
   private http = inject(HttpClient);
+  private readonly PLACES_API_URL = `${environment.apiUrl}/places`;
 
   isOpen = signal(false);
   mode = signal<'correction' | 'issue'>('correction');
@@ -587,7 +589,7 @@ export class FeedbackModalComponent {
   }
 
   private fetchSuggestions(input: string) {
-    this.http.get<PlacesAutocompleteResponse>('/api/places/autocomplete', {
+    this.http.get<PlacesAutocompleteResponse>(`${this.PLACES_API_URL}/autocomplete`, {
       params: { input, location: 'Malaysia' }
     }).subscribe({
       next: (response) => {

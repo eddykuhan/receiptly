@@ -1,5 +1,0 @@
-# Proxy API requests to .NET backend
-/api/* https://api.cheap-sy.com/api/:splat 200
-
-# Serve Angular app for all other routes (SPA fallback)
-/* /index.html 200
