@@ -363,6 +363,7 @@ import { environment } from '../../../environments/environment';
 export class FeedbackModalComponent {
   @Input({ required: true }) receipt!: Receipt;
   @Output() closed = new EventEmitter<void>();
+  @Output() correctionSubmitted = new EventEmitter<CorrectionData>();
 
   private feedbackService = inject(FeedbackService);
   private http = inject(HttpClient);
@@ -407,6 +408,13 @@ export class FeedbackModalComponent {
     this.isSubmitting.set(true);
     this.feedbackService.submitCorrection(this.correctionData).subscribe({
       next: () => {
+        // Emit the correction data so parent can update the receipt
+        this.correctionSubmitted.emit({
+          fieldName: this.correctionData.fieldName,
+          correctedValue: this.correctionData.correctedValue,
+          latitude: this.correctionData.latitude,
+          longitude: this.correctionData.longitude
+        });
         this.close();
       },
       error: () => {
@@ -549,4 +557,11 @@ interface PlaceSuggestion {
 interface PlacesAutocompleteResponse {
   success: boolean;
   suggestions: PlaceSuggestion[];
+}
+
+export interface CorrectionData {
+  fieldName: string;
+  correctedValue: string;
+  latitude?: number;
+  longitude?: number;
 }

@@ -65,49 +65,18 @@
 
         <div class="max-w-3xl mx-auto px-4 py-6 space-y-6">
 
-            <!-- Compact Stats Card -->
-            <div class="card bg-base-100 shadow-xl">
-                <div class="card-body p-6">
-                    <div class="grid grid-cols-3 gap-4 divide-x divide-base-200">
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-primary">{{ totalReceipts() }}</div>
-                            <div class="text-xs text-base-content/60 mt-1">Receipts</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-secondary">{{ totalSpent() | myr }}</div>
-                            <div class="text-xs text-base-content/60 mt-1">Total Spent</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-lg font-bold text-accent truncate px-2" [title]="topStore()">
-                                {{ topStore().split('(')[0] }}
-                            </div>
-                            <div class="text-xs text-base-content/60 mt-1">Top Store</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Spending Analysis Graph -->
-             <div class="card bg-base-100 shadow-xl">
-                <div class="card-body p-6">
-                    <h2 class="card-title text-lg mb-4 flex items-center gap-2">
-                        <span class="material-icons text-primary">analytics</span>
-                        Spending Analysis
-                    </h2>
-                    <div class="h-64 w-full relative">
-                        <canvas #spendingChart></canvas>
-                        @if (receipts().length === 0) {
-                            <div class="absolute inset-0 flex items-center justify-center bg-base-100/50 backdrop-blur-sm z-10">
-                                <span class="text-base-content/50 text-sm">No spending data available</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-
-
             <!-- Quick Actions Grid -->
             <div class="grid grid-cols-2 gap-4">
+                <!-- Analytics Card -->
+                <div class="card bg-gradient-to-br from-primary to-accent text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
+                    routerLink="/analytics">
+                    <div class="card-body p-4 items-center text-center">
+                        <span class="material-icons text-4xl mb-2">analytics</span>
+                        <h3 class="font-bold text-lg">Analytics</h3>
+                        <div class="text-xs opacity-90 mt-2">View spending insights</div>
+                    </div>
+                </div>
+                
                 <!-- Rewards Card -->
                 <div class="card bg-gradient-to-br from-secondary to-accent text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
                     routerLink="/rewards">
@@ -116,16 +85,6 @@
                         <h3 class="font-bold text-lg">Rewards</h3>
                         <div class="text-2xl font-bold mt-1">{{ userPoints()?.availablePoints || 0 }}</div>
                         <div class="text-xs opacity-80">Points</div>
-                    </div>
-                </div>
-
-                <!-- Purchased Items Card -->
-                <div class="card bg-gradient-to-br from-accent to-primary text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
-                    routerLink="/purchased-items">
-                    <div class="card-body p-4 items-center text-center">
-                        <span class="material-icons text-4xl mb-2">shopping_basket</span>
-                        <h3 class="font-bold text-lg">My Items</h3>
-                        <div class="text-xs opacity-90 mt-2">View all purchased items</div>
                     </div>
                 </div>
             </div>

@@ -31,6 +31,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     userLocation = computed(() => this.locationService.userLocation());
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
+    isBottomSheetExpanded = signal(false);
+    showMobileResults = signal(false);
 
     // Computed properties
     hasResults = computed(() => this.searchResults().length > 0);
@@ -50,12 +52,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.addUserLocationMarker();
         this.loadProductSuggestions();
 
-        // Check for search query params
+        // Set search query from params but don't auto-search
         this.route.queryParams.subscribe(params => {
             if (params['q']) {
                 this.searchQuery.set(params['q']);
-                // Small delay to ensure map is ready
-                setTimeout(() => this.performSearch(), 500);
+                // User needs to manually click search button or press enter
             }
         });
     }
@@ -65,8 +66,12 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     }
 
     private initMap() {
-        // Center on Kuala Lumpur
-        this.map = L.map('map').setView([3.1390, 101.6869], 11);
+        // Get user location or default to Kuala Lumpur
+        const userLoc = this.userLocation();
+        const initialLat = userLoc?.lat ?? 3.1390;
+        const initialLon = userLoc?.lon ?? 101.6869;
+        
+        this.map = L.map('map').setView([initialLat, initialLon], 11);
 
         // Add OpenStreetMap tiles (free, no API key needed!)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -102,12 +107,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             .bindPopup('<strong>📍 Your Location</strong>')
             .addTo(this.map);
 
-        // Automatically center map on user's location with smooth animation
-        this.map.flyTo([userLoc.lat, userLoc.lon], 14, {
-            duration: 1.5
-        });
-
-        // Load and display nearby items within configured radius
+        // Load nearby items but don't auto-zoom to fit them
         this.loadNearbyItems();
     }
 
@@ -143,6 +143,12 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             this.searchResults.set(results);
             this.showSuggestions.set(false);
             this.updateMapMarkers(results);
+            
+            // Show mobile bottom sheet when search completes
+            if (results.length > 0) {
+                this.showMobileResults.set(true);
+                this.isBottomSheetExpanded.set(true);
+            }
         } catch (error) {
             console.error('Failed to fetch price map data', error);
             this.errorMessage.set('Unable to load price data. Please try again.');
@@ -170,7 +176,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
             console.log(`✅ Found ${nearbyItems.length} items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km`);
             this.searchResults.set(nearbyItems);
-            this.updateMapMarkers(nearbyItems);
+            this.updateMapMarkers(nearbyItems, false); // Don't auto-zoom
         } catch (error) {
             console.error('Failed to load nearby items:', error);
             this.errorMessage.set('Unable to load nearby items.');
@@ -179,7 +185,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }
     }
 
-    private updateMapMarkers(results: StoreWithPrice[]) {
+    private updateMapMarkers(results: StoreWithPrice[], autoZoom: boolean = true) {
         this.clearMarkers();
 
         if (!this.map || results.length === 0) return;
@@ -230,14 +236,15 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
             marker.on('click', () => {
                 this.selectedStore.set(result);
+                // Don't show mobile bottom sheet on marker click
             });
 
             this.markers.push(marker);
             bounds.extend([store.latitude, store.longitude]);
         });
 
-        // Fit map to show all markers
-        if (results.length > 0) {
+        // Only fit bounds if autoZoom is true (e.g., when user searches)
+        if (autoZoom && results.length > 0) {
             this.map.fitBounds(bounds, { padding: [50, 50] });
         }
     }
@@ -248,6 +255,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.selectedStore.set(null);
         this.showSuggestions.set(false);
         this.errorMessage.set(null);
+        this.showMobileResults.set(false);
+        this.isBottomSheetExpanded.set(false);
         this.clearMarkers();
 
         // Reset map view to KL
@@ -258,6 +267,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     selectStore(store: StoreWithPrice) {
         this.selectedStore.set(store);
+        this.showMobileResults.set(true);
+        this.isBottomSheetExpanded.set(true);
         if (this.map) {
             this.map.setView([store.store.latitude, store.store.longitude], 14, {
                 animate: true
@@ -279,6 +290,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             .filter(name => name.toLowerCase().includes(query))
             .slice(0, 5);
     }
+
+    toggleBottomSheet() {
+        this.isBottomSheetExpanded.update(expanded => !expanded);
+    }
+
 
     private getRelativeTime(date: Date): string {
         const now = new Date();

@@ -1,0 +1,13 @@
+// Analytics Component Styles
+
+.card {
+    transition: transform 0.2s ease-in-out;
+    
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+canvas {
+    max-height: 100%;
+}
