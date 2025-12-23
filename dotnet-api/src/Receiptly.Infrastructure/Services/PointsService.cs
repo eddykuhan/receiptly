@@ -268,11 +268,9 @@ public class PointsService : IPointsService
     public async Task<List<WeeklyChallenge>> GetActiveWeeklyChallengesAsync(CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
-        var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek); // Sunday
-        var endOfWeek = startOfWeek.AddDays(7); // Next Sunday
 
         return await _context.WeeklyChallenges
-            .Where(wc => wc.StartDate <= now && wc.EndDate >= now)
+            .Where(wc => wc.WeekStart <= now && wc.WeekEnd >= now && wc.IsActive)
             .OrderBy(wc => wc.CreatedAt)
             .ToListAsync(cancellationToken);
     }
@@ -284,7 +282,7 @@ public class PointsService : IPointsService
     {
         return await _context.UserWeeklyProgress
             .Where(uwp => uwp.UserId == userId)
-            .OrderByDescending(uwp => uwp.LastUpdated)
+            .OrderByDescending(uwp => uwp.WeekStart)
             .ToListAsync(cancellationToken);
     }
 
@@ -308,27 +306,27 @@ public class PointsService : IPointsService
             {
                 UserId = userId,
                 ChallengeId = challengeId,
-                CurrentProgress = progressValue,
-                IsCompleted = progressValue >= challenge.TargetValue,
-                LastUpdated = DateTime.UtcNow
+                CurrentCount = progressValue,
+                TargetCount = challenge.TargetCount,
+                IsCompleted = progressValue >= challenge.TargetCount,
+                WeekStart = challenge.WeekStart
             };
             _context.UserWeeklyProgress.Add(progress);
         }
         else
         {
-            progress.CurrentProgress = progressValue;
-            progress.IsCompleted = progressValue >= challenge.TargetValue;
-            progress.LastUpdated = DateTime.UtcNow;
+            progress.CurrentCount = progressValue;
+            progress.IsCompleted = progressValue >= challenge.TargetCount;
             _context.UserWeeklyProgress.Update(progress);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
 
         // Award bonus points if challenge just completed
-        if (progress.IsCompleted && !progress.RewardClaimed)
+        if (progress.IsCompleted && progress.CompletedAt == null)
         {
-            await AwardPointsAsync(userId, challenge.RewardPoints, "challenge_completion", $"Completed: {challenge.Title}", challengeId, cancellationToken);
-            progress.RewardClaimed = true;
+            await AwardPointsAsync(userId, challenge.PointsReward, "challenge_completion", $"Completed: {challenge.Title}", challengeId, cancellationToken);
+            progress.CompletedAt = DateTime.UtcNow;
             _context.UserWeeklyProgress.Update(progress);
             await _context.SaveChangesAsync(cancellationToken);
         }

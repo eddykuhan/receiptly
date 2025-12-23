@@ -126,6 +126,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/profile']);
   }
 
+  navigateToChallenges() {
+    this.router.navigate(['/challenges']);
+  }
+
   async retryLocation() {
     await this.locationService.retryLocation();
     this.loadHotDeals(); // Reload deals with new location
