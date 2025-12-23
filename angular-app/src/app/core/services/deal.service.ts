@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { GeolocationUtil } from '../utils/geolocation.util';
+import { APP_CONSTANTS } from '../constants/app.constants';
 
 export interface Deal {
     id: string;
@@ -180,10 +181,10 @@ export class DealService {
 
         // Sort by distance if location is available, otherwise by savings amount
         if (userLat && userLon) {
-            // Filter deals within 10km radius
+            // Filter deals within configured radius (can be customized via user preferences)
             // IMPORTANT: Only include deals that have valid store coordinates
-            const MAX_RADIUS_KM = 10;
-            console.log('Filtering deals with user location:', { userLat, userLon, totalDeals: deals.length });
+            const MAX_RADIUS_KM = APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM;
+            console.log(`Filtering deals with user location (${MAX_RADIUS_KM}km radius):`, { userLat, userLon, totalDeals: deals.length });
             const dealsWithDistance = deals.map(d => ({ name: d.productName, distance: d.distance, hasCoords: !!(d.latitude && d.longitude) }));
             console.log('Deals with distances:', dealsWithDistance);
             
@@ -194,7 +195,7 @@ export class DealService {
                 const withinRadius = deal.distance <= MAX_RADIUS_KM;
                 return hasValidCoordinates && hasValidDistance && withinRadius;
             });
-            console.log('Deals within 10km with valid coordinates:', deals.length);
+            console.log(`Deals within ${MAX_RADIUS_KM}km with valid coordinates:`, deals.length);
             deals.sort((a, b) => a.distance - b.distance);
         } else {
             // No user location - show ALL deals sorted by best savings

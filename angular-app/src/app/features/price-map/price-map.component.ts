@@ -7,6 +7,7 @@ import { firstValueFrom } from 'rxjs';
 import { PriceMapService, StoreWithPrice } from './price-map.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
 @Component({
     selector: 'app-price-map',
@@ -78,8 +79,10 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     private getUserLocation() {
         if (navigator.geolocation) {
+            console.log('🗺️ Requesting user location for map...');
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    console.log('✅ Map location obtained:', position.coords.latitude, position.coords.longitude);
                     this.userLocation.set({
                         lat: position.coords.latitude,
                         lon: position.coords.longitude
@@ -97,17 +100,37 @@ export class PriceMapComponent implements OnInit, OnDestroy {
                         });
 
                         this.userMarker = L.marker([position.coords.latitude, position.coords.longitude], { icon: blueIcon })
-                            .bindPopup('<strong>Your Location</strong>')
+                            .bindPopup('<strong>📍 Your Location</strong>')
                             .addTo(this.map);
 
-                        // Center map on user's location
-                        this.map.setView([position.coords.latitude, position.coords.longitude], 13);
+                        // Automatically center map on user's location with smooth animation
+                        this.map.flyTo([position.coords.latitude, position.coords.longitude], 14, {
+                            duration: 1.5
+                        });
+
+                        // Load and display nearby items within 10km
+                        this.loadNearbyItems();
                     }
                 },
                 (error) => {
-                    console.log('Location access denied:', error);
+                    console.error('❌ Map location error:', error.code, error.message);
+                    if (error.code === 1) {
+                        console.log('User denied location permission for map');
+                    } else if (error.code === 2) {
+                        console.log('Location unavailable for map');
+                    } else if (error.code === 3) {
+                        console.log('Location timeout for map');
+                    }
+                    // Keep default center on KL
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000
                 }
             );
+        } else {
+            console.error('❌ Geolocation not supported by browser');
         }
     }
 
@@ -153,6 +176,32 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }
     }
 
+    async loadNearbyItems() {
+        const userLoc = this.userLocation();
+        if (!userLoc) {
+            console.log('No user location available for nearby items');
+            return;
+        }
+
+        this.isLoading.set(true);
+        console.log(`🔍 Loading items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km...`);
+
+        try {
+            const nearbyItems = await firstValueFrom(
+                this.priceMapService.getNearbyItems(userLoc.lat, userLoc.lon, APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM)
+            );
+
+            console.log(`✅ Found ${nearbyItems.length} items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km`);
+            this.searchResults.set(nearbyItems);
+            this.updateMapMarkers(nearbyItems);
+        } catch (error) {
+            console.error('Failed to load nearby items:', error);
+            this.errorMessage.set('Unable to load nearby items.');
+        } finally {
+            this.isLoading.set(false);
+        }
+    }
+
     private updateMapMarkers(results: StoreWithPrice[]) {
         this.clearMarkers();
 
@@ -190,9 +239,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             const popupContent = `
         <div class="p-2">
           <h3 class="font-bold text-sm">${store.name}</h3>
+          ${result.itemName ? `<p class="text-xs font-semibold text-primary">${result.itemName}</p>` : ''}
           <p class="text-xs text-gray-600">${store.address}</p>
           <p class="font-mono font-bold text-purple-600 mt-1">RM ${price.toFixed(2)}</p>
           ${result.distance ? `<p class="text-xs text-gray-500">${result.distance.toFixed(1)} km away</p>` : ''}
+          <p class="text-xs text-gray-400">Updated ${this.getRelativeTime(result.lastPurchaseDate)}</p>
         </div>
       `;
 
@@ -251,6 +302,23 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             .filter(name => name.toLowerCase().includes(query))
             .slice(0, 5);
     }
+
+    private getRelativeTime(date: Date): string {
+        const now = new Date();
+        const diffMs = now.getTime() - new Date(date).getTime();
+        const diffSecs = Math.floor(diffMs / 1000);
+        const diffMins = Math.floor(diffSecs / 60);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        const diffWeeks = Math.floor(diffDays / 7);
+
+        if (diffSecs < 60) return 'just now';
+        if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
+    }
+
     private async loadProductSuggestions() {
         try {
             const suggestions = await firstValueFrom(this.priceMapService.getProductSuggestions());

@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
 
 export interface StoreLocation {
     id: string;
@@ -17,6 +18,7 @@ export interface StoreWithPrice {
     price: number;
     lastPurchaseDate: Date;
     distance?: number;
+    itemName?: string; // Add itemName for nearby items display
 }
 
 interface PurchaseAnalyticsMetadataDto {
@@ -103,6 +105,90 @@ export class PriceMapService {
             );
 
         return this.suggestions$;
+    }
+
+    /**
+     * Get all items within a certain radius of user location
+     * Grouped by store to show all available items
+     */
+    getNearbyItems(userLat: number, userLon: number, radiusKm: number = APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM): Observable<StoreWithPrice[]> {
+        const params = new HttpParams()
+            .set('pageSize', 500)
+            .set('includeMetadata', true)
+            .set('page', 1);
+
+        return this.http.get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params }).pipe(
+            map(response => {
+                // Filter items from last 7 days only
+                const oneWeekAgo = new Date();
+                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+                const itemsWithDistance = response.items
+                    .filter(item => {
+                        const metadata = item.metadata;
+                        const latitude = metadata?.latitude;
+                        const longitude = metadata?.longitude;
+                        const purchaseDate = new Date(item.purchaseDate);
+
+                        // Must have coordinates and be within last 7 days
+                        if (!latitude || !longitude || purchaseDate < oneWeekAgo) {
+                            return false;
+                        }
+
+                        // Calculate distance
+                        const distance = this.calculateDistance(userLat, userLon, latitude, longitude);
+                        return distance <= radiusKm;
+                    })
+                    .map(item => {
+                        const metadata = item.metadata!;
+                        const distance = this.calculateDistance(
+                            userLat,
+                            userLon,
+                            metadata.latitude!,
+                            metadata.longitude!
+                        );
+
+                        return {
+                            item,
+                            distance,
+                            metadata
+                        };
+                    });
+
+                // Group by store and item to get lowest price per item per store
+                const storeItemMap = new Map<string, StoreWithPrice & { itemName: string }>();
+
+                itemsWithDistance.forEach(({ item, distance, metadata }) => {
+                    const storeAddress = metadata.storeAddress?.trim() || 'Address unavailable';
+                    const storeId = metadata.storePhoneNumber ?? `${item.storeName}-${storeAddress}`;
+                    const itemName = (item.canonicalName || item.itemName).trim();
+                    const key = `${storeId}-${itemName}`;
+                    const finalPrice = Number(item.unitPrice) || 0;
+                    const purchaseDate = new Date(item.purchaseDate);
+
+                    if (finalPrice <= 0) return;
+
+                    const existing = storeItemMap.get(key);
+                    if (!existing || finalPrice < existing.price) {
+                        storeItemMap.set(key, {
+                            store: {
+                                id: storeId,
+                                name: item.storeName,
+                                address: storeAddress,
+                                latitude: metadata.latitude!,
+                                longitude: metadata.longitude!
+                            },
+                            price: finalPrice,
+                            lastPurchaseDate: purchaseDate,
+                            distance,
+                            itemName
+                        });
+                    }
+                });
+
+                return Array.from(storeItemMap.values()).sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+            })
+        );
     }
 
     /**
