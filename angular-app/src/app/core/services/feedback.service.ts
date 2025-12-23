@@ -26,7 +26,13 @@ export class FeedbackService {
   submitCorrection(request: SubmitCorrectionRequest): Observable<FeedbackResponse> {
     this.logger.info('Submitting correction', { request });
 
-    return this.http.post<FeedbackResponse>(`${this.API_URL}/correction`, request)
+    // Ensure correctedValue is always a string and wrap in dto property
+    const dto = {
+      ...request,
+      correctedValue: String(request.correctedValue)
+    };
+
+    return this.http.post<FeedbackResponse>(`${this.API_URL}/correction`, dto)
       .pipe(
         tap(response => {
           if (response.success) {

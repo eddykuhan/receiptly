@@ -214,7 +214,8 @@ import { FeedbackModalComponent } from '../../shared/components/feedback-modal.c
         <!-- Feedback Modal -->
         <app-feedback-modal 
           [receipt]="receipt()!" 
-          (closed)="closeFeedbackModal()" 
+          (closed)="closeFeedbackModal()"
+          (correctionSubmitted)="onCorrectionSubmitted($event)" 
           #feedbackModal />
       } @else {
         <div class="flex flex-col items-center justify-center min-h-screen">
@@ -312,5 +313,49 @@ export class ReceiptDetailComponent implements OnInit {
 
   closeFeedbackModal() {
     // Modal closed
+  }
+
+  onCorrectionSubmitted(correction: any) {
+    const currentReceipt = this.receipt();
+    if (!currentReceipt) return;
+
+    // Update the receipt data immediately with the corrected value
+    const updatedReceipt = { ...currentReceipt };
+    
+    if (correction.fieldName === 'StoreName') {
+      updatedReceipt.storeName = correction.correctedValue;
+    } else if (correction.fieldName === 'TotalAmount') {
+      updatedReceipt.totalAmount = parseFloat(correction.correctedValue);
+    } else if (correction.fieldName === 'PurchaseDate') {
+      updatedReceipt.purchaseDate = new Date(correction.correctedValue);
+    } else if (correction.fieldName === 'StoreAddress') {
+      updatedReceipt.storeAddress = correction.correctedValue;
+      if (correction.latitude && correction.longitude) {
+        updatedReceipt.latitude = correction.latitude;
+        updatedReceipt.longitude = correction.longitude;
+      }
+    } else if (correction.fieldName.startsWith('Items[')) {
+      // Parse item index and field: "Items[0].Name" or "Items[0].Price"
+      const match = correction.fieldName.match(/Items\[(\d+)\]\.(Name|Price)/);
+      if (match) {
+        const index = parseInt(match[1]);
+        const field = match[2];
+        if (updatedReceipt.items[index]) {
+          updatedReceipt.items = [...updatedReceipt.items];
+          updatedReceipt.items[index] = { ...updatedReceipt.items[index] };
+          if (field === 'Name') {
+            updatedReceipt.items[index].name = correction.correctedValue;
+          } else if (field === 'Price') {
+            updatedReceipt.items[index].price = parseFloat(correction.correctedValue);
+          }
+        }
+      }
+    }
+
+    // Update the signal to trigger UI refresh
+    this.receipt.set(updatedReceipt);
+    
+    // Update the receipt service cache
+    this.receiptService.updateLocalReceipt(updatedReceipt);
   }
 }

@@ -156,21 +156,37 @@
     </div>
 
     <!-- Mobile Bottom Sheet -->
-    @if (hasResults()) {
-    <div class="lg:hidden fixed bottom-16 left-0 right-0 bg-base-100 border-t-2 border-primary shadow-2xl max-h-[60vh] overflow-y-auto z-20 rounded-t-2xl"
+    @if (hasResults() && showMobileResults()) {
+    <div class="lg:hidden fixed bottom-16 left-0 right-0 bg-base-100 border-t-2 border-primary shadow-2xl overflow-hidden z-20 rounded-t-2xl transition-all duration-300"
+        [class.max-h-[60vh]]="isBottomSheetExpanded()"
+        [class.max-h-[140px]]="!isBottomSheetExpanded()"
         style="padding-bottom: env(safe-area-inset-bottom, 0px);">
         <div class="p-4 pb-6">
+            <!-- Drag Handle -->
+            <div class="flex justify-center mb-2">
+                <button class="w-12 h-1 bg-base-300 rounded-full hover:bg-base-content/20 transition-colors" 
+                    (click)="toggleBottomSheet()">
+                </button>
+            </div>
+            
             <div class="flex items-center justify-between mb-3">
                 <h2 class="font-bold flex items-center gap-2">
                     <span class="material-icons text-primary">store</span>
                     {{ searchResults().length }} Stores
                 </h2>
-                <button class="btn btn-ghost btn-sm btn-circle" (click)="clearSearch()">
-                    <span class="material-icons">close</span>
-                </button>
+                <div class="flex gap-1">
+                    <button class="btn btn-ghost btn-sm btn-circle" 
+                        (click)="toggleBottomSheet()"
+                        [attr.aria-label]="isBottomSheetExpanded() ? 'Minimize' : 'Expand'">
+                        <span class="material-icons text-sm">{{ isBottomSheetExpanded() ? 'expand_more' : 'expand_less' }}</span>
+                    </button>
+                    <button class="btn btn-ghost btn-sm btn-circle" (click)="clearSearch()">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="space-y-2 pb-4">
+            <div class="space-y-2 pb-4 overflow-y-auto" [ngClass]="{'max-h-[calc(60vh-120px)]': isBottomSheetExpanded()}">
                 @for (result of searchResults(); track result.store.id; let i = $index) {
                 <div class="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
                     (click)="selectStore(result)">

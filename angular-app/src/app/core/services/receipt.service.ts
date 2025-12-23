@@ -152,6 +152,20 @@ export class ReceiptService {
   }
 
   /**
+   * Update a receipt in the local cache without an API call
+   * Useful for immediate UI updates after corrections
+   */
+  updateLocalReceipt(receipt: Receipt): void {
+    const currentReceipts = this.receiptsCache$.value;
+    const index = currentReceipts.findIndex(r => r.id === receipt.id);
+    if (index !== -1) {
+      const updatedReceipts = [...currentReceipts];
+      updatedReceipts[index] = receipt;
+      this.receiptsCache$.next(updatedReceipts);
+    }
+  }
+
+  /**
    * Parse date strings to Date objects
    */
   private parseReceiptDates(receipt: any): Receipt {

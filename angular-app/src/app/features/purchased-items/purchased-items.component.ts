@@ -41,7 +41,7 @@ export class PurchasedItemsComponent implements OnInit {
     isLoading = signal(true);
     searchQuery = signal('');
     selectedSort = signal<SortOption>('recent');
-    selectedGroup = signal<GroupOption>('all');
+    selectedGroup = signal<GroupOption>('store');
     expandedItems = signal<Set<string>>(new Set());
     expandedStores = signal<Set<string>>(new Set());
 

@@ -1,9 +1,8 @@
-import { Component, signal, ViewChild, ElementRef, inject, AfterViewInit, computed, OnInit } from '@angular/core';
+import { Component, signal, ViewChild, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { Chart, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -11,8 +10,6 @@ import { PointsService, UserPoints } from '../../core/services/points.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
 import { Receipt } from '../../core/models/receipt.model';
-
-Chart.register(...registerables);
 
 interface UserProfile {
     id: string;
@@ -76,20 +73,6 @@ export class ProfileComponent implements OnInit {
     private themeService = inject(ThemeService);
     private pointsService = inject(PointsService);
     private router = inject(Router);
-
-    // Computed Stats
-    totalReceipts = computed(() => this.receipts().length);
-    totalSpent = computed(() => this.receipts().reduce((sum, r) => sum + (r.totalAmount || 0), 0));
-    uniqueStores = computed(() => new Set(this.receipts().map(r => r.storeName)).size);
-
-    topStore = computed(() => {
-        const stores: Record<string, number> = {};
-        this.receipts().forEach(r => {
-            stores[r.storeName] = (stores[r.storeName] || 0) + 1;
-        });
-        const sorted = Object.entries(stores).sort((a, b) => b[1] - a[1]);
-        return sorted.length > 0 ? `${sorted[0][0]} (${sorted[0][1]} visits)` : 'None yet';
-    });
 
     // Mock user profile data
     profile = signal<UserProfile>({
@@ -188,12 +171,6 @@ export class ProfileComponent implements OnInit {
         }
     }
 
-    // Chart references
-    @ViewChild('spendingChart') spendingChartRef!: ElementRef;
-
-    // Chart instances
-    spendingChart: Chart | null = null;
-
     ngOnInit() {
         this.initializeUserProfile();
         this.loadData();
@@ -259,12 +236,14 @@ export class ProfileComponent implements OnInit {
         // Subscribe to cache
         this.receiptService.receipts$.subscribe({
             next: (data: any[]) => {
-                this.receipts.set(data);
+                // Sort receipts by purchase date, newest first
+                const sortedReceipts = [...data].sort((a, b) => {
+                    const dateA = new Date(a.purchaseDate).getTime();
+                    const dateB = new Date(b.purchaseDate).getTime();
+                    return dateB - dateA; // Descending order (newest first)
+                });
+                this.receipts.set(sortedReceipts);
                 this.isLoading.set(false);
-                // Initialize charts if data is available and view is ready
-                if (data.length > 0) {
-                    setTimeout(() => this.initCharts(), 0);
-                }
             },
             error: (err: any) => {
                 console.error('Failed to load receipts', err);
@@ -281,12 +260,6 @@ export class ProfileComponent implements OnInit {
         setTimeout(() => {
             this.pullToRefresh?.completeRefresh();
         }, 1000);
-    }
-
-    initCharts() {
-        if (this.receipts().length > 0) {
-            this.initSpendingChart();
-        }
     }
 
     async deleteReceipt(receipt: any, event?: Event) {
@@ -321,120 +294,6 @@ export class ProfileComponent implements OnInit {
             this.receiptService.loadReceipts();
             alert('Failed to delete receipt. Please try again.');
         }
-    }
-
-    initSpendingChart() {
-        if (!this.spendingChartRef) return;
-
-        if (this.spendingChart) this.spendingChart.destroy();
-
-        const ctx = this.spendingChartRef.nativeElement.getContext('2d');
-
-        // Group by month for the last 6 months
-        const monthlySpending = new Map<string, number>();
-        const now = new Date();
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            monthlySpending.set(d.toLocaleDateString('en-US', { month: 'short' }), 0);
-        }
-
-        this.receipts().forEach(r => {
-            const d = new Date(r.purchaseDate);
-            const key = d.toLocaleDateString('en-US', { month: 'short' });
-            // Only count if it falls within the last 6 months
-            if (monthlySpending.has(key)) {
-                monthlySpending.set(key, (monthlySpending.get(key) || 0) + r.totalAmount);
-            }
-        });
-
-        // Get theme colors
-        const style = getComputedStyle(document.body);
-        const primaryColor = style.getPropertyValue('--p').trim() || '#570df8';
-        // Convert to hex if it's an oklch value (simplified fallback)
-        const barColor = primaryColor.startsWith('oklch') ? '#570df8' : `hsl(${primaryColor})`;
-
-        this.spendingChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: Array.from(monthlySpending.keys()),
-                datasets: [{
-                    label: 'Spending',
-                    data: Array.from(monthlySpending.values()),
-                    backgroundColor: '#570df8', // Use fixed color for now to ensure visibility
-                    borderRadius: 8,
-                    barThickness: 'flex',
-                    maxBarThickness: 32,
-                    hoverBackgroundColor: '#4506cb'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: (context) => {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(context.parsed.y);
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        display: true,
-                        beginAtZero: true,
-                        grid: {
-                            display: true,
-                            color: 'rgba(0, 0, 0, 0.05)',
-                        },
-                        border: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                size: 10
-                            },
-                            callback: (value) => {
-                                if (typeof value === 'number') {
-                                    return 'RM ' + (value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value);
-                                }
-                                return value;
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        border: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                size: 11
-                            }
-                        }
-                    }
-                },
-                layout: {
-                    padding: {
-                        top: 10,
-                        bottom: 0
-                    }
-                }
-            }
-        });
     }
 
     getMemberDuration(): string {
