@@ -87,6 +87,9 @@ async def analyze_receipt(
                 "size_bytes": len(file_bytes)
             })
         
+        # Save original uncropped image for LLM Vision (preserves dates at bottom/top)
+        original_uncropped_bytes = file_bytes
+        
         # Step 2: Auto-crop to receipt boundary (if enabled)
         boundary_info = None
         if request.auto_crop:
@@ -167,17 +170,18 @@ async def analyze_receipt(
         
         # Step 6: Override Azure's merchant data with LLM-enhanced selection
         # Collects candidates from all strategies and uses LLM to select best
+        # IMPORTANT: Use original_uncropped_bytes for LLM Vision to preserve dates at bottom/top
         if request.extract_location:
             result = await override_merchant_data_with_llm(
                 result, 
-                file_bytes,
+                original_uncropped_bytes,
                 debugger
             )
         else:
             # Even if extraction was disabled, try fallback if Azure has missing/low-confidence merchant data
             result = await override_merchant_data_with_llm(
                 result, 
-                file_bytes,
+                original_uncropped_bytes,
                 debugger
             )
         
@@ -336,6 +340,8 @@ async def collect_location_candidates(
         print(f"  📋 Candidate {len(candidates)-1} (Azure): {azure_merchant_value}")
     
     # Candidate 2: LLM Vision extraction (GPT-4 Vision)
+    # NOTE: image_bytes should be the ORIGINAL UNCROPPED image to preserve
+    # transaction dates printed at the bottom/top edges (e.g., Watsons, Guardian)
     try:
         llm_result = await llm_client.extract_merchant_from_image(image_bytes)
         if llm_result and llm_result.get('success'):
