@@ -7,6 +7,8 @@ import { firstValueFrom } from 'rxjs';
 import { PriceMapService, StoreWithPrice } from './price-map.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
+import { LocationService } from '../../core/services/location.service';
 
 @Component({
     selector: 'app-price-map',
@@ -16,6 +18,7 @@ import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
     styleUrl: './price-map.component.scss'
 })
 export class PriceMapComponent implements OnInit, OnDestroy {
+    private locationService = inject(LocationService);
     private map?: L.Map;
     private markers: L.Marker[] = [];
     private userMarker?: L.Marker;
@@ -25,7 +28,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     selectedStore = signal<StoreWithPrice | null>(null);
     productSuggestions = signal<string[]>([]);
     showSuggestions = signal(false);
-    userLocation = signal<{ lat: number; lon: number } | null>(null);
+    userLocation = computed(() => this.locationService.userLocation());
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
 
@@ -43,7 +46,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.initMap();
-        this.getUserLocation();
+        // Location is already requested during splash screen
+        this.addUserLocationMarker();
         this.loadProductSuggestions();
 
         // Check for search query params
@@ -76,39 +80,35 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }, 100);
     }
 
-    private getUserLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    this.userLocation.set({
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude
-                    });
-
-                    // Add user location marker and center map
-                    if (this.map) {
-                        const blueIcon = L.icon({
-                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            popupAnchor: [1, -34],
-                            shadowSize: [41, 41]
-                        });
-
-                        this.userMarker = L.marker([position.coords.latitude, position.coords.longitude], { icon: blueIcon })
-                            .bindPopup('<strong>Your Location</strong>')
-                            .addTo(this.map);
-
-                        // Center map on user's location
-                        this.map.setView([position.coords.latitude, position.coords.longitude], 13);
-                    }
-                },
-                (error) => {
-                    console.log('Location access denied:', error);
-                }
-            );
+    private addUserLocationMarker() {
+        const userLoc = this.userLocation();
+        if (!userLoc || !this.map) {
+            console.log('No user location available for map marker');
+            return;
         }
+
+        console.log('✅ Adding user location marker:', userLoc.lat, userLoc.lon);
+
+        const blueIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        this.userMarker = L.marker([userLoc.lat, userLoc.lon], { icon: blueIcon })
+            .bindPopup('<strong>📍 Your Location</strong>')
+            .addTo(this.map);
+
+        // Automatically center map on user's location with smooth animation
+        this.map.flyTo([userLoc.lat, userLoc.lon], 14, {
+            duration: 1.5
+        });
+
+        // Load and display nearby items within configured radius
+        this.loadNearbyItems();
     }
 
     onSearchInput(value: string) {
@@ -153,6 +153,32 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }
     }
 
+    async loadNearbyItems() {
+        const userLoc = this.userLocation();
+        if (!userLoc) {
+            console.log('No user location available for nearby items');
+            return;
+        }
+
+        this.isLoading.set(true);
+        console.log(`🔍 Loading items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km...`);
+
+        try {
+            const nearbyItems = await firstValueFrom(
+                this.priceMapService.getNearbyItems(userLoc.lat, userLoc.lon, APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM)
+            );
+
+            console.log(`✅ Found ${nearbyItems.length} items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km`);
+            this.searchResults.set(nearbyItems);
+            this.updateMapMarkers(nearbyItems);
+        } catch (error) {
+            console.error('Failed to load nearby items:', error);
+            this.errorMessage.set('Unable to load nearby items.');
+        } finally {
+            this.isLoading.set(false);
+        }
+    }
+
     private updateMapMarkers(results: StoreWithPrice[]) {
         this.clearMarkers();
 
@@ -190,9 +216,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             const popupContent = `
         <div class="p-2">
           <h3 class="font-bold text-sm">${store.name}</h3>
+          ${result.itemName ? `<p class="text-xs font-semibold text-primary">${result.itemName}</p>` : ''}
           <p class="text-xs text-gray-600">${store.address}</p>
           <p class="font-mono font-bold text-purple-600 mt-1">RM ${price.toFixed(2)}</p>
           ${result.distance ? `<p class="text-xs text-gray-500">${result.distance.toFixed(1)} km away</p>` : ''}
+          <p class="text-xs text-gray-400">Updated ${this.getRelativeTime(result.lastPurchaseDate)}</p>
         </div>
       `;
 
@@ -251,6 +279,23 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             .filter(name => name.toLowerCase().includes(query))
             .slice(0, 5);
     }
+
+    private getRelativeTime(date: Date): string {
+        const now = new Date();
+        const diffMs = now.getTime() - new Date(date).getTime();
+        const diffSecs = Math.floor(diffMs / 1000);
+        const diffMins = Math.floor(diffSecs / 60);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        const diffWeeks = Math.floor(diffDays / 7);
+
+        if (diffSecs < 60) return 'just now';
+        if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
+    }
+
     private async loadProductSuggestions() {
         try {
             const suggestions = await firstValueFrom(this.priceMapService.getProductSuggestions());

@@ -1,8 +1,9 @@
-import { Component, signal, inject, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, ViewChild, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DealService, Deal } from '../../core/services/deal.service';
+import { LocationService } from '../../core/services/location.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
@@ -21,6 +22,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private dealService = inject(DealService);
   private receiptService = inject(ReceiptService);
+  private locationService = inject(LocationService);
 
   // State
   isLoading = signal(false);
@@ -28,7 +30,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   dealsLoading = signal(false);
   searchQuery = signal('');
   currentDealIndex = signal(0);
-  userLocation = signal<{ lat: number; lon: number } | null>(null);
+  userLocation = computed(() => this.locationService.userLocation());
 
   private rotationInterval?: number;
 
@@ -47,7 +49,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
-    this.getUserLocation();
+    // Location is already requested during splash screen
     this.loadHotDeals();
     this.startDealRotation();
   }
@@ -55,24 +57,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.rotationInterval) {
       clearInterval(this.rotationInterval);
-    }
-  }
-
-  getUserLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          this.userLocation.set({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude
-          });
-          // Reload deals with location
-          this.loadHotDeals();
-        },
-        (error) => {
-          console.log('Location access denied or unavailable, showing all deals');
-        }
-      );
     }
   }
 
@@ -140,6 +124,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   navigateToProfile() {
     this.router.navigate(['/profile']);
+  }
+
+  async retryLocation() {
+    await this.locationService.retryLocation();
+    this.loadHotDeals(); // Reload deals with new location
   }
 
   onPeriodChange(period: string) {

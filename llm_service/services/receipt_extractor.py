@@ -66,8 +66,13 @@ Instructions:
 6. NEVER return "Not found". Always infer the most likely merchant.
 
 7. Extract the transaction date/time from the receipt:
-   - IMPORTANT: Check BOTH the top (header) AND bottom (footer) of the receipt
-   - Some retailers (e.g., Watsons, Guardian, pharmacies) print the date at the BOTTOM
+   - **CRITICAL**: ALWAYS scan the ENTIRE receipt from TOP to BOTTOM
+   - **START by checking the VERY TOP** of the receipt (first few lines after merchant name)
+   - **THEN check the VERY BOTTOM** of the receipt (last few lines, footer area)
+   - Many retailers print dates at DIFFERENT locations:
+     * Top-date stores: 99 Speedmart, Mydin, Giant (date in header area)
+     * Bottom-date stores: Watsons, Guardian, pharmacies (date in footer area)
+     * Some receipts have BOTH print date (top) and transaction date (bottom) - choose transaction date
    - Look for date stamps in these formats:
      * DD/MM/YYYY, DD-MM-YYYY, MM/DD/YYYY
      * YYYY-MM-DD, YYYY/MM/DD
@@ -76,9 +81,10 @@ Instructions:
    - Common labels to look for:
      * "Date:", "Time:", "Date/Time:", "Transaction Date:"
      * "Date & Time:", "Txn Date:", "Purchase Date:"
-     * Sometimes just a date/time without a label
+     * Sometimes just a date/time without a label near the total or at the bottom
    - Prioritize the transaction date over print date or other dates
    - If multiple dates exist, choose the one that appears to be the transaction/purchase date
+   - **DO NOT skip the bottom section** - this is where many stores print the date
 
 8. Return the date in ISO 8601 format:
    - With time: YYYY-MM-DDTHH:MM:SS (e.g., "2024-12-07T14:30:00")

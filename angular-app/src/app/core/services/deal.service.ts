@@ -3,6 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { GeolocationUtil } from '../utils/geolocation.util';
+import { APP_CONSTANTS } from '../constants/app.constants';
 
 export interface Deal {
     id: string;
@@ -67,6 +69,15 @@ export class DealService {
     private transformToDeals(response: PurchaseAnalyticsResponseDto, userLat?: number, userLon?: number): Deal[] {
         console.log('Transform to deals - input items:', response.items.length);
 
+        // Filter items to only include purchases from the last 7 days
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const recentItems = response.items.filter(item => {
+            const purchaseDate = new Date(item.purchaseDate);
+            return purchaseDate >= oneWeekAgo;
+        });
+        console.log('Items from last 7 days:', recentItems.length);
+
         // Group items by canonical name or item name
         const productMap = new Map<string, {
             prices: number[];
@@ -80,7 +91,7 @@ export class DealService {
             }>;
         }>();
 
-        response.items.forEach(item => {
+        recentItems.forEach(item => {
             const productName = (item.canonicalName || item.itemName).trim();
             if (!productName) return;
 
@@ -141,9 +152,10 @@ export class DealService {
                     : 0;
 
                 // Calculate distance if user location is available
-                let distance = 0;
+                // Set to Infinity if we can't calculate (so it gets filtered out or sorted last)
+                let distance = Infinity;
                 if (userLat && userLon && cheapestStore.latitude && cheapestStore.longitude) {
-                    distance = this.calculateDistance(
+                    distance = GeolocationUtil.calculateDistance(
                         userLat,
                         userLon,
                         cheapestStore.latitude,
@@ -169,16 +181,25 @@ export class DealService {
 
         // Sort by distance if location is available, otherwise by savings amount
         if (userLat && userLon) {
-            // Filter deals within 10km radius
-            const MAX_RADIUS_KM = 10;
-            console.log('Filtering deals with user location:', { userLat, userLon, totalDeals: deals.length });
-            const dealsWithDistance = deals.map(d => ({ name: d.productName, distance: d.distance }));
+            // Filter deals within configured radius (can be customized via user preferences)
+            // IMPORTANT: Only include deals that have valid store coordinates
+            const MAX_RADIUS_KM = APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM;
+            console.log(`Filtering deals with user location (${MAX_RADIUS_KM}km radius):`, { userLat, userLon, totalDeals: deals.length });
+            const dealsWithDistance = deals.map(d => ({ name: d.productName, distance: d.distance, hasCoords: !!(d.latitude && d.longitude) }));
             console.log('Deals with distances:', dealsWithDistance);
-            deals = deals.filter(deal => deal.distance <= MAX_RADIUS_KM);
-            console.log('Deals within 10km:', deals.length);
+            
+            // Filter: must have coordinates AND be within radius AND not Infinity distance
+            deals = deals.filter(deal => {
+                const hasValidCoordinates = !!(deal.latitude && deal.longitude);
+                const hasValidDistance = deal.distance !== Infinity && !isNaN(deal.distance);
+                const withinRadius = deal.distance <= MAX_RADIUS_KM;
+                return hasValidCoordinates && hasValidDistance && withinRadius;
+            });
+            console.log(`Deals within ${MAX_RADIUS_KM}km with valid coordinates:`, deals.length);
             deals.sort((a, b) => a.distance - b.distance);
         } else {
-            console.log('No user location, sorting by savings. Total deals:', deals.length);
+            // No user location - show ALL deals sorted by best savings
+            console.log('No user location, showing all deals sorted by savings. Total deals:', deals.length);
             deals.sort((a, b) => {
                 const savingsA = a.averagePrice - a.lowestPrice;
                 const savingsB = b.averagePrice - b.lowestPrice;
@@ -191,27 +212,6 @@ export class DealService {
 
         // Return top 10 deals
         return deals.slice(0, 10);
-    }
-
-    /**
-     * Calculate distance between two points using Haversine formula
-     */
-    private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-        const R = 6371; // Earth's radius in km
-        const dLat = this.toRad(lat2 - lat1);
-        const dLon = this.toRad(lon2 - lon1);
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(this.toRad(lat1)) *
-            Math.cos(this.toRad(lat2)) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
-
-    private toRad(degrees: number): number {
-        return degrees * (Math.PI / 180);
     }
 
     private getProductImage(productName: string): string {
