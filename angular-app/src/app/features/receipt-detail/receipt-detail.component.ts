@@ -188,13 +188,9 @@ import { FeedbackModalComponent } from '../../shared/components/feedback-modal.c
           <div class="card bg-base-100 shadow-md">
             <div class="card-body">
               <div class="flex flex-wrap gap-2">
-                <button class="btn btn-primary flex-1" (click)="openFeedbackModal('correction')">
+                <button class="btn btn-primary flex-1" (click)="openFeedbackModal()">
                   <span class="material-icons">edit</span>
-                  Submit Correction
-                </button>
-                <button class="btn btn-warning flex-1" (click)="openFeedbackModal('issue')">
-                  <span class="material-icons">report_problem</span>
-                  Report Issue
+                  Edit
                 </button>
               </div>
             </div>
@@ -301,8 +297,8 @@ export class ReceiptDetailComponent implements OnInit {
     return 'confidence-low';
   }
 
-  openFeedbackModal(mode: 'correction' | 'issue') {
-    this.feedbackModal?.open(mode);
+  openFeedbackModal() {
+    this.feedbackModal?.open();
   }
 
   closeFeedbackModal() {

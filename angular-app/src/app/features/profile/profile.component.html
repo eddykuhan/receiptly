@@ -87,6 +87,24 @@
                 </div>
             </div>
 
+            <!-- Spending Analysis Graph -->
+             <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-6">
+                    <h2 class="card-title text-lg mb-4 flex items-center gap-2">
+                        <span class="material-icons text-primary">analytics</span>
+                        Spending Analysis
+                    </h2>
+                    <div class="h-64 w-full relative">
+                        <canvas #spendingChart></canvas>
+                        @if (receipts().length === 0) {
+                            <div class="absolute inset-0 flex items-center justify-center bg-base-100/50 backdrop-blur-sm z-10">
+                                <span class="text-base-content/50 text-sm">No spending data available</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Quick Actions Grid -->
             <div class="grid grid-cols-2 gap-4">

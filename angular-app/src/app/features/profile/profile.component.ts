@@ -9,6 +9,7 @@ import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
+import { Receipt } from '../../core/models/receipt.model';
 
 Chart.register(...registerables);
 
@@ -66,7 +67,7 @@ export class ProfileComponent implements OnInit {
     @ViewChild(PullToRefreshComponent) pullToRefresh?: PullToRefreshComponent;
 
     // State
-    receipts = signal<any[]>([]);
+    receipts = signal<Receipt[]>([]);
     isLoading = signal(true);
     private receiptService = inject(ReceiptService);
     private authService = inject(ClerkAuthService);
@@ -315,10 +316,17 @@ export class ProfileComponent implements OnInit {
         this.receipts().forEach(r => {
             const d = new Date(r.purchaseDate);
             const key = d.toLocaleDateString('en-US', { month: 'short' });
+            // Only count if it falls within the last 6 months
             if (monthlySpending.has(key)) {
                 monthlySpending.set(key, (monthlySpending.get(key) || 0) + r.totalAmount);
             }
         });
+
+        // Get theme colors
+        const style = getComputedStyle(document.body);
+        const primaryColor = style.getPropertyValue('--p').trim() || '#570df8';
+        // Convert to hex if it's an oklch value (simplified fallback)
+        const barColor = primaryColor.startsWith('oklch') ? '#570df8' : `hsl(${primaryColor})`;
 
         this.spendingChart = new Chart(ctx, {
             type: 'bar',
@@ -327,20 +335,78 @@ export class ProfileComponent implements OnInit {
                 datasets: [{
                     label: 'Spending',
                     data: Array.from(monthlySpending.values()),
-                    backgroundColor: '#570df8',
-                    borderRadius: 4,
-                    barThickness: 12
+                    backgroundColor: '#570df8', // Use fixed color for now to ensure visibility
+                    borderRadius: 8,
+                    barThickness: 'flex',
+                    maxBarThickness: 32,
+                    hoverBackgroundColor: '#4506cb'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: (context) => {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
                 },
                 scales: {
-                    y: { display: false },
-                    x: { grid: { display: false } }
+                    y: {
+                        display: true,
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.05)',
+                        },
+                        border: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            callback: (value) => {
+                                if (typeof value === 'number') {
+                                    return 'RM ' + (value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value);
+                                }
+                                return value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        border: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 0
+                    }
                 }
             }
         });
