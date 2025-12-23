@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
+import { LocationService } from '../../core/services/location.service';
 
 @Component({
   selector: 'app-sign-up',
@@ -71,9 +72,15 @@ import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 export class SignUpComponent implements OnInit {
   showSplash = signal(true);
 
-  constructor(private authService: ClerkAuthService) {}
+  constructor(
+    private authService: ClerkAuthService,
+    private locationService: LocationService
+  ) {}
 
   ngOnInit(): void {
+    // Request location during splash screen
+    this.locationService.requestLocation();
+
     // Show splash screen for 5 seconds before initializing Clerk
     setTimeout(() => {
       this.showSplash.set(false);

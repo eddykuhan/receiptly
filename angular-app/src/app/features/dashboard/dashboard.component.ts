@@ -1,8 +1,9 @@
-import { Component, signal, inject, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, ViewChild, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DealService, Deal } from '../../core/services/deal.service';
+import { LocationService } from '../../core/services/location.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
@@ -21,6 +22,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private dealService = inject(DealService);
   private receiptService = inject(ReceiptService);
+  private locationService = inject(LocationService);
 
   // State
   isLoading = signal(false);
@@ -28,7 +30,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   dealsLoading = signal(false);
   searchQuery = signal('');
   currentDealIndex = signal(0);
-  userLocation = signal<{ lat: number; lon: number } | null>(null);
+  userLocation = computed(() => this.locationService.userLocation());
 
   private rotationInterval?: number;
 
@@ -47,53 +49,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit() {
-    this.getUserLocation();
-    // loadHotDeals() is called from getUserLocation() after location is obtained
-    // or immediately if location fails
+    // Location is already requested during splash screen
+    this.loadHotDeals();
     this.startDealRotation();
   }
 
   ngOnDestroy() {
     if (this.rotationInterval) {
       clearInterval(this.rotationInterval);
-    }
-  }
-
-  getUserLocation() {
-    if (navigator.geolocation) {
-      console.log('🌍 Requesting user location...');
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log('✅ Location obtained:', position.coords.latitude, position.coords.longitude);
-          this.userLocation.set({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude
-          });
-          // Reload deals with location
-          this.loadHotDeals();
-        },
-        (error) => {
-          console.error('❌ Location error:', error.code, error.message);
-          if (error.code === 1) {
-            console.log('User denied location permission');
-          } else if (error.code === 2) {
-            console.log('Location unavailable');
-          } else if (error.code === 3) {
-            console.log('Location timeout');
-          }
-          // Load deals without location filtering
-          this.loadHotDeals();
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000, // 10 second timeout
-          maximumAge: 300000 // Accept 5 minute old cached location
-        }
-      );
-    } else {
-      console.error('❌ Geolocation not supported by browser');
-      // Load deals without location filtering
-      this.loadHotDeals();
     }
   }
 
@@ -161,6 +124,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   navigateToProfile() {
     this.router.navigate(['/profile']);
+  }
+
+  async retryLocation() {
+    await this.locationService.retryLocation();
+    this.loadHotDeals(); // Reload deals with new location
   }
 
   onPeriodChange(period: string) {

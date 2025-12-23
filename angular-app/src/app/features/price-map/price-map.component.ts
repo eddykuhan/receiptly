@@ -8,6 +8,7 @@ import { PriceMapService, StoreWithPrice } from './price-map.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
+import { LocationService } from '../../core/services/location.service';
 
 @Component({
     selector: 'app-price-map',
@@ -17,6 +18,7 @@ import { APP_CONSTANTS } from '../../core/constants/app.constants';
     styleUrl: './price-map.component.scss'
 })
 export class PriceMapComponent implements OnInit, OnDestroy {
+    private locationService = inject(LocationService);
     private map?: L.Map;
     private markers: L.Marker[] = [];
     private userMarker?: L.Marker;
@@ -26,7 +28,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     selectedStore = signal<StoreWithPrice | null>(null);
     productSuggestions = signal<string[]>([]);
     showSuggestions = signal(false);
-    userLocation = signal<{ lat: number; lon: number } | null>(null);
+    userLocation = computed(() => this.locationService.userLocation());
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
 
@@ -44,7 +46,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.initMap();
-        this.getUserLocation();
+        // Location is already requested during splash screen
+        this.addUserLocationMarker();
         this.loadProductSuggestions();
 
         // Check for search query params
@@ -77,61 +80,35 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }, 100);
     }
 
-    private getUserLocation() {
-        if (navigator.geolocation) {
-            console.log('🗺️ Requesting user location for map...');
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    console.log('✅ Map location obtained:', position.coords.latitude, position.coords.longitude);
-                    this.userLocation.set({
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude
-                    });
-
-                    // Add user location marker and center map
-                    if (this.map) {
-                        const blueIcon = L.icon({
-                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            popupAnchor: [1, -34],
-                            shadowSize: [41, 41]
-                        });
-
-                        this.userMarker = L.marker([position.coords.latitude, position.coords.longitude], { icon: blueIcon })
-                            .bindPopup('<strong>📍 Your Location</strong>')
-                            .addTo(this.map);
-
-                        // Automatically center map on user's location with smooth animation
-                        this.map.flyTo([position.coords.latitude, position.coords.longitude], 14, {
-                            duration: 1.5
-                        });
-
-                        // Load and display nearby items within 10km
-                        this.loadNearbyItems();
-                    }
-                },
-                (error) => {
-                    console.error('❌ Map location error:', error.code, error.message);
-                    if (error.code === 1) {
-                        console.log('User denied location permission for map');
-                    } else if (error.code === 2) {
-                        console.log('Location unavailable for map');
-                    } else if (error.code === 3) {
-                        console.log('Location timeout for map');
-                    }
-                    // Keep default center on KL
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 300000
-                }
-            );
-        } else {
-            console.error('❌ Geolocation not supported by browser');
+    private addUserLocationMarker() {
+        const userLoc = this.userLocation();
+        if (!userLoc || !this.map) {
+            console.log('No user location available for map marker');
+            return;
         }
+
+        console.log('✅ Adding user location marker:', userLoc.lat, userLoc.lon);
+
+        const blueIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        this.userMarker = L.marker([userLoc.lat, userLoc.lon], { icon: blueIcon })
+            .bindPopup('<strong>📍 Your Location</strong>')
+            .addTo(this.map);
+
+        // Automatically center map on user's location with smooth animation
+        this.map.flyTo([userLoc.lat, userLoc.lon], 14, {
+            duration: 1.5
+        });
+
+        // Load and display nearby items within configured radius
+        this.loadNearbyItems();
     }
 
     onSearchInput(value: string) {

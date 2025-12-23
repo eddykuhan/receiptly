@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
+import { LocationService } from '../../core/services/location.service';
 
 @Component({
   selector: 'app-sign-in',
@@ -68,7 +69,8 @@ export class SignInComponent implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private authService: ClerkAuthService
+    private authService: ClerkAuthService,
+    private locationService: LocationService
   ) {}
 
   ngOnInit(): void {
@@ -77,6 +79,9 @@ export class SignInComponent implements OnInit {
         this.redirectUrl = params['returnUrl'];
       }
     });
+
+    // Request location during splash screen
+    this.locationService.requestLocation();
 
     // Show splash screen for 5 seconds before initializing Clerk
     setTimeout(() => {

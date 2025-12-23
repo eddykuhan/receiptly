@@ -1,7 +1,8 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { DealService, Deal } from '../../core/services/deal.service';
+import { LocationService } from '../../core/services/location.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 
@@ -15,37 +16,16 @@ import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 export class NearbyDealsComponent implements OnInit {
     private dealService = inject(DealService);
     private router = inject(Router);
+    private locationService = inject(LocationService);
 
     deals = signal<Deal[]>([]);
     isLoading = signal(true);
-    userLocation = signal<{ lat: number; lon: number } | null>(null);
+    userLocation = computed(() => this.locationService.userLocation());
     radius = 5; // 5km radius
 
     ngOnInit() {
-        // Load deals immediately without location to avoid waiting
+        // Location is already requested during splash screen
         this.loadNearbyDeals();
-        // Then try to get location for better results
-        this.getUserLocation();
-    }
-
-    getUserLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    this.userLocation.set({
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude
-                    });
-                    // Reload with location data
-                    this.loadNearbyDeals();
-                },
-                (error) => {
-                    console.log('Location access denied or failed', error);
-                    // No need to reload, we already loaded default deals
-                },
-                { timeout: 5000, maximumAge: 60000 }
-            );
-        }
     }
 
     loadNearbyDeals() {
