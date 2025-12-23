@@ -1,4 +1,5 @@
 using AutoMapper;
+using Receiptly.API.Controllers;
 using Receiptly.API.DTOs;
 using Receiptly.Domain.Models;
 
@@ -24,5 +25,11 @@ public class MappingProfile : Profile
         
         // ItemDto -> Item (reverse mapping for updates)
         CreateMap<ItemDto, Item>();
+
+        // WeeklyChallenge -> WeeklyChallengeDto
+        CreateMap<WeeklyChallenge, WeeklyChallengeDto>();
+
+        // UserWeeklyProgress -> UserWeeklyProgressDto
+        CreateMap<UserWeeklyProgress, UserWeeklyProgressDto>();
     }
 }

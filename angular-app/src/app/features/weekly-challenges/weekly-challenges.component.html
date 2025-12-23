@@ -1,0 +1,93 @@
+<div class="weekly-challenges-container">
+  <!-- Header -->
+  <div class="challenges-header">
+    <h2>Weekly Challenges</h2>
+    <p class="subtitle">Complete challenges to earn bonus points</p>
+  </div>
+
+  <!-- Progress Overview -->
+  <div *ngIf="dashboard" class="progress-overview">
+    <div class="overview-stat">
+      <div class="stat-value">{{ dashboard.completedCount }}/{{ dashboard.totalCount }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="overview-stat">
+      <div class="stat-value">{{ totalPossiblePoints }}</div>
+      <div class="stat-label">Possible Points</div>
+    </div>
+    <div class="overview-stat">
+      <div class="stat-value">{{ earnedPoints }}</div>
+      <div class="stat-label">Points Earned</div>
+    </div>
+  </div>
+
+  <!-- Challenges Grid -->
+  <div *ngIf="dashboard && dashboard.challenges.length > 0" class="challenges-grid">
+    <div 
+      *ngFor="let challenge of dashboard.challenges"
+      class="challenge-card"
+      [class.completed]="isChallengeCompleted(challenge.id)"
+    >
+      <!-- Completed Badge -->
+      <div *ngIf="isChallengeCompleted(challenge.id)" class="completed-badge">
+        ✓ Completed
+      </div>
+
+      <!-- Challenge Info -->
+      <div class="challenge-icon">{{ getChallengeIcon(challenge.challengeType) }}</div>
+      <h3>{{ challenge.title }}</h3>
+      <p class="challenge-description">{{ challenge.description }}</p>
+
+      <!-- Progress Info -->
+      <div class="progress-info">
+        <div class="progress-stats">
+          <span class="current">{{ getCurrentProgress(challenge.id) }}</span>
+          <span class="slash">/</span>
+          <span class="target">{{ challenge.targetCount }}</span>
+          <span class="type">{{ getChallengeTypeName(challenge.challengeType) }}</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container">
+          <div 
+            class="progress-bar-fill"
+            [style.width]="getProgressPercentage(getCurrentProgress(challenge.id), challenge.targetCount) + '%'"
+          ></div>
+        </div>
+
+        <!-- Percentage -->
+        <div class="progress-percentage">
+          {{ getProgressPercentage(getCurrentProgress(challenge.id), challenge.targetCount) }}%
+        </div>
+      </div>
+
+      <!-- Reward -->
+      <div class="challenge-reward">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-points">+{{ challenge.pointsReward }} pts</div>
+        <div *ngIf="!isRewardClaimed(challenge.id)" class="pending">(Pending)</div>
+        <div *ngIf="isRewardClaimed(challenge.id)" class="claimed">(Claimed)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Challenges -->
+  <div *ngIf="dashboard && dashboard.challenges.length === 0" class="empty-state">
+    <div class="empty-icon">🎯</div>
+    <p>No active challenges this week</p>
+    <p class="empty-subtitle">Check back soon for new challenges!</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading && !dashboard" class="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading challenges...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <p>{{ error }}</p>
+    <button class="retry-button" (click)="loadChallenges()">Retry</button>
+  </div>
+</div>

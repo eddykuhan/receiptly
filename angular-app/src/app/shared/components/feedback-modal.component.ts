@@ -56,17 +56,43 @@ import { environment } from '../../../environments/environment';
 
               <div class="form-group">
                 <label for="corrected-value">What should it be?</label>
-                <input 
-                  type="text" 
-                  id="corrected-value"
-                  [(ngModel)]="correctionData.correctedValue" 
-                  name="correctedValue"
-                  required
-                  class="form-control"
-                  placeholder="The correct value"
-                  (input)="onAddressInput($event)"
-                  (focus)="onAddressFocus()"
-                  (blur)="onAddressBlur()">
+                
+                @if (correctionData.fieldName === 'PurchaseDate') {
+                  <!-- Date Picker for PurchaseDate -->
+                  <input 
+                    type="date" 
+                    id="corrected-value"
+                    [(ngModel)]="correctionData.correctedValue" 
+                    name="correctedValue"
+                    required
+                    class="form-control"
+                    [max]="today">
+                } @else if (correctionData.fieldName === 'TotalAmount' || correctionData.fieldName.includes('Price')) {
+                  <!-- Number Input for amounts -->
+                  <input 
+                    type="number" 
+                    id="corrected-value"
+                    [(ngModel)]="correctionData.correctedValue" 
+                    name="correctedValue"
+                    required
+                    step="0.01"
+                    min="0"
+                    class="form-control"
+                    placeholder="0.00">
+                } @else {
+                  <!-- Text Input for other fields -->
+                  <input 
+                    type="text" 
+                    id="corrected-value"
+                    [(ngModel)]="correctionData.correctedValue" 
+                    name="correctedValue"
+                    required
+                    class="form-control"
+                    placeholder="The correct value"
+                    (input)="onAddressInput($event)"
+                    (focus)="onAddressFocus()"
+                    (blur)="onAddressBlur()">
+                }
                 
                 @if (showSuggestions() && suggestions().length > 0) {
                   <div class="suggestions-dropdown">
@@ -191,6 +217,22 @@ import { environment } from '../../../environments/environment';
       outline: none;
       border-color: #007bff;
       box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    input[type="date"].form-control,
+    input[type="number"].form-control {
+      appearance: auto;
+      -webkit-appearance: auto;
+      -moz-appearance: auto;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      filter: invert(0.5);
+    }
+
+    input[type="date"]:hover::-webkit-calendar-picker-indicator {
+      filter: invert(0.3);
     }
 
     select.form-control {
@@ -329,6 +371,9 @@ export class FeedbackModalComponent {
   isOpen = signal(false);
   isSubmitting = signal(false);
 
+  // Date picker max value (today)
+  today = new Date().toISOString().split('T')[0];
+
   // Google Places autocomplete
   suggestions = signal<PlaceSuggestion[]>([]);
   showSuggestions = signal(false);
@@ -449,7 +494,11 @@ export class FeedbackModalComponent {
     } else if (fieldName === 'TotalAmount') {
       this.correctionData.incorrectValue = this.receipt.totalAmount.toString();
     } else if (fieldName === 'PurchaseDate') {
-      this.correctionData.incorrectValue = new Date(this.receipt.purchaseDate).toLocaleDateString();
+      const date = new Date(this.receipt.purchaseDate);
+      // Format for display
+      this.correctionData.incorrectValue = date.toLocaleDateString();
+      // Set corrected value to ISO date format for date input (YYYY-MM-DD)
+      this.correctionData.correctedValue = date.toISOString().split('T')[0];
     } else if (fieldName === 'StoreAddress') {
       this.correctionData.incorrectValue = this.receipt.storeAddress;
     } else if (fieldName.startsWith('Items[')) {
@@ -465,8 +514,10 @@ export class FeedbackModalComponent {
       }
     }
 
-    // Clear corrected value when field changes
-    this.correctionData.correctedValue = '';
+    // Clear corrected value when field changes (except for PurchaseDate which we pre-populate)
+    if (fieldName !== 'PurchaseDate') {
+      this.correctionData.correctedValue = '';
+    }
     this.correctionData.latitude = undefined;
     this.correctionData.longitude = undefined;
     this.suggestions.set([]);
