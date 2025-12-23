@@ -48,7 +48,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.getUserLocation();
-    this.loadHotDeals();
+    // loadHotDeals() is called from getUserLocation() after location is obtained
+    // or immediately if location fails
     this.startDealRotation();
   }
 
@@ -60,8 +61,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   getUserLocation() {
     if (navigator.geolocation) {
+      console.log('🌍 Requesting user location...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          console.log('✅ Location obtained:', position.coords.latitude, position.coords.longitude);
           this.userLocation.set({
             lat: position.coords.latitude,
             lon: position.coords.longitude
@@ -70,9 +73,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.loadHotDeals();
         },
         (error) => {
-          console.log('Location access denied or unavailable, showing all deals');
+          console.error('❌ Location error:', error.code, error.message);
+          if (error.code === 1) {
+            console.log('User denied location permission');
+          } else if (error.code === 2) {
+            console.log('Location unavailable');
+          } else if (error.code === 3) {
+            console.log('Location timeout');
+          }
+          // Load deals without location filtering
+          this.loadHotDeals();
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000, // 10 second timeout
+          maximumAge: 300000 // Accept 5 minute old cached location
         }
       );
+    } else {
+      console.error('❌ Geolocation not supported by browser');
+      // Load deals without location filtering
+      this.loadHotDeals();
     }
   }
 
