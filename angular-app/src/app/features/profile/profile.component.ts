@@ -7,6 +7,7 @@ import { Chart, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { PointsService, UserPoints } from '../../core/services/points.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
 import { Receipt } from '../../core/models/receipt.model';
@@ -69,9 +70,11 @@ export class ProfileComponent implements OnInit {
     // State
     receipts = signal<Receipt[]>([]);
     isLoading = signal(true);
+    userPoints = signal<UserPoints | null>(null);
     private receiptService = inject(ReceiptService);
     private authService = inject(ClerkAuthService);
     private themeService = inject(ThemeService);
+    private pointsService = inject(PointsService);
     private router = inject(Router);
 
     // Computed Stats
@@ -194,7 +197,29 @@ export class ProfileComponent implements OnInit {
     ngOnInit() {
         this.initializeUserProfile();
         this.loadData();
+        this.loadPointsData();
         this.syncThemeWithProfile();
+        
+        // Subscribe to points updates
+        this.pointsService.points$.subscribe(points => {
+            if (points) {
+                this.userPoints.set(points);
+            }
+        });
+    }
+
+    /**
+     * Load user points data from backend
+     */
+    private loadPointsData() {
+        this.pointsService.getBalance().subscribe({
+            next: (points) => {
+                this.userPoints.set(points);
+            },
+            error: (error) => {
+                console.error('Error loading points data:', error);
+            }
+        });
     }
 
     /**

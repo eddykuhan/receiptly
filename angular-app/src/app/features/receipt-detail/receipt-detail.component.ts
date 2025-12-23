@@ -268,8 +268,17 @@ export class ReceiptDetailComponent implements OnInit {
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
+    const isNewUpload = this.route.snapshot.queryParamMap.get('new') === 'true';
+    
     if (id) {
       this.loadReceipt(id);
+      
+      // Auto-open feedback modal for new uploads after a short delay
+      if (isNewUpload) {
+        setTimeout(() => {
+          this.openFeedbackModal();
+        }, 800);
+      }
     } else {
       this.isLoading.set(false);
     }

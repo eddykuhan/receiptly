@@ -256,6 +256,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPurchaseAnalyticsService, PurchaseAnalyticsService>();
         services.AddScoped<IFeedbackService, FeedbackService>();
         
+        // Points and Rewards services
+        services.AddScoped<IPointsService, PointsService>();
+        
         // Receipt services (with automatic correction application)
         services.AddScoped<IReceiptCorrectionService, ReceiptCorrectionService>();
         services.AddScoped<IReceiptService, ReceiptService>();

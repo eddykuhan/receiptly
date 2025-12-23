@@ -16,6 +16,7 @@ public class ReceiptsController : ControllerBase
     private readonly IReceiptProcessingService _receiptProcessingService;
     private readonly IReceiptService _receiptService;
     private readonly FileValidationService _fileValidationService;
+    private readonly IPointsService _pointsService;
     private readonly IMapper _mapper;
     private readonly ILogger<ReceiptsController> _logger;
 
@@ -23,12 +24,14 @@ public class ReceiptsController : ControllerBase
         IReceiptProcessingService receiptProcessingService,
         IReceiptService receiptService,
         FileValidationService fileValidationService,
+        IPointsService pointsService,
         IMapper mapper,
         ILogger<ReceiptsController> logger)
     {
         _receiptProcessingService = receiptProcessingService;
         _receiptService = receiptService;
         _fileValidationService = fileValidationService;
+        _pointsService = pointsService;
         _mapper = mapper;
         _logger = logger;
     }
@@ -87,6 +90,47 @@ public class ReceiptsController : ControllerBase
 
             _logger.LogInformation("Receipt processed successfully. ReceiptId: {ReceiptId}, StoreName: {StoreName}, Total: {Total}", 
                 receipt.Id, receipt.StoreName, receipt.TotalAmount);
+
+            // Award points for receipt upload
+            try
+            {
+                // Base points for receipt upload
+                int pointsAwarded = 10;
+                string pointsDescription = "Receipt uploaded";
+
+                // Bonus for providing location data
+                if (!string.IsNullOrEmpty(receipt.StoreAddress))
+                {
+                    pointsAwarded += 5;
+                    pointsDescription += " + location bonus";
+                }
+
+                _logger.LogInformation("Attempting to award {Points} points to user {UserId}", pointsAwarded, userId);
+
+                await _pointsService.AwardPointsAsync(
+                    userId, 
+                    pointsAwarded, 
+                    "receipt_upload", 
+                    pointsDescription,
+                    receipt.Id,
+                    cancellationToken);
+
+                _logger.LogInformation("Successfully awarded {Points} points to user {UserId}", pointsAwarded, userId);
+
+                // Check for new achievements (first_upload achievement will award 50 bonus points)
+                var newAchievements = await _pointsService.CheckAndAwardAchievementsAsync(userId, cancellationToken);
+                
+                if (newAchievements.Any())
+                {
+                    _logger.LogInformation("User {UserId} unlocked {Count} achievements", userId, newAchievements.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log with full details
+                _logger.LogError(ex, "POINTS ERROR - ReceiptId: {ReceiptId}, UserId: {UserId}, Message: {Message}, StackTrace: {StackTrace}", 
+                    receipt.Id, userId, ex.Message, ex.StackTrace);
+            }
 
             // Map to DTO
             var receiptDto = _mapper.Map<ReceiptDto>(receipt);
@@ -277,6 +321,45 @@ public class ReceiptsController : ControllerBase
         try
         {
             _logger.LogInformation("Deleting receipt: {ReceiptId}", id);
+            
+            // Get receipt details before deletion to deduct points
+            var receipt = await _receiptService.GetReceiptByIdAsync(id, cancellationToken);
+            if (receipt == null)
+            {
+                return NotFound(new { error = "Receipt not found" });
+            }
+            
+            var userId = GetAuthenticatedUserId();
+            
+            // Deduct points that were awarded for this receipt
+            try
+            {
+                // Find the original point transaction for this receipt
+                var transactions = await _pointsService.GetUserTransactionsAsync(userId, 1000, cancellationToken);
+                var receiptTransaction = transactions.FirstOrDefault(t => t.ReferenceId == id && t.TransactionType == "receipt_upload");
+                
+                if (receiptTransaction != null && receiptTransaction.Points > 0)
+                {
+                    // Deduct the points that were awarded
+                    var deducted = await _pointsService.DeductPointsAsync(
+                        userId, 
+                        receiptTransaction.Points, 
+                        $"Receipt deleted: {receipt.StoreName}",
+                        cancellationToken);
+                    
+                    if (deducted)
+                    {
+                        _logger.LogInformation("Deducted {Points} points from user {UserId} for deleted receipt", 
+                            receiptTransaction.Points, userId);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't fail the deletion if point deduction fails
+                _logger.LogError(ex, "Error deducting points for deleted receipt: {ReceiptId}", id);
+            }
+            
             await _receiptService.DeleteReceiptAsync(id, cancellationToken);
             
             _logger.LogInformation("Receipt deleted: {ReceiptId}", id);

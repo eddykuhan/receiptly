@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Receiptly.Domain.Models;
+using Receiptly.Infrastructure.Data.Configurations;
 
 namespace Receiptly.Infrastructure.Data;
 
@@ -16,10 +17,22 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserCorrection> UserCorrections { get; set; }
     public DbSet<IssueReport> IssueReports { get; set; }
     public DbSet<UserDebugSession> UserDebugSessions { get; set; }
+    
+    // Points and Rewards System
+    public DbSet<UserPoints> UserPoints { get; set; }
+    public DbSet<PointTransaction> PointTransactions { get; set; }
+    public DbSet<UserAchievement> UserAchievements { get; set; }
+    public DbSet<WeeklyChallenge> WeeklyChallenges { get; set; }
+    public DbSet<UserWeeklyProgress> UserWeeklyProgress { get; set; }
+    public DbSet<VoucherReward> VoucherRewards { get; set; }
+    public DbSet<UserVoucher> UserVouchers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Configure Points and Rewards System models
+        modelBuilder.ConfigurePointsSystemModels();
 
         // Configure CanonicalCache entity
         modelBuilder.Entity<CanonicalCache>(entity =>
