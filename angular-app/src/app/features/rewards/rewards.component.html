@@ -98,13 +98,25 @@
         @if (recentTransactions().length > 0) {
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body">
-                    <h2 class="card-title text-primary">
-                        <span class="material-icons">history</span>
-                        Recent Activity
-                    </h2>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="card-title text-primary">
+                            <span class="material-icons">history</span>
+                            Recent Activity
+                        </h2>
+                        @if (recentTransactions().length > 5) {
+                            <button 
+                                (click)="toggleShowAllTransactions()" 
+                                class="btn btn-sm btn-ghost gap-2">
+                                <span class="text-xs">{{ showAllTransactions() ? 'Show Less' : 'Show All' }}</span>
+                                <span class="material-icons text-sm">
+                                    {{ showAllTransactions() ? 'expand_less' : 'expand_more' }}
+                                </span>
+                            </button>
+                        }
+                    </div>
                     
-                    <div class="space-y-2 mt-4">
-                        @for (transaction of recentTransactions(); track transaction.id) {
+                    <div class="space-y-2" [class.max-h-96]="!showAllTransactions() && recentTransactions().length > 5" [class.overflow-y-auto]="!showAllTransactions() && recentTransactions().length > 5">
+                        @for (transaction of showAllTransactions() ? recentTransactions() : recentTransactions().slice(0, 5); track transaction.id) {
                             <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg hover:bg-base-300 transition">
                                 <div class="flex items-center gap-3">
                                     <span class="material-icons" [class.text-success]="transaction.points > 0" [class.text-error]="transaction.points < 0">
@@ -121,6 +133,12 @@
                             </div>
                         }
                     </div>
+                    
+                    @if (!showAllTransactions() && recentTransactions().length > 5) {
+                        <div class="text-center mt-3">
+                            <span class="text-xs text-base-content/60">Showing 5 of {{ recentTransactions().length }} transactions</span>
+                        </div>
+                    }
                 </div>
             </div>
         }

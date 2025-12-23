@@ -39,6 +39,9 @@ export class RewardsComponent implements OnInit {
     
     // Modal state
     showFirstUploadModal = signal(false);
+    
+    // UI state
+    showAllTransactions = signal(false);
 
     constructor() {
         // Listen for first upload events
@@ -175,6 +178,10 @@ export class RewardsComponent implements OnInit {
         if (diffHours < 24) return `${diffHours}h ago`;
         if (diffDays < 7) return `${diffDays}d ago`;
         return new Date(date).toLocaleDateString();
+    }
+    
+    toggleShowAllTransactions() {
+        this.showAllTransactions.update(value => !value);
     }
 
 }
