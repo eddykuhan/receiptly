@@ -377,7 +377,7 @@ class StoreLocationService:
         
         # Malaysian cities and areas to look for
         malaysian_locations = [
-            'kuala lumpur', 'kl', 'penang', 'pulau pinang', 'george town',
+            'kuala lumpur', 'kl', 'penang', 'pulau pinang', 'pg', 'george town',
             'johor bahru', 'johor', 'ipoh', 'perak', 'shah alam', 'selangor',
             'petaling jaya', 'pj', 'klang', 'melaka', 'malacca',
             'kuching', 'sarawak', 'kota kinabalu', 'sabah',
@@ -482,6 +482,7 @@ class StoreLocationService:
             'cheras', 'setapak', 'wangsa maju',
             'kepong', 'puchong', 'subang',
             'usj', 'ss2', 'ss15',
+            'kl', 'kuala lumpur',  # KL abbreviations
             
             # Penang areas
             'egate', 'e-gate', 'butterworth',
@@ -489,6 +490,10 @@ class StoreLocationService:
             'tanjung tokong', 'pulau tikus',
             'jelutong', 'georgetown', 'george town',
             'bukit mertajam', 'seberang jaya',
+            'the sun', 'the zen', 'skyline city',
+            'prangin mall', 'krystal point', 'arena curve',
+            'sunway wellesley', 'golden triangle',
+            'pg', 'penang', 'pulau pinang',  # Penang abbreviations and names
             
             # Other cities
             'ipoh', 'johor bahru', 'jb',
