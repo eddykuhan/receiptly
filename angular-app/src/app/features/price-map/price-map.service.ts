@@ -56,7 +56,7 @@ export class PriceMapService {
     /**
      * Query the analytics endpoint for a given product name.
      */
-    searchProduct(productName: string): Observable<StoreWithPrice[]> {
+    searchProduct(productName: string, days: number = 7): Observable<StoreWithPrice[]> {
         const params = new HttpParams()
             .set('productName', productName)
             .set('includeMetadata', true)
@@ -64,7 +64,7 @@ export class PriceMapService {
             .set('page', 1);
 
         return this.http.get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params }).pipe(
-            map(response => this.transformResponse(response))
+            map(response => this.transformResponse(response, days))
         );
     }
 
@@ -111,7 +111,7 @@ export class PriceMapService {
      * Get all items within a certain radius of user location
      * Grouped by store to show all available items
      */
-    getNearbyItems(userLat: number, userLon: number, radiusKm: number = APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM): Observable<StoreWithPrice[]> {
+    getNearbyItems(userLat: number, userLon: number, radiusKm: number = APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM, days: number = 7): Observable<StoreWithPrice[]> {
         const params = new HttpParams()
             .set('pageSize', 500)
             .set('includeMetadata', true)
@@ -119,9 +119,9 @@ export class PriceMapService {
 
         return this.http.get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params }).pipe(
             map(response => {
-                // Filter items from last 7 days only
-                const oneWeekAgo = new Date();
-                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                // Filter items from specified number of days
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - days);
 
                 const itemsWithDistance = response.items
                     .filter(item => {
@@ -130,8 +130,8 @@ export class PriceMapService {
                         const longitude = metadata?.longitude;
                         const purchaseDate = new Date(item.purchaseDate);
 
-                        // Must have coordinates and be within last 7 days
-                        if (!latitude || !longitude || purchaseDate < oneWeekAgo) {
+                        // Must have coordinates and be within specified days
+                        if (!latitude || !longitude || purchaseDate < cutoffDate) {
                             return false;
                         }
 
@@ -162,9 +162,11 @@ export class PriceMapService {
                     const storeAddress = metadata.storeAddress?.trim() || 'Address unavailable';
                     const storeId = metadata.storePhoneNumber ?? `${item.storeName}-${storeAddress}`;
                     const itemName = (item.canonicalName || item.itemName).trim();
-                    const key = `${storeId}-${itemName}`;
-                    const finalPrice = Number(item.unitPrice) || 0;
                     const purchaseDate = new Date(item.purchaseDate);
+                    // Include purchase date in key to show all unique dates
+                    const dateKey = purchaseDate.toISOString();
+                    const key = `${storeId}-${itemName}-${dateKey}`;
+                    const finalPrice = Number(item.unitPrice) || 0;
 
                     if (finalPrice <= 0) return;
 
@@ -201,27 +203,34 @@ export class PriceMapService {
         }));
     }
 
-    private transformResponse(response: PurchaseAnalyticsResponseDto): StoreWithPrice[] {
+    private transformResponse(response: PurchaseAnalyticsResponseDto, days: number = 7): StoreWithPrice[] {
         const storeMap = new Map<string, StoreWithPrice>();
+
+        // Calculate cutoff date
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
 
         response.items.forEach(item => {
             const metadata = item.metadata;
             const latitude = metadata?.latitude;
             const longitude = metadata?.longitude;
             const storeAddress = metadata?.storeAddress?.trim();
+            const purchaseDate = new Date(item.purchaseDate);
 
-            if (latitude == null || longitude == null) {
+            // Filter by date and location
+            if (latitude == null || longitude == null || purchaseDate < cutoffDate) {
                 return;
             }
 
             const storeId =
                 metadata?.storePhoneNumber ??
                 (storeAddress ? `${item.storeName}-${storeAddress}` : item.receiptId);
-            const key = storeId;
+            // Include purchase date in key to show all unique dates
+            const dateKey = purchaseDate.toISOString();
+            const key = `${storeId}-${dateKey}`;
 
             // Use unit price only, not total price
             const finalPrice = Number(item.unitPrice) || 0;
-            const purchaseDate = new Date(item.purchaseDate);
 
             const storeLocation: StoreLocation = {
                 id: key,
@@ -239,14 +248,13 @@ export class PriceMapService {
                     lastPurchaseDate: purchaseDate
                 });
             } else {
+                // If same store and date, take minimum price
                 const updatedPrice = Math.min(existing.price, finalPrice);
-                const latestPurchaseDate =
-                    purchaseDate > existing.lastPurchaseDate ? purchaseDate : existing.lastPurchaseDate;
 
                 storeMap.set(key, {
                     store: storeLocation,
                     price: updatedPrice,
-                    lastPurchaseDate: latestPurchaseDate,
+                    lastPurchaseDate: purchaseDate,
                     distance: existing.distance
                 });
             }

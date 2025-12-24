@@ -15,6 +15,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
     private readonly IImageHashService _imageHashService;
     private readonly ILogger<ReceiptProcessingService> _logger;
     private readonly CanonicalizationService _canonicalizationService;
+    private readonly IGoldLayerService _goldLayerService;
 
     public ReceiptProcessingService(
         S3StorageService s3Storage, 
@@ -22,6 +23,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
         IReceiptRepository receiptRepository,
         IImageHashService imageHashService,
         CanonicalizationService canonicalizationService,
+        IGoldLayerService goldLayerService,
         ILogger<ReceiptProcessingService> logger)
     {
         _s3Storage = s3Storage;
@@ -29,6 +31,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
         _receiptRepository = receiptRepository;
         _imageHashService = imageHashService;
         _canonicalizationService = canonicalizationService;
+        _goldLayerService = goldLayerService;
         _logger = logger;
     }
 
@@ -217,6 +220,10 @@ public class ReceiptProcessingService : IReceiptProcessingService
             receipt.ProcessedAt = DateTime.UtcNow;
             await _receiptRepository.CreateAsync(receipt, cancellationToken);
             _logger.LogInformation("Receipt saved to database. ReceiptId: {ReceiptId}", receiptId);
+
+            // Step 10: Append to gold layer for analytics (items already have CanonicalName populated)
+            _logger.LogInformation("Appending {Count} items to gold layer. ReceiptId: {ReceiptId}", receipt.Items.Count, receiptId);
+            await _goldLayerService.AppendItemsAsync(receipt.Items, receipt, cancellationToken);
 
             _logger.LogInformation("Receipt processing completed successfully. ReceiptId: {ReceiptId}", receiptId);
             return receipt;

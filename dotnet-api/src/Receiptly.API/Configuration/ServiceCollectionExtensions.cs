@@ -263,6 +263,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReceiptCorrectionService, ReceiptCorrectionService>();
         services.AddScoped<IReceiptService, ReceiptService>();
 
+        // Gold layer service (append-only analytics)
+        services.AddScoped<IGoldLayerService, GoldLayerService>();
+
         // LLM Services - configuration added via AddLlmService method
         services.AddScoped<CanonicalizationService>();
 

@@ -12,16 +12,13 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
     private const int MaxPageSize = 500;
 
     private readonly ApplicationDbContext _context;
-    private readonly IReceiptCorrectionService _correctionService;
     private readonly ILogger<PurchaseAnalyticsService> _logger;
 
     public PurchaseAnalyticsService(
         ApplicationDbContext context,
-        IReceiptCorrectionService correctionService,
         ILogger<PurchaseAnalyticsService> logger)
     {
         _context = context;
-        _correctionService = correctionService;
         _logger = logger;
     }
 
@@ -40,199 +37,105 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             query.StartDate,
             query.EndDate);
 
-        var itemsQuery = _context.Items
-            .AsNoTracking()
-            .Include(i => i.Receipt)
-            .Where(i => i.Receipt != null);
+        // Query gold layer directly (no joins needed, corrections already applied)
+        var goldQuery = _context.PurchaseAnalyticsGold
+            .AsNoTracking();
 
         if (query.StartDate.HasValue)
         {
             var startUtc = EnsureUtc(query.StartDate.Value);
-            itemsQuery = itemsQuery.Where(i => i.Receipt!.PurchaseDate >= startUtc);
+            goldQuery = goldQuery.Where(g => g.PurchaseDate >= startUtc);
         }
 
         if (query.EndDate.HasValue)
         {
             var endUtc = EnsureUtc(query.EndDate.Value);
-            itemsQuery = itemsQuery.Where(i => i.Receipt!.PurchaseDate <= endUtc);
+            goldQuery = goldQuery.Where(g => g.PurchaseDate <= endUtc);
         }
 
         if (!string.IsNullOrWhiteSpace(query.StoreName))
         {
             var storeFilter = $"%{query.StoreName.Trim()}%";
-            itemsQuery = itemsQuery.Where(i => EF.Functions.ILike(i.Receipt!.StoreName, storeFilter));
+            goldQuery = goldQuery.Where(g => EF.Functions.ILike(g.StoreName, storeFilter));
         }
 
         if (!string.IsNullOrWhiteSpace(query.ProductName))
         {
             var productFilter = $"%{query.ProductName.Trim()}%";
             // Search by canonical name for better grouping of similar products
-            itemsQuery = itemsQuery.Where(i => EF.Functions.ILike(i.CanonicalName ?? i.Name, productFilter));
+            goldQuery = goldQuery.Where(g => EF.Functions.ILike(g.CanonicalName ?? g.ItemName, productFilter));
         }
 
         if (query.MinLatitude.HasValue)
         {
             var minLat = query.MinLatitude.Value;
-            itemsQuery = itemsQuery.Where(i => i.Receipt!.Latitude.HasValue && i.Receipt.Latitude.Value >= minLat);
+            goldQuery = goldQuery.Where(g => g.Latitude.HasValue && g.Latitude.Value >= minLat);
         }
 
         if (query.MaxLatitude.HasValue)
         {
             var maxLat = query.MaxLatitude.Value;
-            itemsQuery = itemsQuery.Where(i => i.Receipt!.Latitude.HasValue && i.Receipt.Latitude.Value <= maxLat);
+            goldQuery = goldQuery.Where(g => g.Latitude.HasValue && g.Latitude.Value <= maxLat);
         }
 
         if (query.MinLongitude.HasValue)
         {
             var minLng = query.MinLongitude.Value;
-            itemsQuery = itemsQuery.Where(i => i.Receipt!.Longitude.HasValue && i.Receipt.Longitude.Value >= minLng);
+            goldQuery = goldQuery.Where(g => g.Longitude.HasValue && g.Longitude.Value >= minLng);
         }
 
         if (query.MaxLongitude.HasValue)
         {
             var maxLng = query.MaxLongitude.Value;
-            itemsQuery = itemsQuery.Where(i => i.Receipt!.Longitude.HasValue && i.Receipt.Longitude.Value <= maxLng);
+            goldQuery = goldQuery.Where(g => g.Longitude.HasValue && g.Longitude.Value <= maxLng);
         }
 
-        var totalCount = await itemsQuery.LongCountAsync(cancellationToken);
+        // Filter to only items with location data for price map
+        goldQuery = goldQuery.Where(g => g.Latitude.HasValue && g.Longitude.HasValue);
+
+        var totalCount = await goldQuery.LongCountAsync(cancellationToken);
         var skip = (page - 1) * pageSize;
 
-        var records = await itemsQuery
-            .OrderByDescending(i => i.Receipt!.PurchaseDate)
-            .ThenBy(i => i.Name)
+        var records = await goldQuery
+            .OrderByDescending(g => g.PurchaseDate)
+            .ThenBy(g => g.ItemName)
             .Skip(skip)
             .Take(pageSize)
-            .Select(i => new PurchaseAnalyticsRecord
-            {
-                ItemId = i.Id,
-                ReceiptId = i.ReceiptId,
-                ItemName = i.Name,
-                Description = i.Description,
-                CanonicalName = i.CanonicalName,
-                UnitPrice = i.UnitPrice ?? i.Price,
-                TotalPrice = i.TotalPrice ?? ((i.UnitPrice ?? i.Price) * i.Quantity),
-                Quantity = i.Quantity,
-                PurchaseDate = i.Receipt!.PurchaseDate,
-                StoreName = i.Receipt.StoreName,
-                StoreAddress = i.Receipt.StoreAddress,
-                StorePhoneNumber = i.Receipt.StorePhoneNumber,
-                Latitude = i.Receipt.Latitude,
-                Longitude = i.Receipt.Longitude,
-                ReceiptType = i.Receipt.ReceiptType,
-                TransactionId = i.Receipt.TransactionId,
-                PaymentMethod = i.Receipt.PaymentMethod,
-                Status = i.Receipt.Status
-            })
             .ToListAsync(cancellationToken);
 
-        // Apply user corrections to the records
-        await ApplyCorrectionsToRecordsAsync(records, cancellationToken);
+        // Map to PurchaseAnalyticsRecord (after materialization to avoid expression tree limitations)
+        var mappedRecords = records.Select(g => new PurchaseAnalyticsRecord
+        {
+            ItemId = g.ItemId,
+            ReceiptId = g.ReceiptId,
+            ItemName = g.ItemName,
+            Description = null, // Not stored in gold layer
+            CanonicalName = g.CanonicalName,
+            UnitPrice = g.UnitPrice,
+            TotalPrice = g.TotalPrice,
+            Quantity = g.Quantity,
+            PurchaseDate = g.PurchaseDate,
+            StoreName = g.StoreName,
+            StoreAddress = g.StoreAddress,
+            StorePhoneNumber = g.StorePhoneNumber,
+            Latitude = g.Latitude,
+            Longitude = g.Longitude,
+            ReceiptType = g.ReceiptType,
+            TransactionId = g.TransactionId,
+            PaymentMethod = g.PaymentMethod,
+            Status = Enum.TryParse<Receiptly.Domain.Enums.ReceiptStatus>(g.ReceiptStatus, out var status) 
+                ? status 
+                : Receiptly.Domain.Enums.ReceiptStatus.PendingValidation
+        }).ToList();
+
+        // No need to apply corrections - already in gold layer
 
         return new PurchaseAnalyticsResult
         {
-            Items = records,
+            Items = mappedRecords,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize
-        };
-    }
-
-    /// <summary>
-    /// Apply user corrections to analytics records by using ReceiptCorrectionService
-    /// and mapping corrected values back to immutable records
-    /// </summary>
-    private async Task ApplyCorrectionsToRecordsAsync(
-        List<PurchaseAnalyticsRecord> records,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Get unique receipt IDs
-            var receiptIds = records.Select(r => r.ReceiptId).Distinct().ToList();
-
-            if (!receiptIds.Any())
-            {
-                _logger.LogInformation("No receipt IDs found in analytics records");
-                return;
-            }
-
-            _logger.LogInformation("Applying corrections to {Count} analytics records from {ReceiptCount} receipts",
-                records.Count, receiptIds.Count);
-
-            // Fetch receipts that might have corrections
-            var receipts = await _context.Receipts
-                .AsNoTracking()
-                .Where(r => receiptIds.Contains(r.Id))
-                .ToListAsync(cancellationToken);
-
-            _logger.LogInformation("Fetched {ReceiptCount} receipts for correction processing", receipts.Count);
-
-            // Apply corrections using the reusable ReceiptCorrectionService
-            await _correctionService.ApplyCorrectionsAsync(receipts, cancellationToken);
-
-            _logger.LogInformation("Corrections applied to receipts");
-
-            // Map corrected receipt values back to analytics records
-            var receiptLookup = receipts.ToDictionary(r => r.Id);
-
-            int updatedCount = 0;
-            for (int i = 0; i < records.Count; i++)
-            {
-                if (receiptLookup.TryGetValue(records[i].ReceiptId, out var correctedReceipt))
-                {
-                    var originalStore = records[i].StoreName;
-                    var originalAddress = records[i].StoreAddress;
-                    
-                    records[i] = MapCorrectedReceiptToRecord(records[i], correctedReceipt);
-                    
-                    // Log if values changed
-                    if (originalStore != records[i].StoreName || originalAddress != records[i].StoreAddress)
-                    {
-                        _logger.LogInformation(
-                            "Updated record {RecordId}: StoreName '{OldStore}' -> '{NewStore}', Address '{OldAddr}' -> '{NewAddr}'",
-                            records[i].ItemId, originalStore, records[i].StoreName, 
-                            originalAddress, records[i].StoreAddress);
-                        updatedCount++;
-                    }
-                }
-            }
-
-            _logger.LogInformation("Applied corrections to {UpdatedCount} out of {TotalCount} records", updatedCount, records.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error applying corrections to analytics records");
-            // Don't throw - return original records if correction fails
-        }
-    }
-
-    /// <summary>
-    /// Map corrected receipt values to a new analytics record
-    /// </summary>
-    private static PurchaseAnalyticsRecord MapCorrectedReceiptToRecord(
-        PurchaseAnalyticsRecord originalRecord,
-        Receipt correctedReceipt)
-    {
-        return new PurchaseAnalyticsRecord
-        {
-            ItemId = originalRecord.ItemId,
-            ReceiptId = originalRecord.ReceiptId,
-            ItemName = originalRecord.ItemName,
-            Description = originalRecord.Description,
-            CanonicalName = originalRecord.CanonicalName,
-            UnitPrice = originalRecord.UnitPrice,
-            TotalPrice = originalRecord.TotalPrice,
-            Quantity = originalRecord.Quantity,
-            PurchaseDate = originalRecord.PurchaseDate,
-            StoreName = correctedReceipt.StoreName,  // Use corrected value
-            StoreAddress = correctedReceipt.StoreAddress,  // Use corrected value
-            StorePhoneNumber = correctedReceipt.StorePhoneNumber,
-            Latitude = correctedReceipt.Latitude,  // Use corrected value (may include lat from address correction)
-            Longitude = correctedReceipt.Longitude,  // Use corrected value (may include long from address correction)
-            ReceiptType = correctedReceipt.ReceiptType,
-            TransactionId = correctedReceipt.TransactionId,
-            PaymentMethod = correctedReceipt.PaymentMethod,
-            Status = correctedReceipt.Status
         };
     }
 
