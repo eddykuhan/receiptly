@@ -72,39 +72,37 @@ export class PriceMapService {
      * Fetch cached product suggestions derived from analytics data.
      * Uses canonical names for better grouping.
      * Only includes items that have valid latitude/longitude coordinates.
+     * @param days Number of days to look back (default: 60)
      */
-    getProductSuggestions(): Observable<string[]> {
-        if (this.suggestions$) {
-            return this.suggestions$;
-        }
-
+    getProductSuggestions(days: number = 60): Observable<string[]> {
         const params = new HttpParams()
-            .set('pageSize', 200)
-            .set('includeMetadata', true); // Changed to true to get lat/long data
+            .set('pageSize', 500)
+            .set('includeMetadata', true);
 
-        this.suggestions$ = this.http
+        return this.http
             .get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params })
             .pipe(
                 map(response => {
+                    const cutoffDate = new Date();
+                    cutoffDate.setDate(cutoffDate.getDate() - days);
+
                     const uniqueNames = new Set(
                         response.items
-                            // Filter: Only include items with valid lat/long
+                            // Filter: Only include items from last X days
                             .filter(item => {
                                 const metadata = item.metadata;
                                 const latitude = metadata?.latitude;
                                 const longitude = metadata?.longitude;
-                                return latitude != null && longitude != null;
+                                const purchaseDate = new Date(item.purchaseDate);
+                                return latitude != null && longitude != null && purchaseDate >= cutoffDate;
                             })
                             // Prefer canonical name over raw item name
                             .map(item => (item.canonicalName || item.itemName).trim())
                             .filter(Boolean)
                     );
                     return Array.from(uniqueNames).sort();
-                }),
-                shareReplay(1)
+                })
             );
-
-        return this.suggestions$;
     }
 
     /**

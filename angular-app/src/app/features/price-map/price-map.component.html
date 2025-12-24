@@ -1,131 +1,125 @@
 <div class="flex flex-col h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pb-16 lg:pb-0">
-    <!-- Gradient Header with Glass Effect -->
-    <header class="bg-gradient-to-r from-primary to-secondary p-6 shadow-lg relative overflow-visible z-30">
-        <!-- Animated background pattern -->
-        <div class="absolute inset-0 opacity-10">
-            <div
-                class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
-            </div>
-            <div
-                class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2">
-            </div>
-        </div>
-
-        <div class="relative space-y-4">
-            <div class="flex items-center gap-4">
-                <div class="p-4 bg-white/20 backdrop-blur-sm rounded-2xl shadow-xl">
-                    <span class="material-icons text-4xl text-white">map</span>
+    <!-- Compact Header -->
+    <header class="bg-gradient-to-r from-primary to-secondary p-3 shadow-lg relative overflow-visible z-30">
+        <div class="relative space-y-2">
+            <!-- Title & Search in one row on desktop -->
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <span class="material-icons text-2xl text-white">map</span>
+                    <h1 class="text-xl font-bold text-white hidden sm:block">Price Map</h1>
                 </div>
-                <div>
-                    <h1 class="text-3xl font-bold text-white mb-1">Price Map</h1>
-                    <p class="text-white/90 text-sm">Find the cheapest stores</p>
-                </div>
-            </div>
-
-            <!-- Search Bar -->
-            <div class="relative">
-                <div class="form-control">
-                    <div class="relative">
-                        <span
-                            class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-white/60">search</span>
-                        <input type="text" placeholder="Search for products (e.g., milk, bread)..."
-                            class="input input-bordered bg-white/20 backdrop-blur-sm text-white placeholder-white/60 border-white/30 w-full pl-10 pr-20"
-                            [value]="searchQuery()" (input)="onSearchInput($any($event.target).value)"
-                            (keyup.enter)="performSearch()" (focus)="showSuggestions.set(true)" />
-                        @if (searchQuery()) {
-                        <button
-                            class="btn btn-ghost btn-sm btn-circle absolute right-12 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
-                            (click)="clearSearch()">
-                            <span class="material-icons text-lg">close</span>
-                        </button>
-                        }
-                        <button class="btn btn-accent btn-sm absolute right-1 top-1/2 -translate-y-1/2"
-                            (click)="performSearch()">
-                            Search
-                        </button>
-                        @if (isLoading()) {
-                        <span
-                            class="loading loading-spinner loading-xs absolute right-24 top-1/2 -translate-y-1/2 text-white"></span>
-                        }
+                
+                <!-- Search Bar -->
+                <div class="relative flex-1">
+                    <div class="form-control">
+                        <div class="relative">
+                            <span class="material-icons absolute left-2 top-1/2 -translate-y-1/2 text-white/60 text-lg">search</span>
+                            <input type="text" placeholder="Search products (e.g., milk, egg)..."
+                                class="input input-sm input-bordered bg-white/20 backdrop-blur-sm text-white placeholder-white/60 border-white/30 w-full pl-8 pr-16"
+                                [value]="searchQuery()" (input)="onSearchInput($any($event.target).value)"
+                                (keyup.enter)="performSearch()" (focus)="showSuggestions.set(true)" />
+                            @if (searchQuery()) {
+                            <button
+                                class="btn btn-ghost btn-xs btn-circle absolute right-10 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
+                                (click)="clearSearch()">
+                                <span class="material-icons text-sm">close</span>
+                            </button>
+                            }
+                            <button class="btn btn-accent btn-xs absolute right-1 top-1/2 -translate-y-1/2"
+                                (click)="performSearch()">
+                                Go
+                            </button>
+                            @if (isLoading()) {
+                            <span class="loading loading-spinner loading-xs absolute right-16 top-1/2 -translate-y-1/2 text-white"></span>
+                            }
+                        </div>
                     </div>
-                </div>
 
-                <!-- Autocomplete Suggestions -->
-                @if (showSuggestions() && getFilteredSuggestions().length > 0) {
-                <div
-                    class="autocomplete-dropdown absolute top-full mt-1 w-full bg-base-100 rounded-box shadow-xl border border-base-200">
-                    <ul class="menu p-2">
-                        @for (suggestion of getFilteredSuggestions(); track suggestion) {
-                        <li>
-                            <a (click)="selectSuggestion(suggestion)" class="text-sm">
-                                <span class="material-icons text-base">shopping_basket</span>
-                                {{ suggestion }}
-                            </a>
-                        </li>
-                        }
-                    </ul>
+                    <!-- Autocomplete Suggestions -->
+                    @if (showSuggestions() && getFilteredSuggestions().length > 0) {
+                    <div class="autocomplete-dropdown absolute top-full mt-1 w-full bg-base-100 rounded-box shadow-xl border border-base-200">
+                        <ul class="menu p-2">
+                            @for (suggestion of getFilteredSuggestions(); track suggestion) {
+                            <li>
+                                <a (click)="selectSuggestion(suggestion)" class="text-sm">
+                                    <span class="material-icons text-base">shopping_basket</span>
+                                    {{ suggestion }}
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                    }
                 </div>
-                }
             </div>
 
-            <!-- Date Range Filter -->
-            <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-xs text-white/80">Show prices from:</span>
-                <div class="btn-group">
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 1"
-                        [class.btn-ghost]="daysFilter() !== 1"
-                        [class.text-white]="daysFilter() !== 1"
-                        (click)="onDaysFilterChange(1)">
-                        1 Day
-                    </button>
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 7"
-                        [class.btn-ghost]="daysFilter() !== 7"
-                        [class.text-white]="daysFilter() !== 7"
-                        (click)="onDaysFilterChange(7)">
-                        7 Days
-                    </button>
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 15"
-                        [class.btn-ghost]="daysFilter() !== 15"
-                        [class.text-white]="daysFilter() !== 15"
-                        (click)="onDaysFilterChange(15)">
-                        15 Days
-                    </button>
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 30"
-                        [class.btn-ghost]="daysFilter() !== 30"
-                        [class.text-white]="daysFilter() !== 30"
-                        (click)="onDaysFilterChange(30)">
-                        30 Days
-                    </button>
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 60"
-                        [class.btn-ghost]="daysFilter() !== 60"
-                        [class.text-white]="daysFilter() !== 60"
-                        (click)="onDaysFilterChange(60)">
-                        60 Days
-                    </button>
+            <!-- Filter & Results in compact rows -->
+            <div class="space-y-2">
+                <!-- Time filter -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs text-white/80">Time:</span>
+                    <div class="btn-group btn-group-xs">
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 1"
+                            [class.btn-ghost]="daysFilter() !== 1"
+                            [class.text-white]="daysFilter() !== 1"
+                            (click)="onDaysFilterChange(1)">1d</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 7"
+                            [class.btn-ghost]="daysFilter() !== 7"
+                            [class.text-white]="daysFilter() !== 7"
+                            (click)="onDaysFilterChange(7)">7d</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 15"
+                            [class.btn-ghost]="daysFilter() !== 15"
+                            [class.text-white]="daysFilter() !== 15"
+                            (click)="onDaysFilterChange(15)">15d</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 30"
+                            [class.btn-ghost]="daysFilter() !== 30"
+                            [class.text-white]="daysFilter() !== 30"
+                            (click)="onDaysFilterChange(30)">30d</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 60"
+                            [class.btn-ghost]="daysFilter() !== 60"
+                            [class.text-white]="daysFilter() !== 60"
+                            (click)="onDaysFilterChange(60)">60d</button>
+                    </div>
+                    @if (hasResults()) {
+                    <div class="flex items-center gap-2 text-xs text-white/90 ml-auto">
+                        <span class="badge badge-accent badge-xs">{{ searchResults().length }}</span>
+                        <span class="text-white/80 hidden sm:inline">Lowest: {{ cheapestPrice() | myr }}</span>
+                    </div>
+                    }
+                </div>
+                
+                <!-- Distance filter -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs text-white/80">Distance:</span>
+                    <div class="btn-group btn-group-xs">
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="distanceFilter() === null"
+                            [class.btn-ghost]="distanceFilter() !== null"
+                            [class.text-white]="distanceFilter() !== null"
+                            (click)="onDistanceFilterChange(null)">All</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="distanceFilter() === 5"
+                            [class.btn-ghost]="distanceFilter() !== 5"
+                            [class.text-white]="distanceFilter() !== 5"
+                            (click)="onDistanceFilterChange(5)">5km</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="distanceFilter() === 10"
+                            [class.btn-ghost]="distanceFilter() !== 10"
+                            [class.text-white]="distanceFilter() !== 10"
+                            (click)="onDistanceFilterChange(10)">10km</button>
+                    </div>
                 </div>
             </div>
 
             @if (errorMessage()) {
-            <div class="mt-2 alert alert-error py-2 text-sm flex items-center gap-2">
-                <span class="material-icons text-base">error</span>
+            <div class="alert alert-error py-1 text-xs flex items-center gap-2">
+                <span class="material-icons text-sm">error</span>
                 <span>{{ errorMessage() }}</span>
-            </div>
-            }
-
-            <!-- Results Summary -->
-            @if (hasResults()) {
-            <div class="mt-3 flex items-center gap-2 text-sm text-white/90">
-                <span class="badge badge-accent">{{ searchResults().length }} stores found</span>
-                <span class="text-white/80">Cheapest: {{ cheapestPrice() | myr }}</span>
-            </div>
-            } @else if (!isLoading() && searchQuery()) {
-            <div class="mt-3 flex items-center gap-2 text-sm text-white/90">
-                <span>No stores found for "{{ searchQuery() }}". Try a different product.</span>
             </div>
             }
         </div>

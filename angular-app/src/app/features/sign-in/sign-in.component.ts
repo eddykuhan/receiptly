@@ -18,7 +18,7 @@ import { LocationService } from '../../core/services/location.service';
             <span class="material-icons text-primary text-6xl">location_on</span>
           </div>
         </div>
-        <h1 class="text-5xl font-bold text-white drop-shadow-lg">Cheap-sy</h1>
+        <h1 class="text-5xl font-bold text-white drop-shadow-lg">cheap-sy</h1>
         <p class="text-xl text-white/90">Find the Best Deals</p>
         <div class="flex items-center justify-center mt-8">
           <span class="loading loading-dots loading-lg text-white"></span>

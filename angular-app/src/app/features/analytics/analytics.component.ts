@@ -1,8 +1,10 @@
 import { Component, signal, ViewChild, ElementRef, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { ReceiptService } from '../../core/services/receipt.service';
+import { AnalyticsService, PriceHistoryResponse, SavingsReportResponse, StoreComparisonResponse } from '../../core/services/analytics.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { Receipt } from '../../core/models/receipt.model';
 import { ItemCategorizationUtil } from '../../core/utils/item-categorization.util';
@@ -12,23 +14,55 @@ Chart.register(...registerables);
 @Component({
     selector: 'app-analytics',
     standalone: true,
-    imports: [CommonModule, RouterModule, MyrPipe],
+    imports: [CommonModule, RouterModule, FormsModule, MyrPipe],
     templateUrl: './analytics.component.html',
     styleUrl: './analytics.component.scss'
 })
 export class AnalyticsComponent implements OnInit {
     @ViewChild('spendingChart') spendingChartRef!: ElementRef;
     @ViewChild('categoryChart') categoryChartRef!: ElementRef;
+    @ViewChild('priceHistoryChart') priceHistoryChartRef!: ElementRef;
 
     // State
     receipts = signal<Receipt[]>([]);
     isLoading = signal(true);
-    selectedCategoryMonth = signal<string>('all'); // 'all' or 'YYYY-MM' format
+    selectedCategoryMonth = signal<string>(this.getCurrentMonth()); // 'all' or 'YYYY-MM' format
     private receiptService = inject(ReceiptService);
+    private analyticsService = inject(AnalyticsService);
 
     // Chart instances
     spendingChart: Chart | null = null;
     categoryChart: Chart | null = null;
+    priceHistoryChart: Chart | null = null;
+
+    // New analytics features
+    selectedProductForPriceHistory = signal<string>('');
+    priceHistoryDays = signal(30);
+    priceHistoryData = signal<PriceHistoryResponse | null>(null);
+    priceHistoryLoading = signal(false);
+
+    savingsReport = signal<SavingsReportResponse | null>(null);
+    savingsReportDays = signal(7);
+    savingsReportLoading = signal(false);
+
+    storeComparison = signal<StoreComparisonResponse | null>(null);
+    storeComparisonDays = signal(30);
+    storeComparisonLoading = signal(false);
+
+    // Available products for price history
+    availableProducts = computed(() => {
+        const products = new Set<string>();
+        this.receipts().forEach(r => {
+            r.items.forEach(item => {
+                // Use canonicalName if available, otherwise fall back to name
+                const productName = item.canonicalName || item.name;
+                if (productName && productName.trim()) {
+                    products.add(productName);
+                }
+            });
+        });
+        return Array.from(products).sort();
+    });
 
     // Computed Stats
     totalSpent = computed(() => this.receipts().reduce((sum, r) => sum + (r.totalAmount || 0), 0));
@@ -108,6 +142,8 @@ export class AnalyticsComponent implements OnInit {
 
     ngOnInit() {
         this.loadData();
+        this.loadSavingsReport();
+        this.loadStoreComparison();
     }
 
     loadData() {
@@ -346,5 +382,146 @@ export class AnalyticsComponent implements OnInit {
                 cutout: '65%'
             }
         });
+    }
+
+    // New methods for analytics features
+    loadPriceHistory() {
+        const userId = this.receiptService.getCurrentUserId();
+        const product = this.selectedProductForPriceHistory();
+        
+        if (!userId || !product) return;
+
+        this.priceHistoryLoading.set(true);
+        this.analyticsService.getPriceHistory(userId, product, this.priceHistoryDays()).subscribe({
+            next: (data) => {
+                this.priceHistoryData.set(data);
+                this.priceHistoryLoading.set(false);
+                setTimeout(() => this.initPriceHistoryChart(), 0);
+            },
+            error: (err) => {
+                console.error('Failed to load price history', err);
+                this.priceHistoryLoading.set(false);
+            }
+        });
+    }
+
+    loadSavingsReport() {
+        const userId = this.receiptService.getCurrentUserId();
+        if (!userId) return;
+
+        this.savingsReportLoading.set(true);
+        this.analyticsService.getSavingsReport(userId, this.savingsReportDays()).subscribe({
+            next: (data) => {
+                this.savingsReport.set(data);
+                this.savingsReportLoading.set(false);
+            },
+            error: (err) => {
+                console.error('Failed to load savings report', err);
+                this.savingsReportLoading.set(false);
+            }
+        });
+    }
+
+    loadStoreComparison() {
+        const userId = this.receiptService.getCurrentUserId();
+        if (!userId) return;
+
+        this.storeComparisonLoading.set(true);
+        this.analyticsService.getStoreComparison(userId, this.storeComparisonDays()).subscribe({
+            next: (data) => {
+                this.storeComparison.set(data);
+                this.storeComparisonLoading.set(false);
+            },
+            error: (err) => {
+                console.error('Failed to load store comparison', err);
+                this.storeComparisonLoading.set(false);
+            }
+        });
+    }
+
+    initPriceHistoryChart() {
+        if (!this.priceHistoryChartRef || !this.priceHistoryData()) return;
+
+        if (this.priceHistoryChart) this.priceHistoryChart.destroy();
+
+        const ctx = this.priceHistoryChartRef.nativeElement.getContext('2d');
+        const data = this.priceHistoryData()!;
+
+        this.priceHistoryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.pricePoints.map(p => new Date(p.purchaseDate).toLocaleDateString()),
+                datasets: [{
+                    label: 'Unit Price',
+                    data: data.pricePoints.map(p => p.unitPrice),
+                    borderColor: '#570df8',
+                    backgroundColor: 'rgba(87, 13, 248, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: (context) => {
+                                const value = context.parsed.y ?? 0;
+                                const price = new Intl.NumberFormat('en-MY', { 
+                                    style: 'currency', 
+                                    currency: 'MYR' 
+                                }).format(value);
+                                const store = data.pricePoints[context.dataIndex].storeName;
+                                return [`Price: ${price}`, `Store: ${store}`];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: (value) => 'RM ' + value
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    onProductChange(product: string) {
+        this.selectedProductForPriceHistory.set(product);
+        if (product) {
+            this.loadPriceHistory();
+        }
+    }
+
+    onPriceHistoryDaysChange(days: number) {
+        this.priceHistoryDays.set(days);
+        if (this.selectedProductForPriceHistory()) {
+            this.loadPriceHistory();
+        }
+    }
+
+    onSavingsReportDaysChange(days: number) {
+        this.savingsReportDays.set(days);
+        this.loadSavingsReport();
+    }
+
+    onStoreComparisonDaysChange(days: number) {
+        this.storeComparisonDays.set(days);
+        this.loadStoreComparison();
+    }
+
+    private getCurrentMonth(): string {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
 }

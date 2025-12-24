@@ -185,4 +185,11 @@ export class ReceiptService {
     console.error('API Error:', error);
     return throwError(() => new Error(error.error?.message || 'An error occurred'));
   }
+
+  /**
+   * Get current user ID synchronously from Clerk
+   */
+  getCurrentUserId(): string | null {
+    return this.authService.getCurrentUser()?.id || null;
+  }
 }

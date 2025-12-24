@@ -68,6 +68,174 @@ public class AnalyticsController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// Returns price history for a specific product over time.
+    /// </summary>
+    [HttpGet("price-history")]
+    [ProducesResponseType(typeof(PriceHistoryResponseDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PriceHistoryResponseDto>> GetPriceHistory(
+        [FromQuery] string userId,
+        [FromQuery] string canonicalName,
+        [FromQuery] int days = 30,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return BadRequest(new { error = "userId is required" });
+        }
+
+        if (string.IsNullOrWhiteSpace(canonicalName))
+        {
+            return BadRequest(new { error = "canonicalName is required" });
+        }
+
+        if (days <= 0 || days > 365)
+        {
+            return BadRequest(new { error = "days must be between 1 and 365" });
+        }
+
+        _logger.LogInformation(
+            "Price history request for user {UserId}, product {Product}, days {Days}",
+            userId,
+            canonicalName,
+            days);
+
+        var result = await _purchaseAnalyticsService.GetPriceHistoryAsync(
+            userId,
+            canonicalName,
+            days,
+            cancellationToken);
+
+        var response = new PriceHistoryResponseDto
+        {
+            CanonicalName = result.CanonicalName,
+            PricePoints = result.PricePoints.Select(p => new PriceHistoryPointDto
+            {
+                PurchaseDate = p.PurchaseDate,
+                UnitPrice = p.UnitPrice,
+                StoreName = p.StoreName,
+                ItemId = p.ItemId
+            }).ToList(),
+            Statistics = new PriceStatisticsDto
+            {
+                MinPrice = result.Statistics.MinPrice,
+                MaxPrice = result.Statistics.MaxPrice,
+                AveragePrice = result.Statistics.AveragePrice,
+                CurrentPrice = result.Statistics.CurrentPrice,
+                CheapestStore = result.Statistics.CheapestStore,
+                MostExpensiveStore = result.Statistics.MostExpensiveStore
+            }
+        };
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Returns a savings report showing potential savings by shopping at different stores.
+    /// </summary>
+    [HttpGet("savings-report")]
+    [ProducesResponseType(typeof(SavingsReportResponseDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<SavingsReportResponseDto>> GetSavingsReport(
+        [FromQuery] string userId,
+        [FromQuery] int days = 7,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return BadRequest(new { error = "userId is required" });
+        }
+
+        if (days <= 0 || days > 365)
+        {
+            return BadRequest(new { error = "days must be between 1 and 365" });
+        }
+
+        _logger.LogInformation(
+            "Savings report request for user {UserId}, days {Days}",
+            userId,
+            days);
+
+        var result = await _purchaseAnalyticsService.GetSavingsReportAsync(
+            userId,
+            days,
+            cancellationToken);
+
+        var response = new SavingsReportResponseDto
+        {
+            TotalSpent = result.TotalSpent,
+            PotentialSavings = result.PotentialSavings,
+            SavingsPercentage = result.SavingsPercentage,
+            StartDate = result.StartDate,
+            EndDate = result.EndDate,
+            Opportunities = result.Opportunities.Select(o => new SavingsOpportunityDto
+            {
+                CanonicalName = o.CanonicalName,
+                PurchasedAt = o.PurchasedAt,
+                PaidPrice = o.PaidPrice,
+                CheaperAt = o.CheaperAt,
+                CheaperPrice = o.CheaperPrice,
+                PotentialSaving = o.PotentialSaving,
+                Quantity = o.Quantity,
+                PurchaseDate = o.PurchaseDate
+            }).ToList()
+        };
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Returns store comparison statistics for user's purchases.
+    /// </summary>
+    [HttpGet("store-comparison")]
+    [ProducesResponseType(typeof(StoreComparisonResponseDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<StoreComparisonResponseDto>> GetStoreComparison(
+        [FromQuery] string userId,
+        [FromQuery] int days = 30,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return BadRequest(new { error = "userId is required" });
+        }
+
+        if (days <= 0 || days > 365)
+        {
+            return BadRequest(new { error = "days must be between 1 and 365" });
+        }
+
+        _logger.LogInformation(
+            "Store comparison request for user {UserId}, days {Days}",
+            userId,
+            days);
+
+        var result = await _purchaseAnalyticsService.GetStoreComparisonAsync(
+            userId,
+            days,
+            cancellationToken);
+
+        var response = new StoreComparisonResponseDto
+        {
+            StartDate = result.StartDate,
+            EndDate = result.EndDate,
+            TotalPurchases = result.TotalPurchases,
+            TotalSpent = result.TotalSpent,
+            Stores = result.Stores.Select(s => new StoreStatsDto
+            {
+                StoreName = s.StoreName,
+                PurchaseCount = s.PurchaseCount,
+                TotalSpent = s.TotalSpent,
+                AverageTransactionValue = s.AverageTransactionValue,
+                PriceIndex = s.PriceIndex,
+                UniqueItemsCount = s.UniqueItemsCount,
+                Latitude = s.Latitude.HasValue ? (decimal)s.Latitude.Value : null,
+                Longitude = s.Longitude.HasValue ? (decimal)s.Longitude.Value : null,
+                TopItems = s.TopItems
+            }).ToList()
+        };
+
+        return Ok(response);
+    }
+
     private static PurchaseAnalyticsItemDto MapToDto(PurchaseAnalyticsRecord record, bool includeMetadata)
     {
         return new PurchaseAnalyticsItemDto
