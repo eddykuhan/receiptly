@@ -7,6 +7,7 @@ public class ItemDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? CanonicalName { get; set; }
     public string? Description { get; set; }
     public decimal Price { get; set; }
     public decimal? UnitPrice { get; set; }

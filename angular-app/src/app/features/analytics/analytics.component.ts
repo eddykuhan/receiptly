@@ -488,7 +488,7 @@ export class AnalyticsComponent implements OnInit {
                     y: {
                         beginAtZero: false,
                         ticks: {
-                            callback: (value) => 'RM ' + value
+                            callback: (value) => 'RM ' + (typeof value === 'number' ? value.toFixed(2) : value)
                         }
                     }
                 }
