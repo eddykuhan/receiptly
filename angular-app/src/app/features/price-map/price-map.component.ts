@@ -270,9 +270,14 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.isBottomSheetExpanded.set(false);
         this.clearMarkers();
 
-        // Reset map view to KL
+        // Reset map view to user location or default to KL
         if (this.map) {
-            this.map.setView([3.1390, 101.6869], 11);
+            const userLoc = this.userLocation();
+            if (userLoc) {
+                this.map.setView([userLoc.lat, userLoc.lon], 13, { animate: true });
+            } else {
+                this.map.setView([3.1390, 101.6869], 11);
+            }
         }
     }
 
