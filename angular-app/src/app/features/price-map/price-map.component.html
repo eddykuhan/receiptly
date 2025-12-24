@@ -53,42 +53,67 @@
                 </div>
             </div>
 
-            <!-- Filter & Results in one compact row -->
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-                <div class="btn-group btn-group-xs">
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 1"
-                        [class.btn-ghost]="daysFilter() !== 1"
-                        [class.text-white]="daysFilter() !== 1"
-                        (click)="onDaysFilterChange(1)">1d</button>
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 7"
-                        [class.btn-ghost]="daysFilter() !== 7"
-                        [class.text-white]="daysFilter() !== 7"
-                        (click)="onDaysFilterChange(7)">7d</button>
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 15"
-                        [class.btn-ghost]="daysFilter() !== 15"
-                        [class.text-white]="daysFilter() !== 15"
-                        (click)="onDaysFilterChange(15)">15d</button>
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 30"
-                        [class.btn-ghost]="daysFilter() !== 30"
-                        [class.text-white]="daysFilter() !== 30"
-                        (click)="onDaysFilterChange(30)">30d</button>
-                    <button class="btn btn-xs" 
-                        [class.btn-accent]="daysFilter() === 60"
-                        [class.btn-ghost]="daysFilter() !== 60"
-                        [class.text-white]="daysFilter() !== 60"
-                        (click)="onDaysFilterChange(60)">60d</button>
+            <!-- Filter & Results in compact rows -->
+            <div class="space-y-2">
+                <!-- Time filter -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs text-white/80">Time:</span>
+                    <div class="btn-group btn-group-xs">
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 1"
+                            [class.btn-ghost]="daysFilter() !== 1"
+                            [class.text-white]="daysFilter() !== 1"
+                            (click)="onDaysFilterChange(1)">1d</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 7"
+                            [class.btn-ghost]="daysFilter() !== 7"
+                            [class.text-white]="daysFilter() !== 7"
+                            (click)="onDaysFilterChange(7)">7d</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 15"
+                            [class.btn-ghost]="daysFilter() !== 15"
+                            [class.text-white]="daysFilter() !== 15"
+                            (click)="onDaysFilterChange(15)">15d</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 30"
+                            [class.btn-ghost]="daysFilter() !== 30"
+                            [class.text-white]="daysFilter() !== 30"
+                            (click)="onDaysFilterChange(30)">30d</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="daysFilter() === 60"
+                            [class.btn-ghost]="daysFilter() !== 60"
+                            [class.text-white]="daysFilter() !== 60"
+                            (click)="onDaysFilterChange(60)">60d</button>
+                    </div>
+                    @if (hasResults()) {
+                    <div class="flex items-center gap-2 text-xs text-white/90 ml-auto">
+                        <span class="badge badge-accent badge-xs">{{ searchResults().length }}</span>
+                        <span class="text-white/80 hidden sm:inline">Lowest: {{ cheapestPrice() | myr }}</span>
+                    </div>
+                    }
                 </div>
-
-                @if (hasResults()) {
-                <div class="flex items-center gap-2 text-xs text-white/90">
-                    <span class="badge badge-accent badge-xs">{{ searchResults().length }}</span>
-                    <span class="text-white/80 hidden sm:inline">Lowest: {{ cheapestPrice() | myr }}</span>
+                
+                <!-- Distance filter -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs text-white/80">Distance:</span>
+                    <div class="btn-group btn-group-xs">
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="distanceFilter() === null"
+                            [class.btn-ghost]="distanceFilter() !== null"
+                            [class.text-white]="distanceFilter() !== null"
+                            (click)="onDistanceFilterChange(null)">All</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="distanceFilter() === 5"
+                            [class.btn-ghost]="distanceFilter() !== 5"
+                            [class.text-white]="distanceFilter() !== 5"
+                            (click)="onDistanceFilterChange(5)">5km</button>
+                        <button class="btn btn-xs" 
+                            [class.btn-accent]="distanceFilter() === 10"
+                            [class.btn-ghost]="distanceFilter() !== 10"
+                            [class.text-white]="distanceFilter() !== 10"
+                            (click)="onDistanceFilterChange(10)">10km</button>
+                    </div>
                 </div>
-                }
             </div>
 
             @if (errorMessage()) {

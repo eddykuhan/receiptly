@@ -34,6 +34,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     isBottomSheetExpanded = signal(false);
     showMobileResults = signal(false);
     daysFilter = signal(7); // Default to 7 days
+    distanceFilter = signal<number | null>(null); // null = no distance filter
 
     // Computed properties
     hasResults = computed(() => this.searchResults().length > 0);
@@ -68,6 +69,16 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     onDaysFilterChange(days: number) {
         this.daysFilter.set(days);
+        // Reload results with new filter
+        if (this.searchQuery()) {
+            this.performSearch();
+        } else {
+            this.loadNearbyItems();
+        }
+    }
+
+    onDistanceFilterChange(distance: number | null) {
+        this.distanceFilter.set(distance);
         // Reload results with new filter
         if (this.searchQuery()) {
             this.performSearch();
@@ -149,6 +160,12 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             const userLoc = this.userLocation();
             if (userLoc) {
                 results = this.priceMapService.addDistanceToResults(results, userLoc.lat, userLoc.lon);
+                
+                // Apply distance filter if set
+                const distFilter = this.distanceFilter();
+                if (distFilter !== null) {
+                    results = results.filter(r => r.distance !== undefined && r.distance <= distFilter);
+                }
             }
 
             this.searchResults.set(results);
@@ -181,11 +198,12 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         console.log(`🔍 Loading items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km...`);
 
         try {
+            const radiusKm = this.distanceFilter() ?? APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM;
             const nearbyItems = await firstValueFrom(
-                this.priceMapService.getNearbyItems(userLoc.lat, userLoc.lon, APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM, this.daysFilter())
+                this.priceMapService.getNearbyItems(userLoc.lat, userLoc.lon, radiusKm, this.daysFilter())
             );
 
-            console.log(`✅ Found ${nearbyItems.length} items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km`);
+            console.log(`✅ Found ${nearbyItems.length} items within ${radiusKm}km`);
             this.searchResults.set(nearbyItems);
             this.updateMapMarkers(nearbyItems, false); // Don't auto-zoom
         } catch (error) {
@@ -330,7 +348,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     private async loadProductSuggestions() {
         try {
-            const suggestions = await firstValueFrom(this.priceMapService.getProductSuggestions());
+            const suggestions = await firstValueFrom(this.priceMapService.getProductSuggestions(60));
             this.productSuggestions.set(suggestions);
         } catch (error) {
             console.warn('Unable to load product suggestions', error);
