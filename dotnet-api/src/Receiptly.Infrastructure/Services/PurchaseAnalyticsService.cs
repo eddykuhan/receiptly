@@ -147,10 +147,10 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
     {
         var cutoffDate = DateTime.UtcNow.AddDays(-days);
 
+        // Query all users' data from gold layer for comprehensive price comparison
         var pricePoints = await _context.PurchaseAnalyticsGold
             .AsNoTracking()
-            .Where(g => g.UserId == userId 
-                && g.CanonicalName == canonicalName 
+            .Where(g => g.CanonicalName == canonicalName 
                 && g.PurchaseDate >= cutoffDate)
             .OrderBy(g => g.PurchaseDate)
             .Select(g => new PriceHistoryPoint
