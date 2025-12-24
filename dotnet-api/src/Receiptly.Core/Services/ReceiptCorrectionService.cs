@@ -10,11 +10,14 @@ namespace Receiptly.Core.Services;
 public class ReceiptCorrectionService : IReceiptCorrectionService
 {
     private readonly IUserCorrectionRepository _userCorrectionRepository;
+    private readonly IGoldLayerService _goldLayerService;
 
     public ReceiptCorrectionService(
-        IUserCorrectionRepository userCorrectionRepository)
+        IUserCorrectionRepository userCorrectionRepository,
+        IGoldLayerService goldLayerService)
     {
         _userCorrectionRepository = userCorrectionRepository;
+        _goldLayerService = goldLayerService;
     }
 
     public async Task ApplyCorrectionsAsync(Receipt receipt, CancellationToken cancellationToken = default)
@@ -34,9 +37,18 @@ public class ReceiptCorrectionService : IReceiptCorrectionService
                 return;
             }
 
+            // Track item name corrections for gold layer sync
+            var itemNameCorrections = new Dictionary<Guid, string>();
+
             foreach (var correction in corrections)
             {
-                ApplyCorrectionToReceipt(receipt, correction);
+                ApplyCorrectionToReceipt(receipt, correction, itemNameCorrections);
+            }
+
+            // Sync corrections to gold layer
+            if (itemNameCorrections.Any())
+            {
+                await _goldLayerService.UpdateCorrectionsAsync(receipt.Id, itemNameCorrections, cancellationToken);
             }
         }
         catch (Exception)
@@ -58,7 +70,7 @@ public class ReceiptCorrectionService : IReceiptCorrectionService
         }
     }
 
-    private void ApplyCorrectionToReceipt(Receipt receipt, UserCorrection correction)
+    private void ApplyCorrectionToReceipt(Receipt receipt, UserCorrection correction, Dictionary<Guid, string> itemNameCorrections)
     {
         try
         {
@@ -94,7 +106,7 @@ public class ReceiptCorrectionService : IReceiptCorrectionService
 
                 default:
                     // Handle item-specific corrections (e.g., "Items[0].Name", "Items[1].Price")
-                    ApplyItemCorrection(receipt, correction);
+                    ApplyItemCorrection(receipt, correction, itemNameCorrections);
                     break;
             }
         }
@@ -104,7 +116,7 @@ public class ReceiptCorrectionService : IReceiptCorrectionService
         }
     }
 
-    private void ApplyItemCorrection(Receipt receipt, UserCorrection correction)
+    private void ApplyItemCorrection(Receipt receipt, UserCorrection correction, Dictionary<Guid, string> itemNameCorrections)
     {
         if (string.IsNullOrEmpty(correction.FieldName) || receipt.Items == null)
         {
@@ -134,7 +146,10 @@ public class ReceiptCorrectionService : IReceiptCorrectionService
         switch (property)
         {
             case "name":
-                item.Name = correction.CorrectedValue ?? item.Name;
+                var correctedName = correction.CorrectedValue ?? item.Name;
+                item.Name = correctedName;
+                // Track for gold layer sync
+                itemNameCorrections[item.Id] = correctedName;
                 break;
 
             case "price":

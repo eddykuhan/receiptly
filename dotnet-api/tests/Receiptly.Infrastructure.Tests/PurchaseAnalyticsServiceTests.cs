@@ -64,8 +64,7 @@ public class PurchaseAnalyticsServiceTests
         context.Receipts.AddRange(targetReceipt, otherReceipt);
         await context.SaveChangesAsync();
 
-        var mockCorrectionService = new Mock<IReceiptCorrectionService>();
-        var service = new PurchaseAnalyticsService(context, mockCorrectionService.Object, NullLogger<PurchaseAnalyticsService>.Instance);
+        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance);
         var query = new PurchaseAnalyticsQuery
         {
             StartDate = DateTime.UtcNow.AddDays(-2),
@@ -114,8 +113,7 @@ public class PurchaseAnalyticsServiceTests
 
         await context.SaveChangesAsync();
 
-        var mockCorrectionService = new Mock<IReceiptCorrectionService>();
-        var service = new PurchaseAnalyticsService(context, mockCorrectionService.Object, NullLogger<PurchaseAnalyticsService>.Instance);
+        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance);
         var result = await service.GetPurchasesAsync(new PurchaseAnalyticsQuery
         {
             PageSize = 1000
@@ -179,8 +177,7 @@ public class PurchaseAnalyticsServiceTests
         context.Receipts.AddRange(milkReceipt, breadReceipt);
         await context.SaveChangesAsync();
 
-        var mockCorrectionService = new Mock<IReceiptCorrectionService>();
-        var service = new PurchaseAnalyticsService(context, mockCorrectionService.Object, NullLogger<PurchaseAnalyticsService>.Instance);
+        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance);
         var result = await service.GetPurchasesAsync(new PurchaseAnalyticsQuery
         {
             ProductName = "milk"

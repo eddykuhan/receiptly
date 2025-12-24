@@ -26,6 +26,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserWeeklyProgress> UserWeeklyProgress { get; set; }
     public DbSet<VoucherReward> VoucherRewards { get; set; }
     public DbSet<UserVoucher> UserVouchers { get; set; }
+    
+    // Analytics Gold Layer
+    public DbSet<PurchaseAnalyticsGold> PurchaseAnalyticsGold { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -305,6 +308,99 @@ public class ApplicationDbContext : DbContext
             
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => new { e.SessionId, e.ExpiresAt });
+        });
+
+        // Configure PurchaseAnalyticsGold entity (gold layer for price history)
+        modelBuilder.Entity<PurchaseAnalyticsGold>(entity =>
+        {
+            entity.ToTable("purchase_analytics_gold");
+            
+            entity.HasKey(e => e.Id);
+            
+            // Required fields
+            entity.Property(e => e.ItemId)
+                .IsRequired();
+            
+            entity.Property(e => e.ReceiptId)
+                .IsRequired();
+            
+            entity.Property(e => e.UserId)
+                .IsRequired()
+                .HasMaxLength(450);
+            
+            entity.Property(e => e.ItemName)
+                .IsRequired()
+                .HasMaxLength(300);
+            
+            entity.Property(e => e.CanonicalName)
+                .HasMaxLength(300);
+            
+            // Decimal fields
+            entity.Property(e => e.UnitPrice)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+            
+            entity.Property(e => e.TotalPrice)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+            
+            entity.Property(e => e.Quantity)
+                .IsRequired();
+            
+            entity.Property(e => e.PurchaseDate)
+                .IsRequired();
+            
+            entity.Property(e => e.StoreName)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.StoreAddress)
+                .IsRequired()
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.StorePhoneNumber)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.ReceiptType)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.TransactionId)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.PaymentMethod)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.ReceiptStatus)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.IsCorrected)
+                .IsRequired()
+                .HasDefaultValue(false);
+            
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            // Indexes for analytics queries
+            entity.HasIndex(e => e.ItemId)
+                .HasDatabaseName("idx_gold_item_id");
+            
+            entity.HasIndex(e => e.PurchaseDate)
+                .HasDatabaseName("idx_gold_purchase_date");
+            
+            entity.HasIndex(e => e.StoreName)
+                .HasDatabaseName("idx_gold_store_name");
+            
+            entity.HasIndex(e => e.CanonicalName)
+                .HasDatabaseName("idx_gold_canonical_name");
+            
+            // Composite index for location-based queries (critical for price map)
+            entity.HasIndex(e => new { e.Latitude, e.Longitude })
+                .HasDatabaseName("idx_gold_location");
+            
+            // Composite index for time-series and product analysis
+            entity.HasIndex(e => new { e.CanonicalName, e.PurchaseDate, e.Latitude, e.Longitude })
+                .HasDatabaseName("idx_gold_analytics");
         });
     }
 }

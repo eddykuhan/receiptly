@@ -33,6 +33,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     errorMessage = signal<string | null>(null);
     isBottomSheetExpanded = signal(false);
     showMobileResults = signal(false);
+    daysFilter = signal(7); // Default to 7 days
 
     // Computed properties
     hasResults = computed(() => this.searchResults().length > 0);
@@ -63,6 +64,16 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         this.map?.remove();
+    }
+
+    onDaysFilterChange(days: number) {
+        this.daysFilter.set(days);
+        // Reload results with new filter
+        if (this.searchQuery()) {
+            this.performSearch();
+        } else {
+            this.loadNearbyItems();
+        }
     }
 
     private initMap() {
@@ -133,7 +144,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.errorMessage.set(null);
 
         try {
-            let results = await firstValueFrom(this.priceMapService.searchProduct(query));
+            let results = await firstValueFrom(this.priceMapService.searchProduct(query, this.daysFilter()));
 
             const userLoc = this.userLocation();
             if (userLoc) {
@@ -171,7 +182,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
         try {
             const nearbyItems = await firstValueFrom(
-                this.priceMapService.getNearbyItems(userLoc.lat, userLoc.lon, APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM)
+                this.priceMapService.getNearbyItems(userLoc.lat, userLoc.lon, APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM, this.daysFilter())
             );
 
             console.log(`✅ Found ${nearbyItems.length} items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km`);

@@ -68,6 +68,48 @@
                 }
             </div>
 
+            <!-- Date Range Filter -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs text-white/80">Show prices from:</span>
+                <div class="btn-group">
+                    <button class="btn btn-xs" 
+                        [class.btn-accent]="daysFilter() === 1"
+                        [class.btn-ghost]="daysFilter() !== 1"
+                        [class.text-white]="daysFilter() !== 1"
+                        (click)="onDaysFilterChange(1)">
+                        1 Day
+                    </button>
+                    <button class="btn btn-xs" 
+                        [class.btn-accent]="daysFilter() === 7"
+                        [class.btn-ghost]="daysFilter() !== 7"
+                        [class.text-white]="daysFilter() !== 7"
+                        (click)="onDaysFilterChange(7)">
+                        7 Days
+                    </button>
+                    <button class="btn btn-xs" 
+                        [class.btn-accent]="daysFilter() === 15"
+                        [class.btn-ghost]="daysFilter() !== 15"
+                        [class.text-white]="daysFilter() !== 15"
+                        (click)="onDaysFilterChange(15)">
+                        15 Days
+                    </button>
+                    <button class="btn btn-xs" 
+                        [class.btn-accent]="daysFilter() === 30"
+                        [class.btn-ghost]="daysFilter() !== 30"
+                        [class.text-white]="daysFilter() !== 30"
+                        (click)="onDaysFilterChange(30)">
+                        30 Days
+                    </button>
+                    <button class="btn btn-xs" 
+                        [class.btn-accent]="daysFilter() === 60"
+                        [class.btn-ghost]="daysFilter() !== 60"
+                        [class.text-white]="daysFilter() !== 60"
+                        (click)="onDaysFilterChange(60)">
+                        60 Days
+                    </button>
+                </div>
+            </div>
+
             @if (errorMessage()) {
             <div class="mt-2 alert alert-error py-2 text-sm flex items-center gap-2">
                 <span class="material-icons text-base">error</span>
