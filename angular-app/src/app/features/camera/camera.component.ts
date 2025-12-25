@@ -1,4 +1,4 @@
-import { Component, signal, inject, ViewChild, ElementRef, OnDestroy, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, ViewChild, ElementRef, OnDestroy, OnInit, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CameraService } from '../../core/services/camera.service';
@@ -61,6 +61,40 @@ export class CameraComponent {
   isEditing = signal(false);
   editedReceipt: Partial<Receipt> = {};
 
+  // Funny messages for upload progress
+  private funnyMessages = [
+    '🤔 Decoding your shopping secrets...',
+    '📊 Converting pixels to prices...',
+    '🎯 Teaching AI to read receipts...',
+    '💰 Counting your beans (literally)...',
+    '🔍 Finding those sneaky charges...',
+    '📱 Asking ChatGPT for help...',
+    '✨ Making sense of hieroglyphics...',
+    '🎨 Translating receipt art...',
+    '🧠 Exercising our AI brain...',
+    '🎭 Deciphering merchant handwriting...',
+    '🚀 Processing at light speed...',
+    '💡 Calculating your regrets...',
+    '🎪 Performing receipt magic...',
+    '🌟 Turning receipts into wisdom...',
+    '📜 Reading the scroll of expenses...'
+  ];
+  
+  currentFunnyMessage = signal(0);
+  private messageRotationInterval: ReturnType<typeof setInterval> | null = null;
+  private messageTimer: ReturnType<typeof setInterval> | null = null;
+
+  constructor() {
+    // Set up message rotation effect in constructor (proper injection context)
+    effect(() => {
+      if (this.hasActiveUploads()) {
+        this.startMessageRotation();
+      } else {
+        this.stopMessageRotation();
+      }
+    });
+  }
+
   startEditing() {
     const receipt = this.processedReceipt();
     if (receipt) {
@@ -90,6 +124,47 @@ export class CameraComponent {
         }
       });
     }
+  }
+
+  // Get current funny message and rotate through them
+  getFunnyMessage(): string {
+    return this.funnyMessages[this.currentFunnyMessage()];
+  }
+
+  // Start rotating funny messages during upload
+  private startMessageRotation() {
+    // Clear any existing intervals
+    if (this.messageRotationInterval) {
+      clearInterval(this.messageRotationInterval);
+      this.messageRotationInterval = null;
+    }
+    if (this.messageTimer) {
+      clearInterval(this.messageTimer);
+      this.messageTimer = null;
+    }
+    
+    // Reset to first message when starting
+    this.currentFunnyMessage.set(0);
+    
+    // Rotate through messages every 2.5 seconds
+    this.messageTimer = setInterval(() => {
+      const nextIndex = (this.currentFunnyMessage() + 1) % this.funnyMessages.length;
+      this.currentFunnyMessage.set(nextIndex);
+    }, 2500);
+  }
+
+  // Stop rotating messages
+  private stopMessageRotation() {
+    if (this.messageTimer) {
+      clearInterval(this.messageTimer);
+      this.messageTimer = null;
+    }
+    if (this.messageRotationInterval) {
+      clearInterval(this.messageRotationInterval);
+      this.messageRotationInterval = null;
+    }
+    // Reset to first message
+    this.currentFunnyMessage.set(0);
   }
 
   async ngOnInit() {

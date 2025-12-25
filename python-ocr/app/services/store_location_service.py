@@ -144,8 +144,11 @@ class StoreLocationService:
         candidates = self._find_candidates(store_name_clean)
         
         if not candidates:
+            print(f"  ⚠️ StoreLocationService: No candidates found for '{store_name_clean}'")
             logger.info(f"No candidates found for store: {store_name_clean}")
             return None
+        
+        print(f"  🔍 StoreLocationService: Found {len(candidates)} candidates for '{store_name_clean}'")
         
         # Score each candidate
         scored_matches = []
@@ -169,6 +172,10 @@ class StoreLocationService:
                 })
         
         if not scored_matches:
+            print(f"  ⚠️ StoreLocationService: No matches >= {min_confidence} threshold for '{store_name_clean}'")
+            print(f"     Candidates scored but all below threshold:")
+            for candidate in candidates[:3]:  # Show top 3 for debugging
+                print(f"     - {candidate.get('branch_name')} (confidence would be calculated)")
             logger.info(f"No matches above confidence threshold {min_confidence} for: {store_name_clean}")
             return None
         
@@ -176,6 +183,7 @@ class StoreLocationService:
         scored_matches.sort(key=lambda x: x['confidence'], reverse=True)
         best_match = scored_matches[0]
         
+        print(f"  ✅ StoreLocationService: Best match for '{store_name_clean}': {best_match['branch_name']} (confidence: {best_match['confidence']:.2f})")
         logger.info(
             f"Best match for '{store_name_clean}': {best_match['branch_name']} "
             f"(confidence: {best_match['confidence']:.2f}, reason: {best_match['match_reason']})"
