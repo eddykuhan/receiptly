@@ -33,6 +33,7 @@ class AnalyzeRequest(BaseModel):
     extract_location: bool = True  # Flag to enable/disable location extraction
     auto_crop: bool = True  # Flag to enable/disable automatic receipt cropping
     crop_method: Literal["opencv", "azure_layout"] = "azure_layout"  # Cropping method
+    enable_llm_enhancement: bool = False  # NEW: Enable LLM post-processing for better accuracy
 
 
 @router.post("/analyze")
@@ -192,7 +193,134 @@ async def analyze_receipt(
                 "override_applied": location_data and location_data.get('success', False)
             })
         
-        # Step 7: Enhanced validation with confidence scoring
+        # Step 7: LLM Enhancement (OPTIONAL - controlled by enable_llm_enhancement flag)
+        llm_corrections = []
+        if request.enable_llm_enhancement:
+            print("🤖 LLM Enhancement enabled - improving Azure results...")
+            try:
+                llm_client = LlmServiceClient()
+                
+                print(f"  📊 Azure result before enhancement: {len(result.get('fields', {}).get('Items', {}).get('value', []))} items")
+                
+                # Send Azure result + original image to LLM for enhancement
+                enhancement = await llm_client.enhance_receipt(
+                    azure_result=result,
+                    image_bytes=original_uncropped_bytes,
+                    options={
+                        "expand_item_names": True,
+                        "add_missing_items": True,
+                        "remove_non_products": True,
+                        "fix_quantities": True,
+                        "validate_prices": True,
+                        "validate_total": True
+                    }
+                )
+                
+                print(f"  📦 Enhancement response received: {enhancement is not None}")
+                if enhancement:
+                    print(f"  📦 Enhancement keys: {list(enhancement.keys())}")
+                    print(f"  📦 Enhanced result present: {enhancement.get('enhanced_result') is not None}")
+                    if enhancement.get('enhanced_result'):
+                        enhanced_fields = enhancement['enhanced_result'].get('fields', {})
+                        print(f"  📦 Enhanced fields: {list(enhanced_fields.keys())}")
+                        if enhanced_fields.get('Items'):
+                            enhanced_items = enhanced_fields['Items'].get('value', [])
+                            print(f"  📦 Enhanced items count: {len(enhanced_items)}")
+                        else:
+                            print(f"  ⚠️ No Items field in enhanced fields")
+                
+                if enhancement and enhancement.get('enhanced_result'):
+                    enhanced_fields = enhancement['enhanced_result'].get('fields', {})
+                    
+                    # Only update if enhanced result has items
+                    if enhanced_fields.get('Items'):
+                        enhanced_items = enhanced_fields['Items'].get('value', [])
+                        if enhanced_items:  # Check if list is not empty
+                            # Merge enhanced items with Azure structure
+                            # The LLM returns simplified structure, but we need to maintain Azure's format
+                            azure_items = result['fields'].get('Items', {}).get('value', [])
+                            
+                            # Map enhanced items back to Azure format
+                            merged_items = []
+                            for i, enhanced_item in enumerate(enhanced_items):
+                                # Start with Azure structure if it exists for this index
+                                if i < len(azure_items):
+                                    azure_item = azure_items[i]
+                                    # Get the item dictionary from Azure structure
+                                    if azure_item.get('value_type') == 'dictionary' and azure_item.get('value'):
+                                        item_data = azure_item['value']
+                                    else:
+                                        item_data = {}
+                                    
+                                    # Update with enhanced values while preserving Azure metadata
+                                    if 'Description' in enhanced_item:
+                                        if 'Description' not in item_data:
+                                            item_data['Description'] = {}
+                                        item_data['Description']['value'] = enhanced_item['Description']['value']
+                                    
+                                    if 'Quantity' in enhanced_item:
+                                        if 'Quantity' not in item_data:
+                                            item_data['Quantity'] = {}
+                                        item_data['Quantity']['value'] = enhanced_item['Quantity']['value']
+                                    
+                                    if 'TotalPrice' in enhanced_item:
+                                        if 'TotalPrice' not in item_data:
+                                            item_data['TotalPrice'] = {}
+                                        item_data['TotalPrice']['value'] = enhanced_item['TotalPrice']['value']
+                                    
+                                    # Update the azure_item with merged data
+                                    azure_item['value'] = item_data
+                                    merged_items.append(azure_item)
+                                else:
+                                    # New item added by LLM - create Azure-compatible structure
+                                    merged_items.append({
+                                        "value_type": "dictionary",
+                                        "value": {
+                                            "Description": {
+                                                "value_type": "string",
+                                                "value": enhanced_item['Description']['value'],
+                                                "confidence": enhanced_item.get('confidence', 0.9)
+                                            },
+                                            "Quantity": {
+                                                "value_type": "float",
+                                                "value": enhanced_item['Quantity']['value'],
+                                                "confidence": enhanced_item.get('confidence', 0.9)
+                                            },
+                                            "TotalPrice": {
+                                                "value_type": "float",
+                                                "value": enhanced_item['TotalPrice']['value'],
+                                                "confidence": enhanced_item.get('confidence', 0.9)
+                                            }
+                                        },
+                                        "confidence": enhanced_item.get('confidence', 0.9)
+                                    })
+                            
+                            # Update result with merged items
+                            result['fields']['Items']['value'] = merged_items
+                            llm_corrections = enhancement.get('corrections', [])
+                            
+                            print(f"✨ LLM Enhancement: {len(llm_corrections)} corrections made")
+                            print(f"   - Items after enhancement: {len(merged_items)}")
+                            print(f"   - Items added: {enhancement.get('stats', {}).get('items_added', 0)}")
+                            print(f"   - Items removed: {enhancement.get('stats', {}).get('items_removed', 0)}")
+                            print(f"   - Confidence: {enhancement.get('overall_confidence', 0):.2%}")
+                            
+                            if debugger:
+                                debugger.save_json(enhancement, "06b_llm_enhancement")
+                        else:
+                            print("⚠️ LLM enhancement returned empty items list, keeping Azure results")
+                    else:
+                        print("⚠️ LLM enhancement returned no Items field, keeping Azure results")
+                else:
+                    print("⚠️ LLM enhancement returned no results")
+                    
+            except Exception as e:
+                print(f"❌ LLM enhancement failed: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                # Continue with Azure-only results
+        
+        # Step 8: Enhanced validation with confidence scoring
         validation_service = EnhancedValidationService()
         
         # Track which sources were used
@@ -201,6 +329,8 @@ async def analyze_receipt(
             sources_used.append("llm_vision")
         if location_data:
             sources_used.append("google_places")
+        if request.enable_llm_enhancement and llm_corrections:
+            sources_used.append("llm_enhancement")
         
         validation = validation_service.validate_receipt(
             azure_result=result,

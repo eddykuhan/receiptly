@@ -103,12 +103,14 @@ public class ReceiptProcessingService : IReceiptProcessingService
             cancellationToken.ThrowIfCancellationRequested();
 
             // Step 4: Call Python OCR service with the image URL
-            _logger.LogInformation("Step 4/9: Calling Python OCR service. ReceiptId: {ReceiptId}", receiptId);
+            _logger.LogInformation("Step 4/9: Calling Python OCR service with LLM enhancement enabled. ReceiptId: {ReceiptId}", receiptId);
             OcrApiResponse ocrResult;
             
             try
             {
-                ocrResult = await _ocrClient.AnalyzeReceiptAsync(imageUrl);
+                // Enable LLM enhancement for better accuracy
+                // LLM will improve: truncated names, missing items, remove non-products, fix prices
+                ocrResult = await _ocrClient.AnalyzeReceiptAsync(imageUrl, enableLlmEnhancement: true);
             }
             catch (Exception ex)
             {

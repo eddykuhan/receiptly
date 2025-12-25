@@ -51,8 +51,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'purchased-items',
-    loadComponent: () => import('./features/purchased-items/purchased-items.component').then(m => m.PurchasedItemsComponent),
+    path: 'purchase-history',
+    loadComponent: () => import('./features/purchase-history/purchase-history.component').then(m => m.PurchaseHistoryComponent),
     canActivate: [AuthGuard]
   },
   {
