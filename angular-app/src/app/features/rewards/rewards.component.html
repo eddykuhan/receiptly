@@ -115,24 +115,57 @@
                         }
                     </div>
                     
-                    <div class="space-y-2" [class.max-h-96]="!showAllTransactions() && recentTransactions().length > 5" [class.overflow-y-auto]="!showAllTransactions() && recentTransactions().length > 5">
-                        @for (transaction of showAllTransactions() ? recentTransactions() : recentTransactions().slice(0, 5); track transaction.id) {
-                            <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg hover:bg-base-300 transition">
-                                <div class="flex items-center gap-3">
-                                    <span class="material-icons" [class.text-success]="transaction.points > 0" [class.text-error]="transaction.points < 0">
-                                        {{ transaction.points > 0 ? 'add_circle' : 'remove_circle' }}
-                                    </span>
-                                    <div>
-                                        <div class="font-medium">{{ transaction.description }}</div>
-                                        <div class="text-xs text-base-content/60">{{ formatDate(transaction.earnedAt) }}</div>
+                    <ul class="timeline timeline-vertical timeline-snap-icon" [class.max-h-96]="!showAllTransactions() && recentTransactions().length > 5" [class.overflow-y-auto]="!showAllTransactions() && recentTransactions().length > 5">
+                        @for (transaction of showAllTransactions() ? recentTransactions() : recentTransactions().slice(0, 5); track transaction.id; let i = $index; let isEven = $even) {
+                            <li>
+                                @if (i > 0) {
+                                    <hr [class.bg-success]="transaction.points > 0" [class.bg-error]="transaction.points < 0" />
+                                }
+                                @if (isEven) {
+                                    <div class="timeline-start md:text-end mb-10">
+                                        <div class="text-sm font-medium">{{ transaction.description }}</div>
+                                        <div class="text-xs text-base-content/60 mt-0.5">{{ formatDate(transaction.earnedAt) }}</div>
                                     </div>
-                                </div>
-                                <div class="font-bold" [class.text-success]="transaction.points > 0" [class.text-error]="transaction.points < 0">
-                                    {{ transaction.points > 0 ? '+' : '' }}{{ transaction.points }} pts
-                                </div>
-                            </div>
+                                    <div class="timeline-middle">
+                                        <span class="material-icons text-base p-1.5 rounded-full" 
+                                            [class.bg-success]="transaction.points > 0" 
+                                            [class.bg-error]="transaction.points < 0"
+                                            [class.text-success-content]="transaction.points > 0"
+                                            [class.text-error-content]="transaction.points < 0">
+                                            {{ transaction.points > 0 ? 'add_circle' : 'remove_circle' }}
+                                        </span>
+                                    </div>
+                                    <div class="timeline-end timeline-box" [class.border-success]="transaction.points > 0" [class.border-error]="transaction.points < 0">
+                                        <div class="text-sm font-bold" [class.text-success]="transaction.points > 0" [class.text-error]="transaction.points < 0">
+                                            {{ transaction.points > 0 ? '+' : '' }}{{ transaction.points }} pts
+                                        </div>
+                                    </div>
+                                } @else {
+                                    <div class="timeline-start timeline-box" [class.border-success]="transaction.points > 0" [class.border-error]="transaction.points < 0">
+                                        <div class="text-sm font-bold" [class.text-success]="transaction.points > 0" [class.text-error]="transaction.points < 0">
+                                            {{ transaction.points > 0 ? '+' : '' }}{{ transaction.points }} pts
+                                        </div>
+                                    </div>
+                                    <div class="timeline-middle">
+                                        <span class="material-icons text-base p-1.5 rounded-full" 
+                                            [class.bg-success]="transaction.points > 0" 
+                                            [class.bg-error]="transaction.points < 0"
+                                            [class.text-success-content]="transaction.points > 0"
+                                            [class.text-error-content]="transaction.points < 0">
+                                            {{ transaction.points > 0 ? 'add_circle' : 'remove_circle' }}
+                                        </span>
+                                    </div>
+                                    <div class="timeline-end mb-10">
+                                        <div class="text-sm font-medium">{{ transaction.description }}</div>
+                                        <div class="text-xs text-base-content/60 mt-0.5">{{ formatDate(transaction.earnedAt) }}</div>
+                                    </div>
+                                }
+                                @if (i < (showAllTransactions() ? recentTransactions() : recentTransactions().slice(0, 5)).length - 1) {
+                                    <hr [class.bg-success]="transaction.points > 0" [class.bg-error]="transaction.points < 0" />
+                                }
+                            </li>
                         }
-                    </div>
+                    </ul>
                     
                     @if (!showAllTransactions() && recentTransactions().length > 5) {
                         <div class="text-center mt-3">
