@@ -20,7 +20,26 @@ import { LocationService } from '../../core/services/location.service';
         </div>
         <h1 class="text-5xl font-bold text-white drop-shadow-lg">cheap-sy</h1>
         <p class="text-xl text-white/90">Find the Best Deals</p>
-        <div class="flex items-center justify-center mt-8">
+        
+        <!-- Location Request Button for iOS -->
+        <div *ngIf="showLocationButton()" class="mt-8 px-4">
+          <button 
+            (click)="requestLocationPermission()"
+            [disabled]="locationService.isLoading()"
+            class="btn btn-lg bg-white text-primary hover:bg-white/90 border-none shadow-xl">
+            <span class="material-icons mr-2">my_location</span>
+            {{ locationService.isLoading() ? 'Getting Location...' : 'Enable Location' }}
+          </button>
+          <p class="text-sm text-white/80 mt-4 max-w-xs mx-auto">
+            Enable location to find the best deals near you
+          </p>
+          <p *ngIf="locationService.error()" class="text-sm text-error bg-white/20 p-2 rounded mt-2">
+            {{ locationService.error() }}
+          </p>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div *ngIf="!showLocationButton() || locationService.isLoading()" class="flex items-center justify-center mt-8">
           <span class="loading loading-dots loading-lg text-white"></span>
         </div>
       </div>
@@ -63,14 +82,15 @@ import { LocationService } from '../../core/services/location.service';
   `]
 })
 export class SignInComponent implements OnInit {
-  redirectUrl = '/dashboard';
   showSplash = signal(true);
+  showLocationButton = signal(false);
+  redirectUrl = '/dashboard';
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private authService: ClerkAuthService,
-    private locationService: LocationService
+    public locationService: LocationService
   ) {}
 
   ngOnInit(): void {
@@ -80,8 +100,16 @@ export class SignInComponent implements OnInit {
       }
     });
 
-    // Request location during splash screen
-    this.locationService.requestLocation();
+    // Check if we need to show location button (for iOS or if permission not requested)
+    // Show button after 1 second to let splash screen display
+    setTimeout(() => {
+      if (this.isIOS() && !this.locationService.wasPermissionRequested()) {
+        this.showLocationButton.set(true);
+      } else {
+        // For non-iOS, request automatically
+        this.requestLocationPermission();
+      }
+    }, 1000);
 
     // Show splash screen for 5 seconds before initializing Clerk
     setTimeout(() => {
@@ -91,6 +119,22 @@ export class SignInComponent implements OnInit {
         this.initializeClerkSignIn();
       }, 100);
     }, 5000);
+  }
+
+  /**
+   * Detect if running on iOS
+   */
+  private isIOS(): boolean {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  /**
+   * Request location permission - MUST be called from user interaction on iOS
+   */
+  async requestLocationPermission(): Promise<void> {
+    this.showLocationButton.set(false);
+    await this.locationService.requestLocation();
   }
 
   private async initializeClerkSignIn(): Promise<void> {

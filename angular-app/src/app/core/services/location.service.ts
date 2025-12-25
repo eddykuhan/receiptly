@@ -13,10 +13,19 @@ export class LocationService {
     userLocation = signal<UserLocation | null>(null);
     isLoading = signal(false);
     error = signal<string | null>(null);
+    private permissionRequested = false;
+
+    /**
+     * Detect if running on iOS
+     */
+    private isIOS(): boolean {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
 
     /**
      * Request user's location with timeout and error handling
-     * This should be called during app initialization (splash screen)
+     * On iOS, this MUST be called in response to a user interaction (e.g., button click)
      */
     async requestLocation(): Promise<UserLocation | null> {
         if (!navigator.geolocation) {
@@ -28,6 +37,10 @@ export class LocationService {
 
         this.isLoading.set(true);
         this.error.set(null);
+        this.permissionRequested = true;
+
+        const isIOS = this.isIOS();
+        const timeout = isIOS ? 30000 : APP_CONSTANTS.GEOLOCATION_TIMEOUT_MS; // iOS needs more time
 
         return new Promise((resolve) => {
             navigator.geolocation.getCurrentPosition(
@@ -43,27 +56,44 @@ export class LocationService {
                 },
                 (error) => {
                     let errorMsg = 'Unable to get location';
+                    let userFriendlyMsg = '';
+                    
                     if (error.code === 1) {
                         errorMsg = 'Location permission denied';
+                        if (isIOS) {
+                            userFriendlyMsg = 'Please enable location in Settings > Safari > Location';
+                        } else {
+                            userFriendlyMsg = 'Please enable location permission in your browser settings';
+                        }
                         console.log('❌ User denied location permission');
                     } else if (error.code === 2) {
                         errorMsg = 'Location unavailable';
+                        userFriendlyMsg = 'Location services unavailable. Please check your device settings.';
                         console.log('❌ Location unavailable');
                     } else if (error.code === 3) {
                         errorMsg = 'Location timeout';
+                        userFriendlyMsg = 'Location request timed out. Please try again.';
                         console.log('❌ Location request timeout');
                     }
-                    this.error.set(errorMsg);
+                    
+                    this.error.set(userFriendlyMsg || errorMsg);
                     this.isLoading.set(false);
                     resolve(null);
                 },
                 {
-                    enableHighAccuracy: true,
-                    timeout: APP_CONSTANTS.GEOLOCATION_TIMEOUT_MS,
-                    maximumAge: APP_CONSTANTS.GEOLOCATION_MAX_AGE_MS
+                    enableHighAccuracy: !isIOS, // iOS performs better with false
+                    timeout: timeout,
+                    maximumAge: isIOS ? 0 : APP_CONSTANTS.GEOLOCATION_MAX_AGE_MS // iOS needs fresh location
                 }
             );
         });
+    }
+
+    /**
+     * Check if permission has been requested
+     */
+    wasPermissionRequested(): boolean {
+        return this.permissionRequested;
     }
 
     /**

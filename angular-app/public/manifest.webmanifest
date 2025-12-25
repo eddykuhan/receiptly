@@ -8,6 +8,10 @@
   "scope": "./",
   "start_url": "./",
   "orientation": "portrait",
+  "permissions": [
+    "geolocation",
+    "camera"
+  ],
   "categories": [
     "finance",
     "productivity",
