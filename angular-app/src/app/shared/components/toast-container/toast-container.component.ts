@@ -20,6 +20,13 @@ import { ToastService } from '../../../core/services/toast.service';
               {{ getIcon(toast.type) }}
             </span>
             <span class="flex-1 break-words text-sm leading-tight">{{ toast.message }}</span>
+            @if (toast.action) {
+              <button 
+                class="btn btn-sm btn-primary shrink-0 hover:scale-105 transition-transform duration-200" 
+                (click)="handleAction(toast)">
+                {{ toast.action.label }}
+              </button>
+            }
             <button 
               class="btn btn-ghost btn-xs btn-circle shrink-0 hover:rotate-90 transition-transform duration-200" 
               (click)="toastService.remove(toast.id)">
@@ -92,6 +99,13 @@ export class ToastContainerComponent {
       case 'warning': return 'warning';
       case 'info': return 'info';
       default: return 'info';
+    }
+  }
+
+  handleAction(toast: any): void {
+    if (toast.action?.handler) {
+      toast.action.handler();
+      this.toastService.remove(toast.id);
     }
   }
 }

@@ -1,10 +1,16 @@
 import { Injectable, signal } from '@angular/core';
 
+export interface ToastAction {
+  label: string;
+  handler: () => void;
+}
+
 export interface Toast {
   id: number;
   message: string;
   type: 'success' | 'error' | 'warning' | 'info';
   duration?: number;
+  action?: ToastAction;
 }
 
 @Injectable({
@@ -38,15 +44,16 @@ export class ToastService {
     return message.substring(0, this.MAX_MESSAGE_LENGTH - 3) + '...';
   }
 
-  show(message: string, type: Toast['type'] = 'info', duration?: number): void {
+  show(message: string, type: Toast['type'] = 'info', options?: { duration?: number; action?: ToastAction }): void {
     const truncatedMessage = this.truncateMessage(message);
-    const calculatedDuration = duration ?? this.calculateDuration(truncatedMessage, 3000, 5000);
+    const calculatedDuration = options?.duration ?? this.calculateDuration(truncatedMessage, 3000, 5000);
     
     const toast: Toast = {
       id: this.nextId++,
       message: truncatedMessage,
       type,
-      duration: calculatedDuration
+      duration: calculatedDuration,
+      action: options?.action
     };
 
     this.toasts.update(toasts => [...toasts, toast]);
@@ -56,20 +63,32 @@ export class ToastService {
     }
   }
 
-  success(message: string, duration?: number): void {
-    this.show(message, 'success', duration ?? this.calculateDuration(message, 3000, 4000));
+  success(message: string, options?: { duration?: number; action?: ToastAction }): void {
+    this.show(message, 'success', { 
+      duration: options?.duration ?? this.calculateDuration(message, 3000, 4000),
+      action: options?.action
+    });
   }
 
-  error(message: string, duration?: number): void {
-    this.show(message, 'error', duration ?? this.calculateDuration(message, 4000, 6000));
+  error(message: string, options?: { duration?: number; action?: ToastAction }): void {
+    this.show(message, 'error', { 
+      duration: options?.duration ?? this.calculateDuration(message, 4000, 6000),
+      action: options?.action
+    });
   }
 
-  warning(message: string, duration?: number): void {
-    this.show(message, 'warning', duration ?? this.calculateDuration(message, 3500, 5000));
+  warning(message: string, options?: { duration?: number; action?: ToastAction }): void {
+    this.show(message, 'warning', { 
+      duration: options?.duration ?? this.calculateDuration(message, 3500, 5000),
+      action: options?.action
+    });
   }
 
-  info(message: string, duration?: number): void {
-    this.show(message, 'info', duration ?? this.calculateDuration(message, 3000, 4000));
+  info(message: string, options?: { duration?: number; action?: ToastAction }): void {
+    this.show(message, 'info', { 
+      duration: options?.duration ?? this.calculateDuration(message, 3000, 4000),
+      action: options?.action
+    });
   }
 
   remove(id: number): void {
