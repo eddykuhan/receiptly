@@ -1,11 +1,13 @@
 import config  # Load environment variables first
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from services.canonicalizer import canonicalize_item, canonicalize_batch
 from services.merchant import normalize_merchant
 from services.category import classify_category
 from services.cleaner import clean_receipt
 from services.location_selector import select_best_location
 from services.receipt_extractor import extract_merchant_from_image
+from services.receipt_enhancer import enhance_receipt_data
+import json
 
 app = FastAPI(
     title="Receiptly LLM Service",
@@ -79,5 +81,90 @@ async def api_extract_merchant(file: UploadFile = File(...)):
             "merchant_name": "",
             "merchant_address": "",
             "success": False,
+            "error": str(e)
+        }
+
+
+@app.post("/enhance_receipt")
+async def api_enhance_receipt(
+    file: UploadFile = File(...),
+    azure_result: str = Form(...),
+    options: str = Form(None)
+):
+    """
+    Enhance Azure Document Intelligence OCR results using GPT-4 Vision.
+    
+    This endpoint takes Azure OCR results + the original receipt image and uses
+    GPT-4 Vision to:
+    - Complete truncated item names
+    - Add missing items Azure didn't detect
+    - Remove non-product items (baskets, bags with $0.00)
+    - Validate and fix quantities/prices
+    - Ensure total matches item sum
+    
+    Args:
+        file: Original receipt image file
+        azure_result: JSON string of Azure Document Intelligence result
+        options: Optional JSON string of enhancement options
+        
+    Returns:
+        {
+            "enhanced_result": {...},  # Enhanced Azure result format
+            "corrections": [
+                {
+                    "field": "items[0].name",
+                    "original": "MILO ACT",
+                    "corrected": "MILO Activ-Go 1kg",
+                    "reason": "Expanded truncated name from image",
+                    "confidence": 0.95
+                }
+            ],
+            "overall_confidence": 0.92,
+            "requires_review": false,
+            "stats": {
+                "items_added": 0,
+                "items_removed": 1,
+                "corrections_made": 3
+            }
+        }
+    """
+    try:
+        print(f"📨 Received enhancement request")
+        print(f"  - Image size: {file.size if hasattr(file, 'size') else 'unknown'} bytes")
+        print(f"  - Azure result length: {len(azure_result)} chars")
+        
+        # Read image bytes
+        image_bytes = await file.read()
+        print(f"  - Image bytes read: {len(image_bytes)} bytes")
+        
+        # Parse JSON strings
+        azure_result_dict = json.loads(azure_result)
+        print(f"  - Azure result parsed successfully")
+        print(f"  - Azure items count: {len(azure_result_dict.get('fields', {}).get('Items', {}).get('value', []))}")
+        
+        options_dict = json.loads(options) if options else None
+        print(f"  - Options: {options_dict}")
+        
+        # Enhance receipt
+        print(f"  - Calling enhance_receipt_data...")
+        result = await enhance_receipt_data(azure_result_dict, image_bytes, options_dict)
+        
+        print(f"  ✅ Enhancement complete")
+        print(f"  - Result keys: {list(result.keys())}")
+        if result.get('enhanced_result'):
+            enhanced_items = result['enhanced_result'].get('fields', {}).get('Items', {}).get('value', [])
+            print(f"  - Enhanced items count: {len(enhanced_items)}")
+        
+        return result
+        
+    except Exception as e:
+        print(f"❌ Enhancement error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "enhanced_result": {},
+            "corrections": [],
+            "overall_confidence": 0.0,
+            "requires_review": True,
             "error": str(e)
         }

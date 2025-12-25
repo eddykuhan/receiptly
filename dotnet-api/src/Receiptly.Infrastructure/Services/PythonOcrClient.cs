@@ -19,9 +19,13 @@ public class PythonOcrClient
     /// <summary>
     /// Send image URL to Python OCR service for analysis
     /// </summary>
-    public async Task<OcrApiResponse> AnalyzeReceiptAsync(string imageUrl)
+    public async Task<OcrApiResponse> AnalyzeReceiptAsync(string imageUrl, bool enableLlmEnhancement = true)
     {
-        var request = new OcrRequest { ImageUrl = imageUrl };
+        var request = new OcrRequest 
+        { 
+            ImageUrl = imageUrl,
+            EnableLlmEnhancement = enableLlmEnhancement
+        };
         
         var response = await _httpClient.PostAsJsonAsync(
             $"{_ocrServiceUrl}/api/v1/ocr/analyze",
@@ -49,6 +53,9 @@ public class OcrRequest
 {
     [JsonPropertyName("image_url")]
     public string ImageUrl { get; set; } = string.Empty;
+    
+    [JsonPropertyName("enable_llm_enhancement")]
+    public bool EnableLlmEnhancement { get; set; } = true;
 }
 
 public class OcrApiResponse
