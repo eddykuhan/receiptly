@@ -6,6 +6,7 @@ import { PwaInstallPromptComponent } from './shared/components/pwa-install-promp
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 import { ThemeService } from './core/services/theme.service';
 import { ToastService } from './core/services/toast.service';
+import { PwaUpdateService } from './core/services/pwa-update.service';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,7 @@ export class App {
   // Inject theme service to initialize it on app startup
   private themeService = inject(ThemeService);
   private toastService = inject(ToastService);
+  private pwaUpdateService = inject(PwaUpdateService);  // Initialize PWA updates
   
   // Check if current route is an authentication page
   isAuthPage = computed(() => {
