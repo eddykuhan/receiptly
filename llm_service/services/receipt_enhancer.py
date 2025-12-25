@@ -148,6 +148,9 @@ class ReceiptEnhancer:
         # Extract key fields from Azure result
         fields = azure_result.get('fields', {})
         merchant = fields.get('MerchantName', {}).get('value', 'Unknown')
+        address = fields.get('MerchantAddress', {}).get('value', '')
+        phone = fields.get('MerchantPhoneNumber', {}).get('value', '')
+        transaction_date = fields.get('TransactionDate', {}).get('value', '')
         
         # Extract items
         items = fields.get('Items', {}).get('value', [])
@@ -163,6 +166,11 @@ class ReceiptEnhancer:
         prompt = f"""You are analyzing a receipt from "{merchant}".
 
 **AZURE OCR EXTRACTED:**
+Store: {merchant}
+Address: {address or "(not extracted)"}
+Phone: {phone or "(not extracted)"}
+Transaction Date: {transaction_date or "(not extracted)"}
+
 Items:
 {items_text or "  (no items detected)"}
 
@@ -171,6 +179,26 @@ Total: ${total:.2f}
 **YOUR TASK:**
 Compare the Azure extraction above with the actual receipt image and:
 
+"""
+        
+        if options.get("extract_location"):
+            prompt += """
+0. **EXTRACT STORE LOCATION**
+   - Find the FULL store name as written on the receipt (may differ from Azure)
+   - Extract the complete store address including street, city, state
+   - Extract phone number if visible
+   - Look at the header/footer of receipt for complete location info
+   - Be precise: Azure may have partial/incomplete location data
+"""
+        
+        if options.get("extract_transaction_date"):
+            prompt += """
+0b. **EXTRACT TRANSACTION DATE & TIME**
+   - Find the complete transaction date from the receipt
+   - Include time if visible (HH:MM format)
+   - Check bottom of receipt - dates are often printed there
+   - Format: YYYY-MM-DD HH:MM:SS (or just date if time unavailable)
+   - Azure may have missed this or have incomplete data
 """
         
         if options.get("expand_item_names"):
@@ -235,6 +263,10 @@ Compare the Azure extraction above with the actual receipt image and:
 **OUTPUT FORMAT (JSON ONLY):**
 ```json
 {
+  "merchant_name": "Full Store Name",
+  "merchant_address": "Complete address with street, city, state",
+  "merchant_phone": "Phone number if visible",
+  "transaction_datetime": "YYYY-MM-DD HH:MM:SS",
   "enhanced_items": [
     {
       "name": "MILO Activ-Go 1kg",
@@ -292,6 +324,21 @@ Return ONLY the JSON, no other text.
             print(f"🔍 Parsed JSON keys: {list(result.keys())}")
             print(f"🔍 Enhanced items in response: {len(result.get('enhanced_items', []))}")
             
+            # Extract location information from LLM
+            location_info = {}
+            if result.get('merchant_name'):
+                location_info['merchant_name'] = result['merchant_name']
+                print(f"🔍 Merchant name: {result['merchant_name']}")
+            if result.get('merchant_address'):
+                location_info['merchant_address'] = result['merchant_address']
+                print(f"🔍 Merchant address: {result['merchant_address']}")
+            if result.get('merchant_phone'):
+                location_info['merchant_phone'] = result['merchant_phone']
+                print(f"🔍 Merchant phone: {result['merchant_phone']}")
+            if result.get('transaction_datetime'):
+                location_info['transaction_datetime'] = result['transaction_datetime']
+                print(f"🔍 Transaction datetime: {result['transaction_datetime']}")
+            
             # Convert enhanced items back to Azure format
             enhanced_result = {
                 "fields": {
@@ -316,6 +363,7 @@ Return ONLY the JSON, no other text.
             
             return {
                 "enhanced_result": enhanced_result,
+                "location": location_info if location_info else None,
                 "corrections": result.get("corrections", []),
                 "overall_confidence": result.get("overall_confidence", 0.8),
                 "requires_review": result.get("requires_review", False),
