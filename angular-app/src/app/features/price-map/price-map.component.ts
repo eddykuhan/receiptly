@@ -9,6 +9,7 @@ import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
 import { LocationService } from '../../core/services/location.service';
+import { UserPreferencesService } from '../../core/services/user-preferences.service';
 
 @Component({
     selector: 'app-price-map',
@@ -19,6 +20,7 @@ import { LocationService } from '../../core/services/location.service';
 })
 export class PriceMapComponent implements OnInit, OnDestroy {
     private locationService = inject(LocationService);
+    private userPreferencesService = inject(UserPreferencesService);
     private map?: L.Map;
     private markers: L.Marker[] = [];
     private userMarker?: L.Marker;
@@ -195,10 +197,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }
 
         this.isLoading.set(true);
-        console.log(`🔍 Loading items within ${APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM}km...`);
+        const userSearchRadius = this.userPreferencesService.getSearchRadius();
+        console.log(`🔍 Loading items within ${userSearchRadius}km...`);
 
         try {
-            const radiusKm = this.distanceFilter() ?? APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM;
+            const radiusKm = this.distanceFilter() ?? userSearchRadius;
             const nearbyItems = await firstValueFrom(
                 this.priceMapService.getNearbyItems(userLoc.lat, userLoc.lon, radiusKm, this.daysFilter())
             );

@@ -92,28 +92,6 @@
                     </div>
                     }
                 </div>
-                
-                <!-- Distance filter -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs text-white/80">Distance:</span>
-                    <div class="btn-group btn-group-xs">
-                        <button class="btn btn-xs" 
-                            [class.btn-accent]="distanceFilter() === null"
-                            [class.btn-ghost]="distanceFilter() !== null"
-                            [class.text-white]="distanceFilter() !== null"
-                            (click)="onDistanceFilterChange(null)">All</button>
-                        <button class="btn btn-xs" 
-                            [class.btn-accent]="distanceFilter() === 5"
-                            [class.btn-ghost]="distanceFilter() !== 5"
-                            [class.text-white]="distanceFilter() !== 5"
-                            (click)="onDistanceFilterChange(5)">5km</button>
-                        <button class="btn btn-xs" 
-                            [class.btn-accent]="distanceFilter() === 10"
-                            [class.btn-ghost]="distanceFilter() !== 10"
-                            [class.text-white]="distanceFilter() !== 10"
-                            (click)="onDistanceFilterChange(10)">10km</button>
-                    </div>
-                </div>
             </div>
 
             @if (errorMessage()) {

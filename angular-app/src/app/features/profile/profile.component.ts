@@ -7,6 +7,7 @@ import { ReceiptService } from '../../core/services/receipt.service';
 import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { PointsService, UserPoints } from '../../core/services/points.service';
+import { UserPreferencesService } from '../../core/services/user-preferences.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
 import { Receipt } from '../../core/models/receipt.model';
@@ -42,6 +43,7 @@ interface UserProfile {
         language: string;
         currency: string;
         dateFormat: string;
+        searchRadiusKm: number;
     };
     notifications: {
         email: boolean;
@@ -72,6 +74,7 @@ export class ProfileComponent implements OnInit {
     private authService = inject(ClerkAuthService);
     private themeService = inject(ThemeService);
     private pointsService = inject(PointsService);
+    private userPreferencesService = inject(UserPreferencesService);
     private router = inject(Router);
 
     // Mock user profile data
@@ -100,7 +103,8 @@ export class ProfileComponent implements OnInit {
             theme: 'light',
             language: 'en',
             currency: 'MYR',
-            dateFormat: 'DD/MM/YYYY'
+            dateFormat: 'DD/MM/YYYY',
+            searchRadiusKm: 10
         },
         notifications: {
             email: true,
@@ -138,7 +142,26 @@ export class ProfileComponent implements OnInit {
             preferences: { ...p.preferences, theme: newTheme }
         }));
 
-        // TODO: In production, save theme preference to backend
+        // Update preferences service
+        this.userPreferencesService.updateTheme(newTheme);
+    }
+
+    updateSearchRadius(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const radiusKm = parseFloat(input.value);
+        
+        if (radiusKm >= 10 && radiusKm <= 100) {
+            // Update profile
+            this.profile.update(p => ({
+                ...p,
+                preferences: { ...p.preferences, searchRadiusKm: radiusKm }
+            }));
+            
+            // Update preferences service - this will save to localStorage and make it available immediately
+            this.userPreferencesService.updateSearchRadius(radiusKm);
+            
+            console.log(`Search radius updated to ${radiusKm}km`);
+        }
     }
 
     async signOut() {
@@ -176,6 +199,7 @@ export class ProfileComponent implements OnInit {
         this.loadData();
         this.loadPointsData();
         this.syncThemeWithProfile();
+        this.syncSearchRadiusWithProfile();
         
         // Subscribe to points updates
         this.pointsService.points$.subscribe(points => {
@@ -207,6 +231,17 @@ export class ProfileComponent implements OnInit {
         this.profile.update(p => ({
             ...p,
             preferences: { ...p.preferences, theme: currentTheme }
+        }));
+    }
+
+    /**
+     * Sync search radius from preferences service
+     */
+    private syncSearchRadiusWithProfile() {
+        const searchRadiusKm = this.userPreferencesService.getSearchRadius();
+        this.profile.update(p => ({
+            ...p,
+            preferences: { ...p.preferences, searchRadiusKm }
         }));
     }
 

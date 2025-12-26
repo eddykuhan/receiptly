@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { GeolocationUtil } from '../utils/geolocation.util';
 import { APP_CONSTANTS } from '../constants/app.constants';
+import { UserPreferencesService } from './user-preferences.service';
 
 export interface Deal {
     id: string;
@@ -49,6 +50,7 @@ interface PurchaseAnalyticsResponseDto {
 })
 export class DealService {
     private http = inject(HttpClient);
+    private userPreferencesService = inject(UserPreferencesService);
     private readonly analyticsUrl = `${environment.apiUrl}/analytics/purchases`;
 
     /**
@@ -181,9 +183,9 @@ export class DealService {
 
         // Sort by distance if location is available, otherwise by savings amount
         if (userLat && userLon) {
-            // Filter deals within configured radius (can be customized via user preferences)
+            // Filter deals within configured radius (customized via user preferences)
             // IMPORTANT: Only include deals that have valid store coordinates
-            const MAX_RADIUS_KM = APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM;
+            const MAX_RADIUS_KM = this.userPreferencesService.getSearchRadius();
             console.log(`Filtering deals with user location (${MAX_RADIUS_KM}km radius):`, { userLat, userLon, totalDeals: deals.length });
             const dealsWithDistance = deals.map(d => ({ name: d.productName, distance: d.distance, hasCoords: !!(d.latitude && d.longitude) }));
             console.log('Deals with distances:', dealsWithDistance);
