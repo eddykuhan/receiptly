@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { DealService, Deal } from '../../core/services/deal.service';
 import { LocationService } from '../../core/services/location.service';
+import { UserPreferencesService } from '../../core/services/user-preferences.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 
@@ -17,11 +18,12 @@ export class NearbyDealsComponent implements OnInit {
     private dealService = inject(DealService);
     private router = inject(Router);
     private locationService = inject(LocationService);
+    private userPreferencesService = inject(UserPreferencesService);
 
     deals = signal<Deal[]>([]);
     isLoading = signal(true);
     userLocation = computed(() => this.locationService.userLocation());
-    radius = 5; // 5km radius
+    radius = computed(() => this.userPreferencesService.getSearchRadius()); // Dynamic radius from user preferences
 
     ngOnInit() {
         // Location is already requested during splash screen
@@ -31,12 +33,13 @@ export class NearbyDealsComponent implements OnInit {
     loadNearbyDeals() {
         this.isLoading.set(true);
         const location = this.userLocation();
+        const searchRadius = this.radius();
 
         this.dealService.getHotDeals(location?.lat, location?.lon).subscribe({
             next: (deals) => {
-                // Filter deals within 5km if location is available
+                // Filter deals within user's configured radius if location is available
                 if (location) {
-                    this.deals.set(deals.filter(deal => deal.distance <= this.radius));
+                    this.deals.set(deals.filter(deal => deal.distance <= searchRadius));
                 } else {
                     this.deals.set(deals);
                 }
