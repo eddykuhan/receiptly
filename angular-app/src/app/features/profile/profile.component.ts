@@ -1,4 +1,4 @@
-import { Component, signal, ViewChild, inject, computed, OnInit } from '@angular/core';
+import { Component, signal, ViewChild, inject, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -61,7 +61,8 @@ interface UserProfile {
     standalone: true,
     imports: [CommonModule, FormsModule, RouterModule, MyrPipe, PullToRefreshComponent],
     templateUrl: './profile.component.html',
-    styleUrl: './profile.component.scss'
+    styleUrl: './profile.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileComponent implements OnInit {
     @ViewChild(PullToRefreshComponent) pullToRefresh?: PullToRefreshComponent;
@@ -151,16 +152,20 @@ export class ProfileComponent implements OnInit {
         const radiusKm = parseFloat(input.value);
         
         if (radiusKm >= 10 && radiusKm <= 100) {
-            // Update profile
-            this.profile.update(p => ({
-                ...p,
-                preferences: { ...p.preferences, searchRadiusKm: radiusKm }
-            }));
-            
-            // Update preferences service - this will save to localStorage and make it available immediately
-            this.userPreferencesService.updateSearchRadius(radiusKm);
-            
-            console.log(`Search radius updated to ${radiusKm}km`);
+            // Check if value actually changed to avoid unnecessary updates
+            const currentRadius = this.profile().preferences.searchRadiusKm;
+            if (currentRadius !== radiusKm) {
+                // Update profile
+                this.profile.update(p => ({
+                    ...p,
+                    preferences: { ...p.preferences, searchRadiusKm: radiusKm }
+                }));
+                
+                // Update preferences service - this will save to localStorage and make it available immediately
+                this.userPreferencesService.updateSearchRadius(radiusKm);
+                
+                console.log(`Search radius updated to ${radiusKm}km`);
+            }
         }
     }
 
