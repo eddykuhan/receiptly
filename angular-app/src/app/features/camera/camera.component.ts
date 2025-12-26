@@ -55,7 +55,7 @@ export class CameraComponent {
   toastType = signal<'success' | 'error'>('success');
 
   // Processing options
-  autoCrop = signal(false);
+  autoCrop = signal(true); // Auto crop enabled by default
 
   // Editing state
   isEditing = signal(false);

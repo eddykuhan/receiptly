@@ -81,27 +81,16 @@
     }
 
     <!-- Processing Options -->
-    @if (opencvLoaded()) {
+    <!-- @if (opencvLoaded()) {
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
         <h2 class="card-title flex items-center gap-2 text-base">
           <span class="material-icons">tune</span>
           Image Processing
         </h2>
-
-        <div class="form-control">
-          <label class="label cursor-pointer">
-            <span class="label-text flex flex-col">
-              <span class="font-medium">Auto-Crop Receipt</span>
-              <span class="text-xs text-base-content/60">Automatically detect and crop receipt boundaries</span>
-            </span>
-            <input type="checkbox" class="toggle toggle-primary" [checked]="autoCrop()"
-              (change)="autoCrop.set($any($event.target).checked)" />
-          </label>
-        </div>
       </div>
     </div>
-    }
+    } -->
 
     <div class="flex flex-col gap-4">
       <button class="btn btn-primary btn-lg w-full shadow-lg gap-2" (click)="startCamera()">
@@ -114,10 +103,10 @@
         Upload from Gallery
       </button>
 
-      <button class="btn btn-ghost btn-sm w-full gap-2 text-base-content/60" (click)="takePhotoNative()">
+      <!-- <button class="btn btn-ghost btn-sm w-full gap-2 text-base-content/60" (click)="takePhotoNative()">
         <span class="material-icons text-sm">camera</span>
         Use Native Camera
-      </button>
+      </button> -->
     </div>
 
     <div class="alert bg-base-200 border-none">
