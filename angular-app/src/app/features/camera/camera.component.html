@@ -15,21 +15,50 @@
     <div class="card-body items-center text-center py-12">
       <!-- Animated Icon -->
       <div class="relative w-24 h-24 mb-6">
+        @if (hasOngoingUploads()) {
         <div class="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
         <div class="absolute inset-2 bg-primary/30 rounded-full animate-pulse"></div>
+        }
         <div class="absolute inset-0 flex items-center justify-center bg-base-100 rounded-full m-1">
-          <span class="material-icons text-5xl text-primary">receipt_long</span>
+          <span class="material-icons text-5xl" [class.text-primary]="hasOngoingUploads()"
+            [class.text-error]="!hasOngoingUploads()">
+            {{ hasOngoingUploads() ? 'receipt_long' : 'error_outline' }}
+          </span>
         </div>
       </div>
 
-      <h2 class="text-2xl font-bold mb-2">Processing Receipt</h2>
+      <h2 class="text-2xl font-bold mb-2">
+        {{ hasOngoingUploads() ? 'Processing Receipt' : 'Attention Needed' }}
+      </h2>
       <p class="text-base-content/60 max-w-xs mx-auto">
-        We're extracting the details from your receipt. This keeps your spending history accurate!
+        {{ hasOngoingUploads() ? "We're extracting the details from your receipt. This keeps your spending history
+        accurate!" : "Some uploads could not be processed. Please review the errors below." }}
       </p>
 
       <!-- Active Uploads List -->
       <div class="w-full max-w-sm mt-8 space-y-3">
         @for (upload of activeUploads(); track upload.id) {
+        @if (upload.status === 'error') {
+        <!-- Error State (DaisyUI enhanced) -->
+        <div class="alert alert-error shadow-lg animate-in slide-in-from-top-2 fade-in">
+          <span class="material-icons text-2xl">error_outline</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-error-content text-sm mb-1">Upload Failed</div>
+            <div class="text-xs text-error-content/80 break-words mb-3">{{ upload.error || 'Unknown error occurred' }}</div>
+            <div class="flex gap-2 mt-2">
+              <button class="btn btn-xs btn-error gap-1 hover:btn-error-focus transition-colors" (click)="retryUpload(upload.id)">
+                <span class="material-icons text-xs">refresh</span>
+                Retry
+              </button>
+              <button class="btn btn-xs btn-ghost gap-1 text-error-content/70 hover:bg-error-content/10 transition-colors" (click)="dismissUpload(upload.id)">
+                <span class="material-icons text-xs">close</span>
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+        } @else {
+        <!-- Processing State -->
         <div class="flex items-center gap-3 bg-base-200/50 p-3 rounded-lg border border-base-300 animate-pulse">
           <span class="loading loading-spinner loading-sm text-primary"></span>
           <div class="flex-1 text-left overflow-hidden">
@@ -38,11 +67,14 @@
           </div>
         </div>
         }
+        }
       </div>
 
+      @if (hasOngoingUploads()) {
       <div class="mt-8 text-xs text-base-content/40">
         You can navigate away, we'll notify you when it's done.
       </div>
+      }
     </div>
   </div>
   } @else {

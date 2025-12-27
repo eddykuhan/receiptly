@@ -65,7 +65,10 @@ export class ReceiptService {
    */
   uploadReceipt(imageFile: File | Blob, filename: string): Observable<UploadReceiptResponse> {
     const formData = new FormData();
-    formData.append('file', imageFile, filename);
+    // Sanitize filename to ensure it only contains ASCII characters (prevents Kestrel header errors)
+    // Replace non-ASCII chars with underscores
+    const safeFilename = filename.replace(/[^\x00-\x7F]/g, '_');
+    formData.append('file', imageFile, safeFilename);
     const apiUrl = `${this.API_URL}/upload`;
     this.logger.info('Uploading receipt', { filename, size: imageFile.size });
     return this.http.post<Receipt>(apiUrl, formData).pipe(

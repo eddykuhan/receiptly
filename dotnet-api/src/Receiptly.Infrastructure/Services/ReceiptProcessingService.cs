@@ -343,7 +343,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
             ImageUrl = imageUrl,
             OriginalFileName = filename,
             S3Key = $"users/{userId}/receipts/{now:yyyy}/{now:MM}/{now:dd}/{receiptId}/{filename}",
-            OcrProvider = "Azure Document Intelligence + Tesseract",
+            OcrProvider = "Azure Document Intelligence + GPT-4.1 Vision",
             OcrConfidence = ocrResponse.Confidence,
             CreatedAt = DateTime.UtcNow,
             Status = Receiptly.Domain.Enums.ReceiptStatus.PendingValidation

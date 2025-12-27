@@ -12,6 +12,7 @@ export interface ProcessingItem {
     progress: number;
     error?: string;
     receipt?: Receipt;
+    blob?: Blob;
 }
 
 export interface UploadEvent {
@@ -35,7 +36,7 @@ export class ReceiptProcessingService {
 
     // Public signals
     activeUploads = computed(() => this._activeUploads());
-    isProcessing = computed(() => this._activeUploads().length > 0);
+    isProcessing = computed(() => this._activeUploads().some(u => u.status === 'uploading' || u.status === 'processing'));
     uploadEvents$ = computed(() => this._uploadEvents());
 
     /**
@@ -45,24 +46,28 @@ export class ReceiptProcessingService {
         const tempId = `temp_${Date.now()}`;
 
         // Add to active uploads
-        this.addUpload(tempId, filename);
+        this.addUpload(tempId, filename, blob);
 
         // Show initial toast
         this.toastService.show(`Uploading ${filename}...`, 'info');
 
+        this.startUpload(tempId, blob, filename);
+    }
+
+    private startUpload(id: string, blob: Blob, filename: string) {
         // Start upload
         this.receiptService.uploadReceipt(blob, filename).subscribe({
             next: (response) => {
                 if (response.success && response.receipt) {
-                    this.completeUpload(tempId, response.receipt);
+                    this.completeUpload(id, response.receipt);
                     this.toastService.show('Receipt processed successfully!', 'success');
-                    
+
                     // Refresh points balance after successful upload (with delay to ensure backend awarded points)
                     setTimeout(() => {
                         this.pointsService.refreshBalance();
                         this.checkForFirstUpload();
                     }, 1000);
-                    
+
                     // Redirect to receipt detail page for review and correction
                     setTimeout(() => {
                         this.router.navigate(['/receipt', response.receipt!.id], {
@@ -73,7 +78,7 @@ export class ReceiptProcessingService {
             },
             error: (error) => {
                 const errorMessage = error.error || 'Failed to upload receipt';
-                this.failUpload(tempId, errorMessage);
+                this.failUpload(id, errorMessage);
 
                 if (error.existingReceiptId) {
                     this.toastService.warning('Receipt already exists');
@@ -88,14 +93,38 @@ export class ReceiptProcessingService {
         });
     }
 
-    private addUpload(id: string, filename: string) {
+    /**
+     * Retry a failed upload
+     */
+    retryUpload(id: string) {
+        const item = this._activeUploads().find(u => u.id === id);
+        if (item && item.status === 'error' && item.blob) {
+            // Reset status
+            this._activeUploads.update(uploads =>
+                uploads.map(u => u.id === id ? { ...u, status: 'uploading', error: undefined, progress: 0 } : u)
+            );
+
+            // Retry
+            this.startUpload(id, item.blob, item.filename);
+        }
+    }
+
+    /**
+     * Dismiss a failed upload card
+     */
+    dismissUpload(id: string) {
+        this._activeUploads.update(uploads => uploads.filter(u => u.id !== id));
+    }
+
+    private addUpload(id: string, filename: string, blob: Blob) {
         this._activeUploads.update(uploads => [
             ...uploads,
             {
                 id,
                 filename,
                 status: 'uploading',
-                progress: 0
+                progress: 0,
+                blob
             }
         ]);
     }
@@ -106,9 +135,10 @@ export class ReceiptProcessingService {
     }
 
     private failUpload(id: string, error: string) {
-        // Remove from active list (or keep with error state if we want to show a list of failures)
-        // For now, removing and relying on toast
-        this._activeUploads.update(uploads => uploads.filter(u => u.id !== id));
+        // Update status to error instead of removing
+        this._activeUploads.update(uploads =>
+            uploads.map(u => u.id === id ? { ...u, status: 'error', error } : u)
+        );
     }
 
     private checkForFirstUpload() {

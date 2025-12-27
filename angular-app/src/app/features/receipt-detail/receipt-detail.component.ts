@@ -269,17 +269,8 @@ export class ReceiptDetailComponent implements OnInit {
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    const isNewUpload = this.route.snapshot.queryParamMap.get('new') === 'true';
-    
     if (id) {
       this.loadReceipt(id);
-      
-      // Auto-open feedback modal for new uploads after a short delay
-      if (isNewUpload) {
-        setTimeout(() => {
-          this.openFeedbackModal();
-        }, 800);
-      }
     } else {
       this.isLoading.set(false);
     }
@@ -321,7 +312,7 @@ export class ReceiptDetailComponent implements OnInit {
 
     // Update the receipt data immediately with the corrected value
     const updatedReceipt = { ...currentReceipt };
-    
+
     if (correction.fieldName === 'StoreName') {
       updatedReceipt.storeName = correction.correctedValue;
     } else if (correction.fieldName === 'TotalAmount') {
@@ -354,7 +345,7 @@ export class ReceiptDetailComponent implements OnInit {
 
     // Update the signal to trigger UI refresh
     this.receipt.set(updatedReceipt);
-    
+
     // Update the receipt service cache
     this.receiptService.updateLocalReceipt(updatedReceipt);
   }

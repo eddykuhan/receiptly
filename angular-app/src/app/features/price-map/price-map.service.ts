@@ -237,13 +237,15 @@ export class PriceMapService {
                 latitude,
                 longitude
             };
+            const itemName = (item.canonicalName || item.itemName || '').trim();
 
             const existing = storeMap.get(key);
             if (!existing) {
                 storeMap.set(key, {
                     store: storeLocation,
                     price: finalPrice,
-                    lastPurchaseDate: purchaseDate
+                    lastPurchaseDate: purchaseDate,
+                    itemName: itemName || undefined
                 });
             } else {
                 // If same store and date, take minimum price
@@ -253,7 +255,8 @@ export class PriceMapService {
                     store: storeLocation,
                     price: updatedPrice,
                     lastPurchaseDate: purchaseDate,
-                    distance: existing.distance
+                    distance: existing.distance,
+                    itemName: existing.itemName || itemName || undefined
                 });
             }
         });

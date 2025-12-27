@@ -27,8 +27,28 @@ class EnhancedValidationService:
     SUSPICIOUS_AMOUNTS = [999.99, 9999.99, 0.00]
     MAX_REASONABLE_TOTAL = 10000.00  # $10k per receipt
     
+    # Non-receipt keywords (Bank Slips, Payment Proofs)
+    NON_RECEIPT_KEYWORDS = [
+        "transfer successful", "payment successful", "duitnow", "jompay", 
+        "interbank giro", "instant transfer", "fund transfer", 
+        "payment advice", "transaction advice", "reference id", 
+        "recipient reference", "beneficiary name", "account number"
+    ]
+    
     def __init__(self):
         self.start_time = None
+        
+    def _check_is_bank_slip(self, content: str) -> bool:
+        """Check if content contains bank slip keywords."""
+        if not content:
+            return False
+        
+        content_lower = content.lower()
+        # Count how many keywords appear
+        matches = sum(1 for keyword in self.NON_RECEIPT_KEYWORDS if keyword in content_lower)
+        
+        # If 2 or more keywords match, it's likely a bank slip
+        return matches >= 1
     
     def validate_receipt(
         self,
@@ -113,6 +133,68 @@ class EnhancedValidationService:
         # Check if receipt type is valid
         is_valid = 'receipt' in doc_type.lower() and doc_confidence >= 0.5
         
+        # Check for bank slip / non-receipt keywords
+        is_bank_slip = self._check_is_bank_slip(azure_result.get('content', ''))
+        
+        if is_bank_slip:
+            issues.append(ValidationIssue(
+                field="doc_type",
+                issue_type="invalid_type",
+                severity="error",
+                message="Document appears to be a bank transfer/payment slip, not a receipt",
+                confidence=1.0,
+                suggested_action="Please upload a retail receipt with line items"
+            ))
+            # Force invalid
+            is_valid = False
+            overall_conf = 0.1
+            conf_level = ConfidenceLevel.VERY_LOW
+        
+        # Enforce item presence for valid receipts
+        items_count = len(fields.get('Items', {}).get('value', [])) if isinstance(fields.get('Items', {}), dict) else 0
+        if is_valid and items_count == 0:
+            # If no items but seemingly valid, downgrade confidence significantly
+            # Unless it's a very clear single-amount receipt (e.g. Taxi) but even then usually has 1 item
+            issues.append(ValidationIssue(
+                field="items",
+                issue_type="missing_critical",
+                severity="error",
+                message="No line items detected. Valid receipts must list purchased items.",
+                confidence=0.8,
+                suggested_action="Ensure the photo captures the list of items purchased"
+            ))
+            # Downgrade to require review, but maybe not fully invalid if we are unsure
+            overall_conf = min(overall_conf, 0.4)
+            conf_level = ConfidenceLevel.LOW
+            requires_review = True
+            is_valid = False # Treat 0 items as invalid for now to strict block bank slips
+
+        if 'forgery_analysis' in azure_result:
+            forgery_data = azure_result['forgery_analysis']
+            is_forged = forgery_data.get('is_suspicious', False)
+            forgery_conf = forgery_data.get('risk_score', 0.0)
+            
+            # Add flags as issues
+            for flag in forgery_data.get('flags', []):
+                issues.append(ValidationIssue(
+                    field="image",
+                    issue_type="suspicious",
+                    severity="warning" if forgery_conf < 0.8 else "error",
+                    message=f"Potential Manipulation: {flag}",
+                    confidence=forgery_conf,
+                    suggested_action="Verify if this is an original photo"
+                ))
+                
+            # If high risk, lower confidence
+            if is_forged and forgery_conf > 0.7:
+                 # Cap overall confidence if likely forged
+                overall_conf = min(overall_conf, 0.45) # Force LOW/VERY_LOW
+                conf_level = self._get_confidence_level(overall_conf)
+                requires_review = True
+        else:
+            is_forged = False
+            forgery_conf = 0.0
+
         return ReceiptValidation(
             is_valid_receipt=is_valid,
             confidence_level=conf_level,
@@ -127,7 +209,10 @@ class EnhancedValidationService:
             processing_time_ms=processing_time,
             sources_used=sources_used,
             confidence_message=confidence_msg,
-            next_steps=next_steps
+            next_steps=next_steps,
+            is_forged=is_forged,
+            forgery_confidence=forgery_conf,
+            forgery_reason=str(next((i.message for i in issues if i.issue_type == "suspicious"), "")) if is_forged else None
         )
     
     def _get_field_confidence(

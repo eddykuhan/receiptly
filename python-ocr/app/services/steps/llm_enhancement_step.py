@@ -69,6 +69,10 @@ class LLMEnhancementStep:
                 debugger
             )
             
+            # Step 7c: Propagate forgery analysis
+            if 'forgery_analysis' in enhancement:
+                result['forgery_analysis'] = enhancement['forgery_analysis']
+            
             return result
             
         except Exception as e:
