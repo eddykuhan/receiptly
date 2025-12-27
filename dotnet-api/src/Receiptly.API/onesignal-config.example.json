@@ -1,0 +1,11 @@
+{
+  "OneSignal": {
+    "AppId": "YOUR_ONESIGNAL_APP_ID",
+    "RestApiKey": "YOUR_ONESIGNAL_REST_API_KEY",
+    "Enabled": true
+  },
+  "AWS": {
+    "Region": "us-east-1",
+    "OneSignalSecretId": "receiptly/onesignal/credentials"
+  }
+}

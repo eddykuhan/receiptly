@@ -427,6 +427,46 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Configure OneSignal Push Notification service
+    /// </summary>
+    public static IServiceCollection AddNotificationService(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Try to retrieve OneSignal credentials from AWS Secrets Manager
+        try
+        {
+            var oneSignalSecretId = configuration["AWS:OneSignalSecretId"] ?? "receiptly/onesignal/credentials";
+            var region = configuration["AWS:Region"] ?? "us-east-1";
+
+            Log.Information("Retrieving OneSignal credentials from Secrets Manager: {SecretId}", oneSignalSecretId);
+
+            using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
+            var oneSignalSecretResponse = secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+            {
+                SecretId = oneSignalSecretId
+            }).Result;
+
+            var oneSignalConfig = JsonSerializer.Deserialize<OneSignalSecretsConfig>(oneSignalSecretResponse.SecretString)
+                ?? throw new InvalidOperationException("Failed to deserialize OneSignal credentials from Secrets Manager");
+
+            // Override appsettings with Secrets Manager values
+            configuration["OneSignal:AppId"] = oneSignalConfig.AppId;
+            configuration["OneSignal:RestApiKey"] = oneSignalConfig.RestApiKey;
+
+            Log.Information("Successfully retrieved OneSignal credentials from Secrets Manager");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to retrieve OneSignal credentials from Secrets Manager. Falling back to appsettings.json");
+            // Fall back to appsettings.json for local development
+        }
+
+        // Register OneSignal notification service
+        services.AddSingleton<INotificationService, OneSignalNotificationService>();
+
+        return services;
+    }
+
     private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
         return HttpPolicyExtensions

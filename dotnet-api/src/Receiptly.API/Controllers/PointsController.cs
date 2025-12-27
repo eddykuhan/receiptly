@@ -9,11 +9,13 @@ namespace Receiptly.API.Controllers;
 public class PointsController : ControllerBase
 {
     private readonly IPointsService _pointsService;
+    private readonly INotificationService _notificationService;
     private readonly ILogger<PointsController> _logger;
 
-    public PointsController(IPointsService pointsService, ILogger<PointsController> logger)
+    public PointsController(IPointsService pointsService, INotificationService notificationService, ILogger<PointsController> logger)
     {
         _pointsService = pointsService;
+        _notificationService = notificationService;
         _logger = logger;
     }
 

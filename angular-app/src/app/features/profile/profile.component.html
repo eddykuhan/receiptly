@@ -208,6 +208,30 @@
                             </div>
                         </div>
 
+                        <!-- Push Notifications -->
+                        <div
+                            class="flex items-center justify-between p-2 hover:bg-base-200 rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <span class="material-icons text-base-content/70">notifications</span>
+                                <div>
+                                    <span class="block">Push Notifications</span>
+                                    <span class="text-xs text-base-content/60">
+                                        @if (notificationState().permission === 'denied') {
+                                        Blocked - Enable in browser settings
+                                        } @else if (notificationState().permission === 'default') {
+                                        Get notified about deals and updates
+                                        } @else {
+                                        Receive updates and price alerts
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            <input type="checkbox" class="toggle toggle-primary"
+                                [checked]="notificationState().subscribed"
+                                [disabled]="notificationState().permission === 'denied'"
+                                (change)="toggleNotifications()" />
+                        </div>
+
                         <!-- Sign Out -->
                         <button
                             class="btn btn-ghost w-full justify-start gap-3 font-normal text-error hover:bg-error/10"

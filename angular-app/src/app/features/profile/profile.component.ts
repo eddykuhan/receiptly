@@ -1,4 +1,4 @@
-import { Component, signal, ViewChild, inject, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, ViewChild, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -8,6 +8,7 @@ import { ClerkAuthService } from '../../core/services/clerk-auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { PointsService, UserPoints } from '../../core/services/points.service';
 import { UserPreferencesService } from '../../core/services/user-preferences.service';
+import { PushNotificationService } from '../../core/services/push-notification.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
 import { Receipt } from '../../core/models/receipt.model';
@@ -19,40 +20,9 @@ interface UserProfile {
     avatar?: string;
     phone?: string;
     memberSince: Date;
-    authProvider: 'google' | 'apple';
-    linkedAccounts: {
-        google?: {
-            email: string;
-            linkedAt: Date;
-            isPrimary: boolean;
-        };
-        apple?: {
-            email: string;
-            linkedAt: Date;
-            isPrimary: boolean;
-        };
-    };
-    stats: {
-        totalReceipts: number;
-        totalSaved: number;
-        uniqueStores: number;
-        avgReceiptValue: number;
-    };
     preferences: {
         theme: 'light' | 'dark';
-        language: string;
-        currency: string;
-        dateFormat: string;
         searchRadiusKm: number;
-    };
-    notifications: {
-        email: boolean;
-        priceDrops: boolean;
-        weeklySummary: boolean;
-        rewards: boolean;
-    };
-    security: {
-        twoFactorEnabled: boolean;
     };
 }
 
@@ -76,45 +46,21 @@ export class ProfileComponent implements OnInit {
     private themeService = inject(ThemeService);
     private pointsService = inject(PointsService);
     private userPreferencesService = inject(UserPreferencesService);
+    private pushNotificationService = inject(PushNotificationService);
     private router = inject(Router);
 
-    // Mock user profile data
+    // Notification state
+    notificationState = this.pushNotificationService.notificationState;
+
+    // User profile - initialized from Clerk auth service
     profile = signal<UserProfile>({
-        id: 'user-123',
-        name: 'John Doe',
-        email: 'john.doe@gmail.com',
-        avatar: undefined,
-        phone: '+60 12-345 6789',
-        memberSince: new Date('2024-01-15'),
-        authProvider: 'google',
-        linkedAccounts: {
-            google: {
-                email: 'john.doe@gmail.com',
-                linkedAt: new Date('2024-01-15'),
-                isPrimary: true
-            }
-        },
-        stats: {
-            totalReceipts: 125,
-            totalSaved: 450.50,
-            uniqueStores: 8,
-            avgReceiptValue: 35.20
-        },
+        id: '',
+        name: '',
+        email: '',
+        memberSince: new Date(),
         preferences: {
             theme: 'light',
-            language: 'en',
-            currency: 'MYR',
-            dateFormat: 'DD/MM/YYYY',
             searchRadiusKm: 10
-        },
-        notifications: {
-            email: true,
-            priceDrops: true,
-            weeklySummary: false,
-            rewards: true
-        },
-        security: {
-            twoFactorEnabled: false
         }
     });
 
@@ -182,9 +128,39 @@ export class ProfileComponent implements OnInit {
         }
     }
 
+    async toggleNotifications() {
+        const state = this.notificationState();
+        
+        try {
+            if (state.permission === 'default') {
+                // Request permission
+                console.log('Requesting notification permission...');
+                const granted = await this.pushNotificationService.requestPermission();
+                if (granted) {
+                    await this.pushNotificationService.subscribe();
+                    console.log('Notifications enabled and persisted to localStorage');
+                } else {
+                    console.log('Notification permission denied');
+                }
+            } else if (state.permission === 'granted') {
+                // Toggle subscription
+                if (state.subscribed) {
+                    await this.pushNotificationService.unsubscribe();
+                    console.log('Notifications disabled and persisted to localStorage');
+                } else {
+                    await this.pushNotificationService.subscribe();
+                    console.log('Notifications enabled and persisted to localStorage');
+                }
+            }
+        } catch (error) {
+            console.error('Error toggling notifications:', error);
+            alert('Failed to update notification settings. Please try again.');
+        }
+    }
+
     navigateToPurchasedItems(event: Event) {
-        event.stopPropagation(); // Prevent navigation to receipt detail
-        event.preventDefault(); // Prevent default link behavior
+        event.stopPropagation();
+        event.preventDefault();
         this.router.navigate(['/purchased-items']);
     }
 
@@ -203,8 +179,23 @@ export class ProfileComponent implements OnInit {
         this.initializeUserProfile();
         this.loadData();
         this.loadPointsData();
-        this.syncThemeWithProfile();
-        this.syncSearchRadiusWithProfile();
+        
+        // Sync theme
+        const currentTheme = this.themeService.getCurrentTheme();
+        this.profile.update(p => ({
+            ...p,
+            preferences: { ...p.preferences, theme: currentTheme }
+        }));
+        
+        // Sync search radius
+        const searchRadiusKm = this.userPreferencesService.getSearchRadius();
+        this.profile.update(p => ({
+            ...p,
+            preferences: { ...p.preferences, searchRadiusKm }
+        }));
+        
+        // Refresh notification state to sync with browser permissions
+        this.pushNotificationService.refreshNotificationState();
         
         // Subscribe to points updates
         this.pointsService.points$.subscribe(points => {
@@ -226,28 +217,6 @@ export class ProfileComponent implements OnInit {
                 console.error('Error loading points data:', error);
             }
         });
-    }
-
-    /**
-     * Sync theme service with profile preferences
-     */
-    private syncThemeWithProfile() {
-        const currentTheme = this.themeService.getCurrentTheme();
-        this.profile.update(p => ({
-            ...p,
-            preferences: { ...p.preferences, theme: currentTheme }
-        }));
-    }
-
-    /**
-     * Sync search radius from preferences service
-     */
-    private syncSearchRadiusWithProfile() {
-        const searchRadiusKm = this.userPreferencesService.getSearchRadius();
-        this.profile.update(p => ({
-            ...p,
-            preferences: { ...p.preferences, searchRadiusKm }
-        }));
     }
 
     /**
@@ -303,34 +272,20 @@ export class ProfileComponent implements OnInit {
     }
 
     async deleteReceipt(receipt: any, event?: Event) {
-        // Prevent navigation if it was a click on the swipe action
         if (event) {
             event.stopPropagation();
         }
 
         if (!confirm('Are you sure you want to delete this receipt?')) {
-            // Reset swipe state if we implemented it via JS, 
-            // but with CSS scroll snap, the user just scrolls back.
-            // If we want to force close, we can use ViewChild references, 
-            // but for now simple confirm is fine.
             return;
         }
 
         try {
-            // Optimistic update
-            const oldReceipts = this.receipts();
             this.receipts.update(current => current.filter(r => r.id !== receipt.id));
-
             await firstValueFrom(this.receiptService.deleteReceipt(receipt.id));
-
-            // Recalculate stats
-            // Note: Computed signals update automatically when receipts signal changes
             console.log('Receipt deleted successfully');
         } catch (error) {
             console.error('Error deleting receipt:', error);
-            // Revert on error
-            // This is a bit complex with signals without storing 'oldReceipts' in a wider scope 
-            // or reloading. For now simple reload on error.
             this.receiptService.loadReceipts();
             alert('Failed to delete receipt. Please try again.');
         }

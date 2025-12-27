@@ -17,6 +17,7 @@ public class ReceiptsController : ControllerBase
     private readonly IReceiptService _receiptService;
     private readonly FileValidationService _fileValidationService;
     private readonly IPointsService _pointsService;
+    private readonly INotificationService _notificationService;
     private readonly IMapper _mapper;
     private readonly ILogger<ReceiptsController> _logger;
 
@@ -25,6 +26,7 @@ public class ReceiptsController : ControllerBase
         IReceiptService receiptService,
         FileValidationService fileValidationService,
         IPointsService pointsService,
+        INotificationService notificationService,
         IMapper mapper,
         ILogger<ReceiptsController> logger)
     {
@@ -32,6 +34,7 @@ public class ReceiptsController : ControllerBase
         _receiptService = receiptService;
         _fileValidationService = fileValidationService;
         _pointsService = pointsService;
+        _notificationService = notificationService;
         _mapper = mapper;
         _logger = logger;
     }
@@ -90,6 +93,22 @@ public class ReceiptsController : ControllerBase
 
             _logger.LogInformation("Receipt processed successfully. ReceiptId: {ReceiptId}, StoreName: {StoreName}, Total: {Total}", 
                 receipt.Id, receipt.StoreName, receipt.TotalAmount);
+
+            // Send push notification for receipt processed
+            try
+            {
+                await _notificationService.SendReceiptProcessedNotificationAsync(
+                    userId,
+                    receipt.Id.ToString(),
+                    receipt.StoreName,
+                    receipt.TotalAmount,
+                    cancellationToken);
+            }
+            catch (Exception notifEx)
+            {
+                _logger.LogWarning(notifEx, "Failed to send receipt processed notification");
+                // Don't fail the request if notification fails
+            }
 
             // Award points for receipt upload
             try

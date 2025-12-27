@@ -2,5 +2,7 @@ export const environment = {
   production: false,
   apiUrl: 'https://api.cheap-sy.com/api',
   clerkPublishableKey: 'pk_live_Y2xlcmsuY2hlYXAtc3kuY29tJA',
-  enableCloudWatchLogging: false
+  enableCloudWatchLogging: false,
+  oneSignalAppId: '', // TODO: Add your OneSignal App ID
+  oneSignalSafariWebId: '' // TODO: Add your Safari Web ID (optional)
 };

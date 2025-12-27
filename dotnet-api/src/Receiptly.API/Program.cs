@@ -56,6 +56,9 @@ try
     // Configure Google Places Service
     await builder.Services.AddGooglePlacesService(builder.Configuration, builder.Environment);
 
+    // Configure OneSignal Notification Service
+    builder.Services.AddNotificationService(builder.Configuration);
+
     // Add Application Services
     builder.Services.AddApplicationServices();
 
