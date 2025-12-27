@@ -251,8 +251,23 @@ Compare the Azure extraction above with the actual receipt image and:
    - Account for taxes, discounts if visible
 """
         
-        prompt += """
+        if options.get("detect_forgery", True):
+            prompt += """
+7. **DETECT FORGERY / AI GENERATION**
+   - Look closely for signs that this image is Fake or AI-Generated
+   - Signs of AI: 
+     * Gibbons/nonsensical text in logos
+     * "Wobbly" or inconsistent lines/tables
+     * Perfect alignment that looks unnatural
+     * Impossible lighting/shadows
+     * Generic/Placeholder store names (e.g. "Restaurant Name", "123 Main St")
+   - Signs of Photoshop:
+     * mismatched fonts
+     * floating text not following paper curve
+"""
 
+        prompt += """
+ 
 **CRITICAL RULES:**
 - Only make changes you can VERIFY from the image
 - Do NOT hallucinate items or data
@@ -267,6 +282,11 @@ Compare the Azure extraction above with the actual receipt image and:
   "merchant_address": "Complete address with street, city, state",
   "merchant_phone": "Phone number if visible",
   "transaction_datetime": "YYYY-MM-DD HH:MM:SS",
+  "forgery_analysis": {
+      "is_suspicious": false,
+      "risk_score": 0.1,
+      "reason": "Natural lighting and consistent fonts observed"
+  },
   "enhanced_items": [
     {
       "name": "MILO Activ-Go 1kg",
@@ -372,6 +392,7 @@ Return ONLY the JSON, no other text.
                     "items_removed": result.get("items_removed", 0),
                     "corrections_made": len(result.get("corrections", []))
                 },
+                "forgery_analysis": result.get("forgery_analysis"),
                 "notes": result.get("notes", "")
             }
             

@@ -3,6 +3,7 @@ from pydantic import BaseModel, HttpUrl
 from typing import Dict, Any, Literal, List
 from ..services.document_intelligence import DocumentIntelligenceService
 from ..services.validation_service import EnhancedValidationService
+from ..services.forgery_detection_service import ForgeryDetectionService
 from ..services.pipeline_steps import (
     ImageDownloadStep,
     ReceiptCropStep,
@@ -68,6 +69,58 @@ async def analyze_receipt(
         # Save original uncropped image for LLM Vision
         original_uncropped_bytes = file_bytes
         
+        # ========== Step 1.5: Early Forgery Detection (Metadata) ==========
+        print("Step 1.5: Metadata Forgery Detection...")
+        forgery_service = ForgeryDetectionService()
+        metadata_analysis = forgery_service.analyze_image(file_bytes)
+        
+        if debugger:
+            debugger.save_json(metadata_analysis, "01a_metadata_analysis")
+            
+        # EARLY EXIT: If high risk (e.g. Photoshop detected), stop here to save costs
+        if metadata_analysis.get('is_suspicious', False):
+            print(f"🛑 Blocking suspicious upload based on metadata. Risk: {metadata_analysis.get('risk_score')}")
+            
+            # Create a "Failed/Rejected" validation object
+            from ..services.validation_service import ValidationIssue, ConfidenceLevel, ReceiptValidation
+            
+            # Create validation issues from flags
+            issues = []
+            for flag in metadata_analysis.get('flags', []):
+                issues.append(ValidationIssue(
+                    field="image",
+                    issue_type="suspicious",
+                    severity="error",
+                    message=f"Forgery Detected: {flag}",
+                    confidence=metadata_analysis.get('risk_score', 1.0),
+                    suggested_action="Upload an original, unmodified receipt photo."
+                ))
+            
+            rejection_validation = ReceiptValidation(
+                is_valid_receipt=False,
+                confidence_level=ConfidenceLevel.VERY_LOW,
+                overall_confidence=0.0,
+                merchant_confidence=0.0,
+                items_confidence=0.0,
+                total_confidence=0.0,
+                issues=issues,
+                doc_type="suspicious_file",
+                processing_time_ms=int((time.time() - start_time) * 1000),
+                sources_used=["metadata_analysis"],
+                confidence_message="❌ Upload rejected due to suspected manipulation",
+                is_forged=True,
+                forgery_confidence=metadata_analysis.get('risk_score', 1.0),
+                forgery_reason=str(issues[0].message) if issues else "Suspicious metadata"
+            )
+            
+            return ProcessedReceipt(
+                success=False,
+                data={"error": "Upload rejected by security filters"},
+                validation=rejection_validation,
+                location=None,
+                debug_session_id=debugger.session_id if debugger else None
+            )
+
         # ========== Step 2-3: Crop Receipt Boundary ==========
         crop_step = ReceiptCropStep()
         file_bytes, boundary_info = await crop_step.execute(
@@ -90,20 +143,6 @@ async def analyze_receipt(
                 debug_session_id=debugger.session_id if debugger else None
             )
         
-        # ========== Step 6: Location Candidates (Optional - Currently Disabled) ==========
-        # NOTE: This step is disabled by default as location extraction is now consolidated
-        # into Step 7 (LLMEnhancementStep) for cost optimization. Uncomment below to enable
-        # separate location candidate collection from multiple sources.
-        #
-        # location_step = LocationCandidatesStep()
-        # candidates = await location_step.execute(
-        #     result,
-        #     original_uncropped_bytes,
-        #     debugger
-        # )
-        # selected_candidate = location_step.select_best_candidate(candidates)
-        # print(f"  ✓ Selected location: {selected_candidate.get('store_name')}")
-        
         # ========== Step 7: LLM Enhancement (Optional) ==========
         if request.enable_llm_enhancement:
             llm_step = LLMEnhancementStep()
@@ -120,6 +159,42 @@ async def analyze_receipt(
                     "llm_enhancement": "disabled",
                     "using": "azure_only"
                 }, "06_llm_enhancement_disabled")
+        
+        # Merge Metadata Analysis with LLM Analysis (if present)
+        llm_analysis = result.get('forgery_analysis')
+        
+        if llm_analysis and llm_analysis.get('is_suspicious') is not None:
+             # LLM Detection Run
+             visual_risk = llm_analysis.get('risk_score', 0.0)
+             metadata_risk = metadata_analysis.get('risk_score', 0.0)
+             
+             # Maximize risk
+             combined_risk = max(visual_risk, metadata_risk)
+             
+             # Combine flags
+             combined_flags = metadata_analysis.get('flags', [])
+             if llm_analysis.get('reason'):
+                 combined_flags.append(f"Visual Analysis: {llm_analysis['reason']}")
+                 
+             result['forgery_analysis'] = {
+                 "is_suspicious": combined_risk > 0.6,
+                 "risk_score": combined_risk,
+                 "flags": combined_flags,
+                 "details": {
+                     "metadata": metadata_analysis,
+                     "visual": llm_analysis
+                 }
+             }
+        else:
+            # Only Metadata Analysis available (LLM disabled or failed)
+            result['forgery_analysis'] = {
+                 "is_suspicious": False, # Passed early check
+                 "risk_score": metadata_analysis.get('risk_score', 0.0),
+                 "flags": metadata_analysis.get('flags', []),
+                 "details": {
+                     "metadata": metadata_analysis
+                 }
+            }
         
         # ========== Step 8: Enhanced Validation ==========
         print("Step 8️⃣: Enhanced validation...")

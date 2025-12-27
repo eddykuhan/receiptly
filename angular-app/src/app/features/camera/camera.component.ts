@@ -37,6 +37,9 @@ export class CameraComponent {
   activeUploads = this.receiptProcessingService.activeUploads;
   hasActiveUploads = computed(() => this.activeUploads().length > 0);
 
+  // Check if there are any uploads actually in progress (not just errors)
+  hasOngoingUploads = computed(() => this.activeUploads().some(u => u.status === 'uploading' || u.status === 'processing'));
+
   // Local state
   isUploading = signal(false); // Deprecated, kept for backward compatibility if needed, but logic moved to service
   uploadProgress = signal(0);
@@ -79,7 +82,7 @@ export class CameraComponent {
     '🌟 Turning receipts into wisdom...',
     '📜 Reading the scroll of expenses...'
   ];
-  
+
   currentFunnyMessage = signal(0);
   private messageRotationInterval: ReturnType<typeof setInterval> | null = null;
   private messageTimer: ReturnType<typeof setInterval> | null = null;
@@ -142,10 +145,10 @@ export class CameraComponent {
       clearInterval(this.messageTimer);
       this.messageTimer = null;
     }
-    
+
     // Reset to first message when starting
     this.currentFunnyMessage.set(0);
-    
+
     // Rotate through messages every 2.5 seconds
     this.messageTimer = setInterval(() => {
       const nextIndex = (this.currentFunnyMessage() + 1) % this.funnyMessages.length;
@@ -363,5 +366,13 @@ export class CameraComponent {
     this.toastMessage.set(message);
     this.toastType.set('error');
     setTimeout(() => this.toastMessage.set(null), 5000);
+  }
+
+  retryUpload(id: string) {
+    this.receiptProcessingService.retryUpload(id);
+  }
+
+  dismissUpload(id: string) {
+    this.receiptProcessingService.dismissUpload(id);
   }
 }

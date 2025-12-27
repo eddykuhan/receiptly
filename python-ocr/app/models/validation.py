@@ -40,6 +40,11 @@ class ReceiptValidation(BaseModel):
     warnings: List[str] = []
     requires_manual_review: bool = False
     
+    # Forgery Detection
+    is_forged: bool = False
+    forgery_confidence: float = 0.0
+    forgery_reason: Optional[str] = None
+    
     # Metadata
     doc_type: str
     processing_time_ms: int
@@ -53,7 +58,7 @@ class ReceiptValidation(BaseModel):
 class ProcessedReceipt(BaseModel):
     """Complete receipt processing result."""
     success: bool
-    data: dict  # Raw Azure/LLM result
-    validation: ReceiptValidation
+    data: Optional[dict] = None  # Raw Azure/LLM result
+    validation: Optional[ReceiptValidation] = None
     location: Optional[dict] = None
     debug_session_id: Optional[str] = None  # Only if debug enabled

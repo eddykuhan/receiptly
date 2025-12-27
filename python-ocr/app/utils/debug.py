@@ -90,6 +90,11 @@ class ImageDebugger:
             
             # Save image
             image = Image.open(io.BytesIO(image_bytes))
+            
+            # Convert RGBA/P to RGB for JPEG compatibility
+            if image.mode in ('RGBA', 'P'):
+                image = image.convert('RGB')
+                
             image.save(filepath, "JPEG", quality=95)
             
             # Save metadata as JSON
