@@ -258,12 +258,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             const storePrices = items.map(i => i.price).sort((a, b) => a - b);
             const storePrice = storePrices[0] ?? 0;
 
-            let iconColor = 'green';
-            if (priceRange > 0) {
-                const priceRatio = (storePrice - cheapest) / priceRange;
-                if (priceRatio > 0.66) iconColor = 'red';
-                else if (priceRatio > 0.33) iconColor = 'orange';
-            }
+            // For now, make all markers green
+            const iconColor = 'green';
 
             const storeInitial = (store.name && store.name.trim().length > 0) ? store.name.trim().charAt(0).toUpperCase() : 'S';
             const html = `<div class="store-marker marker-${iconColor}"><span class="store-icon material-icons">store</span><span class="store-initial">${storeInitial}</span></div>`;
