@@ -23,6 +23,10 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     private userPreferencesService = inject(UserPreferencesService);
     private map?: L.Map;
     private markers: L.Marker[] = [];
+    // Map of storeId -> marker for quick lookup and selection handling
+    private markersMap: Map<string, L.Marker> = new Map();
+    // Currently selected store id (for visual state)
+    private selectedStoreId: string | null = null;
     private userMarker?: L.Marker;
 
     @ViewChild('storePopupTpl', { read: TemplateRef }) private storePopupTpl?: TemplateRef<any>;
@@ -181,6 +185,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
                 }
             }
 
+            // Clear any active store detail view so the sheet shows all matching stores
+            this.storeDetails.set(null);
+            this.previousSearchResults.set(null);
+            this.setSelectedMarker(null);
+
             this.searchResults.set(results);
             this.showSuggestions.set(false);
             this.updateMapMarkers(results);
@@ -218,8 +227,15 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             );
 
             console.log(`✅ Found ${nearbyItems.length} items within ${radiusKm}km`);
-            this.searchResults.set(nearbyItems);
-            this.updateMapMarkers(nearbyItems, false); // Don't auto-zoom
+            // If a store details view is active, only show items for that store
+            const activeStore = this.storeDetails();
+            let itemsToShow = nearbyItems;
+            if (activeStore) {
+                itemsToShow = nearbyItems.filter(r => r.store.id === activeStore.id);
+            }
+
+            this.searchResults.set(itemsToShow);
+            this.updateMapMarkers(itemsToShow, false); // Don't auto-zoom
         } catch (error) {
             console.error('Failed to load nearby items:', error);
             this.errorMessage.set('Unable to load nearby items.');
@@ -270,11 +286,14 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             // capture items in closure
             const itemsForStore = items.slice();
             marker.on('click', () => {
+                // Visually select this marker
+                this.setSelectedMarker(store.id);
                 // Show this store's items in the side sheet instead of popup
                 this.openStoreInSheet(marker, store, itemsForStore);
             });
 
             this.markers.push(marker);
+            this.markersMap.set(store.id, marker);
             bounds.extend([store.latitude, store.longitude]);
         });
 
@@ -311,16 +330,17 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         // If searchResults currently contains many stores, open the store items in the sheet
         this.openStoreInSheet(undefined as any, store.store, itemsForStore);
         if (this.map) {
-            this.map.setView([store.store.latitude, store.store.longitude], 14, {
+            const currentZoom = this.map.getZoom();
+            const targetZoom = Math.max(currentZoom ?? 11, 15);
+            this.map.flyTo([store.store.latitude, store.store.longitude], targetZoom, {
                 animate: true
             });
 
-            // Open the popup for this store
-            const marker = this.markers.find(m => {
-                const latLng = m.getLatLng();
-                return latLng.lat === store.store.latitude && latLng.lng === store.store.longitude;
-            });
+            // Lookup marker by store id so we can highlight it
+            const marker = this.markersMap.get(store.store.id);
             if (marker) {
+                // visually select
+                this.setSelectedMarker(store.store.id);
                 // ensure sheet shows the store items as well
                 const itemsForStore = this.searchResults().filter(r => r.store.id === store.store.id);
                 this.openStoreInSheet(marker, store.store, itemsForStore);
@@ -341,9 +361,13 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
         // Center map on marker if provided
         if (marker && this.map) {
-            this.map.setView(marker.getLatLng(), 14, { animate: true });
+            const currentZoom = this.map.getZoom();
+            const targetZoom = Math.max(currentZoom ?? 11, 15);
+            this.map.flyTo(marker.getLatLng(), targetZoom, { animate: true });
         } else if (this.map && store?.latitude && store?.longitude) {
-            this.map.setView([store.latitude, store.longitude], 14, { animate: true });
+            const currentZoom = this.map.getZoom();
+            const targetZoom = Math.max(currentZoom ?? 11, 15);
+            this.map.flyTo([store.latitude, store.longitude], targetZoom, { animate: true });
         }
     }
 
@@ -388,6 +412,47 @@ export class PriceMapComponent implements OnInit, OnDestroy {
                 this.appRef.detachView(item!.viewRef);
                 item!.viewRef.destroy();
             } catch {}
+        }
+    }
+
+    // Visually mark a marker as selected by store id
+    private setSelectedMarker(storeId: string | null) {
+        // If the selected id is unchanged, do nothing
+        if (this.selectedStoreId === storeId) return;
+
+        // Clear previous selection
+        if (this.selectedStoreId) {
+            const prev = this.markersMap.get(this.selectedStoreId);
+            if (prev) this.setMarkerSelectedVisual(prev, false);
+        }
+
+        this.selectedStoreId = storeId;
+
+        if (storeId) {
+            const marker = this.markersMap.get(storeId);
+                if (marker) {
+                this.setMarkerSelectedVisual(marker, true);
+                try { (marker as any).bringToFront?.(); } catch {}
+            }
+        }
+    }
+
+    private setMarkerSelectedVisual(marker: L.Marker, selected: boolean) {
+        const outerEl = (marker as any).getElement && (marker as any).getElement();
+        if (!outerEl) return;
+        // The divIcon HTML contains an inner element with class 'store-marker'.
+        // Add/remove the selected class on that inner element so our styles apply.
+        const innerEl: HTMLElement | null = outerEl.querySelector && outerEl.querySelector('.store-marker');
+        const targetEl = innerEl ?? outerEl;
+        if (selected) {
+            targetEl.classList.add('selected');
+            // also mark outer for z-index so it overlaps map tiles
+            outerEl.classList.add('selected');
+            (outerEl.style as any).zIndex = '9999';
+        } else {
+            targetEl.classList.remove('selected');
+            outerEl.classList.remove('selected');
+            (outerEl.style as any).zIndex = '';
         }
     }
 
@@ -456,5 +521,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.clearAllPopups();
         this.markers.forEach(marker => marker.remove());
         this.markers = [];
+        // clear map and selection state
+        this.markersMap.forEach(m => {
+            try { (m as any).remove(); } catch {};
+        });
+        this.markersMap.clear();
+        this.setSelectedMarker(null);
     }
 }
