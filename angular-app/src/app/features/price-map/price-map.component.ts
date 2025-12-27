@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, ViewChild, TemplateRef, ViewContainerRef, ApplicationRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -25,9 +25,17 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     private markers: L.Marker[] = [];
     private userMarker?: L.Marker;
 
+    @ViewChild('storePopupTpl', { read: TemplateRef }) private storePopupTpl?: TemplateRef<any>;
+    // Keep track of created views so we can cleanup if needed
+    private activePopupViews: { viewRef: any, container: HTMLElement }[] = [];
+    private activePopups: { viewRef: any, container: HTMLElement, popup: any, marker?: L.Marker }[] = [];
+
     searchQuery = signal('');
     searchResults = signal<StoreWithPrice[]>([]);
     selectedStore = signal<StoreWithPrice | null>(null);
+    // When showing a specific store's items in the side sheet
+    storeDetails = signal<any | null>(null);
+    previousSearchResults = signal<StoreWithPrice[] | null>(null);
     productSuggestions = signal<string[]>([]);
     showSuggestions = signal(false);
     userLocation = computed(() => this.locationService.userLocation());
@@ -47,7 +55,10 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     constructor(
         private priceMapService: PriceMapService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private vcr: ViewContainerRef,
+        private appRef: ApplicationRef,
+        private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit() {
@@ -223,52 +234,48 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         if (!this.map || results.length === 0) return;
 
         const bounds = L.latLngBounds([]);
-        const cheapest = results[0].price;
-        const mostExpensive = results[results.length - 1].price;
+
+        // Group results by store id so we only create one marker per store
+        const storeMap = new Map<string, { store: any; items: StoreWithPrice[] }>();
+        results.forEach(r => {
+            const key = r.store.id;
+            if (!storeMap.has(key)) {
+                storeMap.set(key, { store: r.store, items: [r] });
+            } else {
+                storeMap.get(key)!.items.push(r);
+            }
+        });
+
+        // Compute overall price bounds for color scaling
+        const allPrices = results.map(r => r.price).sort((a, b) => a - b);
+        const cheapest = allPrices[0] ?? 0;
+        const mostExpensive = allPrices[allPrices.length - 1] ?? cheapest;
         const priceRange = mostExpensive - cheapest;
 
-        results.forEach((result, index) => {
-            const { store, price } = result;
+        // Create one marker per store
+        storeMap.forEach(({ store, items }) => {
+            // Use store's cheapest item price for color coding
+            const storePrices = items.map(i => i.price).sort((a, b) => a - b);
+            const storePrice = storePrices[0] ?? 0;
 
-            // Color code based on price (green = cheap, red = expensive)
             let iconColor = 'green';
             if (priceRange > 0) {
-                const priceRatio = (price - cheapest) / priceRange;
-                if (priceRatio > 0.66) {
-                    iconColor = 'red';
-                } else if (priceRatio > 0.33) {
-                    iconColor = 'orange';
-                }
+                const priceRatio = (storePrice - cheapest) / priceRange;
+                if (priceRatio > 0.66) iconColor = 'red';
+                else if (priceRatio > 0.33) iconColor = 'orange';
             }
 
-            // Create custom colored marker
-            const icon = L.icon({
-                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${iconColor}.png`,
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            });
+            const storeInitial = (store.name && store.name.trim().length > 0) ? store.name.trim().charAt(0).toUpperCase() : 'S';
+            const html = `<div class="store-marker marker-${iconColor}"><span class="store-icon material-icons">store</span><span class="store-initial">${storeInitial}</span></div>`;
+            const icon = L.divIcon({ className: 'price-label-icon', html, iconSize: [42, 42], iconAnchor: [21, 42] });
 
-            const popupContent = `
-        <div class="p-2">
-          <h3 class="font-bold text-sm">${store.name}</h3>
-          ${result.itemName ? `<p class="text-xs font-semibold text-primary">${result.itemName}</p>` : ''}
-          <p class="text-xs text-gray-600">${store.address}</p>
-          <p class="font-mono font-bold text-purple-600 mt-1">RM ${price.toFixed(2)}</p>
-          ${result.distance ? `<p class="text-xs text-gray-500">${result.distance.toFixed(1)} km away</p>` : ''}
-          <p class="text-xs text-gray-400">Updated ${this.getRelativeTime(result.lastPurchaseDate)}</p>
-        </div>
-      `;
+            const marker = L.marker([store.latitude, store.longitude], { icon }).addTo(this.map!);
 
-            const marker = L.marker([store.latitude, store.longitude], { icon })
-                .bindPopup(popupContent)
-                .addTo(this.map!);
-
+            // capture items in closure
+            const itemsForStore = items.slice();
             marker.on('click', () => {
-                this.selectedStore.set(result);
-                // Don't show mobile bottom sheet on marker click
+                // Show this store's items in the side sheet instead of popup
+                this.openStoreInSheet(marker, store, itemsForStore);
             });
 
             this.markers.push(marker);
@@ -304,8 +311,9 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     selectStore(store: StoreWithPrice) {
         this.selectedStore.set(store);
-        this.showMobileResults.set(true);
-        this.isBottomSheetExpanded.set(true);
+        const itemsForStore = this.searchResults().filter(r => r.store.id === store.store.id);
+        // If searchResults currently contains many stores, open the store items in the sheet
+        this.openStoreInSheet(undefined as any, store.store, itemsForStore);
         if (this.map) {
             this.map.setView([store.store.latitude, store.store.longitude], 14, {
                 animate: true
@@ -316,8 +324,97 @@ export class PriceMapComponent implements OnInit, OnDestroy {
                 const latLng = m.getLatLng();
                 return latLng.lat === store.store.latitude && latLng.lng === store.store.longitude;
             });
-            marker?.openPopup();
+            if (marker) {
+                // ensure sheet shows the store items as well
+                const itemsForStore = this.searchResults().filter(r => r.store.id === store.store.id);
+                this.openStoreInSheet(marker, store.store, itemsForStore);
+            }
         }
+    }
+
+    private openStoreInSheet(marker: L.Marker | undefined, store: any, items: StoreWithPrice[]) {
+        // Save current results so we can restore when closing the store view
+        this.previousSearchResults.set(this.searchResults());
+
+        // Set search results to this store's items and open the side sheet / bottom sheet
+        this.storeDetails.set(store);
+        this.searchResults.set(items);
+        this.selectedStore.set(items[0] ?? null);
+        this.showMobileResults.set(true);
+        this.isBottomSheetExpanded.set(true);
+
+        // Center map on marker if provided
+        if (marker && this.map) {
+            this.map.setView(marker.getLatLng(), 14, { animate: true });
+        } else if (this.map && store?.latitude && store?.longitude) {
+            this.map.setView([store.latitude, store.longitude], 14, { animate: true });
+        }
+    }
+
+    private openPopupForStore(marker: L.Marker, store: any, items: StoreWithPrice[]) {
+        if (!this.storePopupTpl || !this.map) return;
+
+        this.clearAllPopups();
+
+        const viewRef = this.storePopupTpl.createEmbeddedView({ $implicit: store, items });
+        this.appRef.attachView(viewRef);
+        this.cdr.detectChanges();
+
+        const container = document.createElement('div');
+        viewRef.rootNodes.forEach((n: Node) => container.appendChild(n));
+
+        const popup = L.popup({ maxWidth: 360, minWidth: 220, className: 'price-map-popup' })
+            .setLatLng(marker.getLatLng())
+            .setContent(container)
+            .openOn(this.map);
+
+        const cleanup = () => {
+            try {
+                this.appRef.detachView(viewRef);
+                viewRef.destroy();
+            } catch (e) {
+                // ignore
+            }
+        };
+
+        popup.on('remove', cleanup);
+
+        this.activePopups.push({ viewRef, container, popup, marker });
+    }
+
+    private clearAllPopups() {
+        while (this.activePopups.length > 0) {
+            const item = this.activePopups.pop();
+            try {
+                item?.popup?.remove();
+            } catch {}
+            try {
+                this.appRef.detachView(item!.viewRef);
+                item!.viewRef.destroy();
+            } catch {}
+        }
+    }
+
+    // Used by the popup template close button
+    clearPopup() {
+        // If we are viewing a store's items in the sheet, restore previous results
+        if (this.storeDetails()) {
+            const prev = this.previousSearchResults();
+            this.searchResults.set(prev ?? []);
+            this.storeDetails.set(null);
+            this.previousSearchResults.set(null);
+            this.isBottomSheetExpanded.set(false);
+            this.showMobileResults.set(false);
+            // Rebuild markers for the restored results
+            if (prev && prev.length > 0) {
+                this.updateMapMarkers(prev, true);
+            } else {
+                this.clearMarkers();
+            }
+            return;
+        }
+
+        this.clearAllPopups();
     }
 
     getFilteredSuggestions() {
@@ -333,7 +430,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     }
 
 
-    private getRelativeTime(date: Date): string {
+    public getRelativeTime(date: Date): string {
         const now = new Date();
         const diffMs = now.getTime() - new Date(date).getTime();
         const diffSecs = Math.floor(diffMs / 1000);
@@ -359,6 +456,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     }
 
     private clearMarkers() {
+        // Close and cleanup any open popups first
+        this.clearAllPopups();
         this.markers.forEach(marker => marker.remove());
         this.markers = [];
     }

@@ -8,6 +8,59 @@
     z-index: 1;
 }
 
+/* Price label markers (divIcon) */
+:host ::ng-deep .price-label-icon {
+    background: transparent;
+    border: none;
+}
+
+:host ::ng-deep .store-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+    box-shadow: 0 6px 10px rgba(16,24,40,0.12);
+    padding: 6px;
+    transform: translateY(-6px);
+}
+
+
+:host ::ng-deep .marker-green { background: #16a34a; }
+:host ::ng-deep .marker-orange { background: #f97316; }
+:host ::ng-deep .marker-red { background: #ef4444; }
+
+/* Add pin dot and triangle to make it look like a marker icon */
+:host ::ng-deep .store-marker {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+:host ::ng-deep .store-marker .store-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+:host ::ng-deep .store-marker:hover {
+    transform: translateY(-8px) scale(1.04);
+    box-shadow: 0 10px 18px rgba(16,24,40,0.18);
+}
+
+:host ::ng-deep .store-initial {
+    display: none;
+}
+
+/* Make popup content styles a bit tighter */
+:host ::ng-deep .price-map-popup .leaflet-popup-content-wrapper {
+    padding: 0.25rem;
+}
+
 // Ensure autocomplete dropdown appears above map
 :host ::ng-deep {
     .autocomplete-dropdown {

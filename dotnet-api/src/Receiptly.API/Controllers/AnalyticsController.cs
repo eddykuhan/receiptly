@@ -51,16 +51,32 @@ public class AnalyticsController : ControllerBase
         };
 
         var result = await _purchaseAnalyticsService.GetPurchasesAsync(query, cancellationToken);
-        var totalPages = result.PageSize == 0
-            ? 0
-            : (int)Math.Ceiling(result.TotalCount / (double)result.PageSize);
+
+        // Deduplicate items that may appear multiple times across receipts. Use a key
+        // based on canonical name (or raw item name) + store identity (name + coords)
+        // and keep the most recent purchase record for each unique item-store.
+        var dedupedItems = result.Items
+            .GroupBy(record =>
+                {
+                    var nameKey = (record.CanonicalName ?? record.ItemName ?? string.Empty).Trim().ToLowerInvariant();
+                    var storeKey = (record.StoreName ?? string.Empty).Trim().ToLowerInvariant();
+                    var lat = record.Latitude.HasValue ? record.Latitude.Value.ToString() : string.Empty;
+                    var lng = record.Longitude.HasValue ? record.Longitude.Value.ToString() : string.Empty;
+                    return string.Join("|", new[] { nameKey, storeKey, lat, lng });
+                })
+            .Select(g => g.OrderByDescending(r => r.PurchaseDate).First())
+            .ToList();
+
+        var totalCount = dedupedItems.Count;
+        var pageSize = result.PageSize;
+        var totalPages = pageSize == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
 
         var response = new PurchaseAnalyticsResponseDto
         {
-            Items = result.Items.Select(item => MapToDto(item, request.IncludeMetadata)).ToList(),
-            TotalCount = result.TotalCount,
+            Items = dedupedItems.Select(item => MapToDto(item, request.IncludeMetadata)).ToList(),
+            TotalCount = totalCount,
             Page = result.Page,
-            PageSize = result.PageSize,
+            PageSize = pageSize,
             TotalPages = totalPages,
             IncludeMetadata = request.IncludeMetadata
         };
