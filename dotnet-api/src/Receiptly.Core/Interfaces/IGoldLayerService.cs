@@ -19,4 +19,15 @@ public interface IGoldLayerService
     /// Updates in-place: sets CanonicalName, IsCorrected = true, CorrectedAt.
     /// </summary>
     Task UpdateCorrectionsAsync(Guid receiptId, Dictionary<Guid, string> itemCorrections, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Update receipt-level fields in gold layer when receipt corrections are applied.
+    /// Updates StoreAddress, Latitude, Longitude for all items from this receipt.
+    /// </summary>
+    Task UpdateReceiptFieldsAsync(
+        Guid receiptId, 
+        string? storeAddress = null,
+        double? latitude = null, 
+        double? longitude = null,
+        CancellationToken cancellationToken = default);
 }

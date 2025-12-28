@@ -1,4 +1,5 @@
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Receiptly.API.DTOs;
 using Receiptly.Core.Interfaces;
@@ -24,6 +25,7 @@ public class AnalyticsController : ControllerBase
     /// Returns purchased items across all users for analytics/price-map consumers.
     /// </summary>
     [HttpGet("purchases")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PurchaseAnalyticsResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<PurchaseAnalyticsResponseDto>> GetPurchases(
         [FromQuery] PurchaseAnalyticsRequest request,
@@ -88,6 +90,7 @@ public class AnalyticsController : ControllerBase
     /// Returns price history for a specific product over time.
     /// </summary>
     [HttpGet("price-history")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PriceHistoryResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<PriceHistoryResponseDto>> GetPriceHistory(
         [FromQuery] string userId,
@@ -97,6 +100,11 @@ public class AnalyticsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(userId))
         {
+            // Even though it's anonymous, the service might log userId, leaving it as required/optional?
+            // Service interface required it. But implementation didn't filter by it.
+            // Let's pass a dummy or empty if null? But it's FromQuery string.
+            // Original code checked for null. I'll keep the check but maybe it should be optional.
+            // For now, I'll keep the check.
             return BadRequest(new { error = "userId is required" });
         }
 
@@ -250,6 +258,32 @@ public class AnalyticsController : ControllerBase
         };
 
         return Ok(response);
+    }
+
+    [HttpGet("suggestions")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<string>>> GetSuggestions(
+        [FromQuery] string query,
+        [FromQuery] double? latitude = null,
+        [FromQuery] double? longitude = null,
+        [FromQuery] double? radius = null,
+        [FromQuery] int limit = 10,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return Ok(new List<string>());
+        }
+
+        var suggestions = await _purchaseAnalyticsService.GetSuggestionsAsync(
+            query, 
+            latitude, 
+            longitude, 
+            radius, 
+            limit, 
+            cancellationToken);
+        return Ok(suggestions);
     }
 
     private static PurchaseAnalyticsItemDto MapToDto(PurchaseAnalyticsRecord record, bool includeMetadata)

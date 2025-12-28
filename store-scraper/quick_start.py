@@ -57,9 +57,16 @@ def get_store_locations(store_name: str, api_key: str, location: str = "Malaysia
             
             # Process places
             for place in places:
+                branch_name = place.get('displayName', {}).get('text', '')
+                
+                # Strict filtering: Ensure the store name is actually in the result
+                if store_name.lower() not in branch_name.lower():
+                    # print(f"   ⚠️  Skipping unrelated result: {branch_name}")
+                    continue
+                    
                 location_data = {
                     'store_name': store_name,
-                    'branch_name': place.get('displayName', {}).get('text', ''),
+                    'branch_name': branch_name,
                     'address': place.get('formattedAddress', ''),
                     'latitude': place.get('location', {}).get('latitude'),
                     'longitude': place.get('location', {}).get('longitude'),
@@ -117,18 +124,6 @@ def main():
     # List of stores to fetch
     stores = [
         "Jaya Grocer",
-        "Mydin",
-        "Lotus's Malaysia",
-        "AEON Malaysia",
-        "Village Grocer Malaysia",
-        "99 Speedmart",
-        "Giant Hypermarket",
-        "7-Eleven Malaysia",
-        "FamilyMart Malaysia",
-        "KK Super Mart",
-        "Watsons Malaysia",
-        "Guardian Malaysia",
-        "Sunshine"
     ]
     
     for store_name in stores:

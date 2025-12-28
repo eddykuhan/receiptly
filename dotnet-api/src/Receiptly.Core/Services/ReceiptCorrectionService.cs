@@ -37,18 +37,33 @@ public class ReceiptCorrectionService : IReceiptCorrectionService
                 return;
             }
 
-            // Track item name corrections for gold layer sync
+            // Track corrections for gold layer sync
             var itemNameCorrections = new Dictionary<Guid, string>();
+            string? correctedStoreAddress = null;
+            double? correctedLatitude = null;
+            double? correctedLongitude = null;
 
             foreach (var correction in corrections)
             {
-                ApplyCorrectionToReceipt(receipt, correction, itemNameCorrections);
+                ApplyCorrectionToReceipt(receipt, correction, itemNameCorrections, 
+                    ref correctedStoreAddress, ref correctedLatitude, ref correctedLongitude);
             }
 
-            // Sync corrections to gold layer
+            // Sync item name corrections to gold layer
             if (itemNameCorrections.Any())
             {
                 await _goldLayerService.UpdateCorrectionsAsync(receipt.Id, itemNameCorrections, cancellationToken);
+            }
+
+            // Sync receipt-level corrections (address, coordinates) to gold layer
+            if (correctedStoreAddress != null || (correctedLatitude.HasValue && correctedLongitude.HasValue))
+            {
+                await _goldLayerService.UpdateReceiptFieldsAsync(
+                    receipt.Id, 
+                    correctedStoreAddress, 
+                    correctedLatitude, 
+                    correctedLongitude, 
+                    cancellationToken);
             }
         }
         catch (Exception)
@@ -70,7 +85,13 @@ public class ReceiptCorrectionService : IReceiptCorrectionService
         }
     }
 
-    private void ApplyCorrectionToReceipt(Receipt receipt, UserCorrection correction, Dictionary<Guid, string> itemNameCorrections)
+    private void ApplyCorrectionToReceipt(
+        Receipt receipt, 
+        UserCorrection correction, 
+        Dictionary<Guid, string> itemNameCorrections,
+        ref string? correctedStoreAddress,
+        ref double? correctedLatitude,
+        ref double? correctedLongitude)
     {
         try
         {
@@ -96,11 +117,15 @@ public class ReceiptCorrectionService : IReceiptCorrectionService
 
                 case "storeaddress":
                     receipt.StoreAddress = correction.CorrectedValue ?? receipt.StoreAddress;
+                    correctedStoreAddress = receipt.StoreAddress;
+                    
                     // Also update latitude/longitude if available
                     if (correction.Latitude.HasValue && correction.Longitude.HasValue)
                     {
                         receipt.Latitude = correction.Latitude.Value;
                         receipt.Longitude = correction.Longitude.Value;
+                        correctedLatitude = correction.Latitude.Value;
+                        correctedLongitude = correction.Longitude.Value;
                     }
                     break;
 

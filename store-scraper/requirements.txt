@@ -1,3 +1,11 @@
 beautifulsoup4==4.12.2
 requests==2.31.0
+selenium>=4.0.0
+webdriver-manager>=4.0.0
+scrapy>=2.11.0
+scrapy-selenium>=0.0.7
+pandas>=2.1.0
+psycopg2-binary>=2.9.9
+sqlalchemy>=2.0.0
+python-dotenv>=1.0.0
 # Note: Using html.parser (built-in) instead of lxml for Python 3.14+ compatibility

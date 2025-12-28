@@ -133,4 +133,63 @@ public class GoldLayerService : IGoldLayerService
             throw;
         }
     }
+
+    public async Task UpdateReceiptFieldsAsync(
+        Guid receiptId, 
+        string? storeAddress = null,
+        double? latitude = null, 
+        double? longitude = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Build the query for all gold records from this receipt
+            var query = _context.PurchaseAnalyticsGold
+                .Where(g => g.ReceiptId == receiptId);
+
+            // Build dynamic update based on provided parameters
+            // We need to update only the fields that are provided (not null)
+            var hasUpdates = false;
+
+            if (storeAddress != null)
+            {
+                await query.ExecuteUpdateAsync(setters => setters
+                    .SetProperty(g => g.StoreAddress, storeAddress),
+                    cancellationToken);
+                hasUpdates = true;
+            }
+
+            if (latitude.HasValue && longitude.HasValue)
+            {
+                await query.ExecuteUpdateAsync(setters => setters
+                    .SetProperty(g => g.Latitude, latitude.Value)
+                    .SetProperty(g => g.Longitude, longitude.Value),
+                    cancellationToken);
+                hasUpdates = true;
+            }
+
+            if (hasUpdates)
+            {
+                _logger.LogInformation(
+                    "Updated gold layer receipt fields for receipt {ReceiptId}. StoreAddress: {StoreAddress}, Lat: {Latitude}, Lon: {Longitude}",
+                    receiptId,
+                    storeAddress ?? "(unchanged)",
+                    latitude?.ToString() ?? "(unchanged)",
+                    longitude?.ToString() ?? "(unchanged)");
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "UpdateReceiptFieldsAsync called for receipt {ReceiptId} but no fields were provided to update",
+                    receiptId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to update receipt fields in gold layer for receipt {ReceiptId}",
+                receiptId);
+            throw;
+        }
+    }
 }

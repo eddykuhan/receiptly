@@ -1,0 +1,1136 @@
+{
+  "_errors": {
+    "$658bUlfJYk": null,
+    "$XCQaR7rdpU": null,
+    "$fFnlhjSohd": null,
+    "$r7ODdWPXuR": null,
+    "$t29S7rirHx": null
+  },
+  "config": {
+    "app": {
+      "baseURL": "/",
+      "buildAssetsDir": "/_nuxt/",
+      "cdnURL": ""
+    },
+    "public": {
+      "apiBase": "https://mymgtbe.mydin.my",
+      "axiosTimeOut": 0,
+      "environment": "production",
+      "graphqlBaseUrl": "https://mymgtbe.mydin.my/graphql",
+      "gtm": {
+        "compatibility": false,
+        "debug": false,
+        "defer": false,
+        "devtools": false,
+        "enableRouterSync": true,
+        "enabled": "true",
+        "id": "GTM-5JKK4R4",
+        "ignoredViews": [],
+        "loadScript": true,
+        "trackOnNextTick": false
+      },
+      "i18n": {
+        "baseUrl": "",
+        "experimental": {
+          "jsTsFormatResource": false
+        }
+      },
+      "magento": {
+        "cookieNames": {
+          "cartCookieName": "vsf-cart",
+          "countryCookieName": "vsf-country",
+          "currencyCookieName": "vsf-currency",
+          "customerCookieName": "vsf-customer",
+          "localeCookieName": "vsf-locale",
+          "messageCookieName": "vsf-message",
+          "storeCookieName": "vsf-store"
+        }
+      },
+      "magentoUrlBase": "https://mymgtbe.mydin.my",
+      "middlewareBase": "https://myapi.mydin.my/",
+      "postDomain": "https://mycms.mydin.my/",
+      "prApiBase": "https://pilihanraya2025.mydin.my/api/",
+      "theme": "false",
+      "urlBase": "https://mydin.my"
+    }
+  },
+  "data": {
+    "$658bUlfJYk": {
+      "__typename": "CategoryResult",
+      "items": [
+        {
+          "__typename": "CategoryTree",
+          "breadcrumbs": [
+            {
+              "__typename": "Breadcrumb",
+              "category_id": 103,
+              "category_level": 2,
+              "category_name": "Menu",
+              "category_url_key": "menu"
+            }
+          ],
+          "cms_block": {
+            "__typename": "CmsBlock",
+            "content": "<div data-content-type=\"html\" data-appearance=\"default\" data-element=\"main\">&lt;div class=\"category-block\"&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/food-beverage\"&gt;\r\n&lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/fb-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"F&amp;B\"&gt;F&amp;B&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/beauty\"&gt;\r\n           &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/beauty-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Kosmetik\"&gt;Beauty&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/mom-baby\"&gt;\r\n            &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/mombaby.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"IBu dan anak\"&gt;Mom &amp; Baby&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/pets\"&gt;\r\n           &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/pets-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Haiwan Peliharaan\"&gt;Pets&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/stationery\"&gt;\r\n            &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/stationery-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Alat Tulis\"&gt;Stationery&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/home-living\"&gt;\r\n           &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/sofa.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Rumah &amp; Kehidupan\"&gt;Home &amp; Living&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/home-appliances\"&gt;\r\n           &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/appliances-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Peralatan\"&gt;Home Appliances&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/health-health\"&gt;\r\n          &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/health-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Kesihatan\"&gt;Health&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n&lt;/div&gt;\r\n\r\n&lt;style&gt;\r\n    .category-block {\r\n        display: flex;\r\n        flex-direction: row;\r\n        justify-content: center;\r\n        gap: 4rem;\r\n        padding-bottom: 1rem;\r\n        overflow-x: auto; \r\n    }\r\n\r\n    .category-block .item {\r\n         width: 100px;\r\n        flex-shrink: 0;\r\n    }\r\n\r\n    .category-block img {\r\n        width: 100px;\r\n        height: 100px;\r\n        object-fit: contain;\r\n        margin: 0 auto;\r\n        border-radius: 12px;\r\n        padding: 5px;\r\n        background: #ffff;\r\n    }\r\n\r\n    .category-block h2 {\r\n        margin-top: 8px;\r\n        text-align: center;\r\n        font-size: 14px;\r\n        font-weight: 600;\r\n        line-height: 1rem;\r\n    }\r\n\r\n    @media screen and (max-width: 768px) { \r\n        .category-block {\r\n            justify-content: flex-start;\r\n            gap: 2rem;\r\n            overflow-x: scroll; \r\n            overflow-y: hidden; \r\n        }\r\n        .category-block img {\r\n            width: 100px;\r\n            height: 100px;\r\n        }\r\n    }\r\n&lt;/style&gt;\r\n</div>"
+          },
+          "description": "<div data-content-type=\"html\" data-appearance=\"default\" data-element=\"main\">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris felis tortor, dignissim ac mollis quis, iaculis et dolor. Integer et magna luctus enim eleifend vulputate.</div>",
+          "id": 54,
+          "image": null,
+          "level": 3,
+          "name": "All Products"
+        }
+      ]
+    },
+    "$XCQaR7rdpU": {
+      "data": {
+        "currency": {
+          "__typename": "Currency",
+          "available_currency_codes": [
+            "MYR"
+          ],
+          "base_currency_code": "MYR",
+          "base_currency_symbol": "RM",
+          "default_display_currecy_code": null,
+          "default_display_currecy_symbol": null,
+          "default_display_currency_code": "MYR",
+          "default_display_currency_symbol": "RM",
+          "exchange_rates": [
+            {
+              "__typename": "ExchangeRate",
+              "currency_to": "MYR",
+              "rate": 1
+            }
+          ]
+        }
+      },
+      "loading": false,
+      "networkStatus": 7
+    },
+    "$fFnlhjSohd": null,
+    "$r7ODdWPXuR": {
+      "data": {
+        "getCategoryBanners": [
+          {
+            "__typename": "BannerDetails",
+            "banner_no": 1,
+            "category_bm_name": "Meriah Promotion",
+            "category_id": 2740,
+            "category_name": "Meriah Promotion",
+            "category_url": "/meriah-promotion",
+            "image": "https://mymgtbe.mydin.my/pub/media/banner/default/1.jpg"
+          },
+          {
+            "__typename": "BannerDetails",
+            "banner_no": 2,
+            "category_bm_name": "Food & Beverages",
+            "category_id": 2665,
+            "category_name": "Food & Beverages",
+            "category_url": "/food-beverage",
+            "image": "https://mymgtbe.mydin.my/pub/media/banner/default/12.jpg"
+          },
+          {
+            "__typename": "BannerDetails",
+            "banner_no": 3,
+            "category_bm_name": "Health and Beauty",
+            "category_id": 2668,
+            "category_name": "Health and Beauty",
+            "category_url": "/product-sliders-beauty",
+            "image": "https://mymgtbe.mydin.my/pub/media/banner/default/11.jpg"
+          },
+          {
+            "__typename": "BannerDetails",
+            "banner_no": 4,
+            "category_bm_name": "Mom & Baby",
+            "category_id": 2667,
+            "category_name": "Mom & Baby",
+            "category_url": "/product-sliders-mom-baby",
+            "image": "https://mymgtbe.mydin.my/pub/media/banner/default/2.jpg"
+          },
+          {
+            "__typename": "BannerDetails",
+            "banner_no": 5,
+            "category_bm_name": "Home & Living",
+            "category_id": 2669,
+            "category_name": "Home & Living",
+            "category_url": "/home-living",
+            "image": "https://mymgtbe.mydin.my/pub/media/banner/default/5.jpg"
+          },
+          {
+            "__typename": "BannerDetails",
+            "banner_no": 7,
+            "category_bm_name": "Haiwan Peliharaan",
+            "category_id": 2672,
+            "category_name": "Pets",
+            "category_url": "/pets",
+            "image": "https://mymgtbe.mydin.my/pub/media/banner/default/3.jpg"
+          },
+          {
+            "__typename": "BannerDetails",
+            "banner_no": 8,
+            "category_bm_name": "Stationery",
+            "category_id": 2666,
+            "category_name": "Stationery",
+            "category_url": "/stationery",
+            "image": "https://mymgtbe.mydin.my/pub/media/banner/default/4.jpg"
+          },
+          {
+            "__typename": "BannerDetails",
+            "banner_no": 9,
+            "category_bm_name": "Muslimin Needs",
+            "category_id": 2675,
+            "category_name": "Muslimin Needs",
+            "category_url": "/muslimin-needs",
+            "image": "https://mymgtbe.mydin.my/pub/media/banner/default/9.jpg"
+          }
+        ]
+      },
+      "loading": false,
+      "networkStatus": 7
+    },
+    "$t29S7rirHx": {
+      "data": {
+        "categories": {
+          "__typename": "CategoryResult",
+          "items": [
+            {
+              "__typename": "CategoryTree",
+              "category_bm_name": "Semua Produk",
+              "children": [
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Buku & Majalah",
+                  "id": 1024,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-24.jpg",
+                  "meta_title": null,
+                  "name": "Books & Magazines",
+                  "product_count": 6,
+                  "url_key": "books-magazines"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Audio",
+                  "id": 667,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-31.jpg",
+                  "meta_title": null,
+                  "name": "Audio",
+                  "product_count": 1,
+                  "url_key": "audio"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Automobil",
+                  "id": 684,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-30.jpg",
+                  "meta_title": null,
+                  "name": "Automobiles",
+                  "product_count": 18,
+                  "url_key": "automobiles"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Fesyen Bayi & Kanak-kanak",
+                  "id": 765,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-29.jpg",
+                  "meta_title": null,
+                  "name": "Baby & Kids Fashion",
+                  "product_count": 24,
+                  "url_key": "baby-kids-fashion"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Kecantikan",
+                  "id": 881,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-28.jpg",
+                  "meta_title": null,
+                  "name": "Beauty",
+                  "product_count": 340,
+                  "url_key": "beauty"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Kamera & Drone",
+                  "id": 1064,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-25.jpg",
+                  "meta_title": null,
+                  "name": "Cameras & Drones",
+                  "product_count": 0,
+                  "url_key": "cameras-drones"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Komputer & Aksesori",
+                  "id": 1111,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-1.jpg",
+                  "meta_title": null,
+                  "name": "Computers & Accessories",
+                  "product_count": 1,
+                  "url_key": "computers-accessories"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Aksesori Fesyen",
+                  "id": 1182,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-26.jpg",
+                  "meta_title": null,
+                  "name": "Fashion Accessories",
+                  "product_count": 9,
+                  "url_key": "fashion-accessories"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Makanan & Minuman",
+                  "id": 1222,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-27_1.jpg",
+                  "meta_title": null,
+                  "name": "Food & Beverage",
+                  "product_count": 439,
+                  "url_key": "food-beverage"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Konsol Permainan ",
+                  "id": 1377,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-23.jpg",
+                  "meta_title": null,
+                  "name": "Gaming & Consoles",
+                  "product_count": 0,
+                  "url_key": "gaming-consoles"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Kesihatan",
+                  "id": 1401,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-22.jpg",
+                  "meta_title": null,
+                  "name": "Health",
+                  "product_count": 26,
+                  "url_key": "health-health"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Hobi & Koleksi",
+                  "id": 1469,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-21.jpg",
+                  "meta_title": null,
+                  "name": "Hobbies & Collections",
+                  "product_count": 1,
+                  "url_key": "hobbies-collections"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Rumah & Kehidupan",
+                  "id": 1513,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-20.jpg",
+                  "meta_title": null,
+                  "name": "Home & Living",
+                  "product_count": 389,
+                  "url_key": "home-living"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Peralatan Rumah",
+                  "id": 1701,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-19.jpg",
+                  "meta_title": null,
+                  "name": "Home Appliances",
+                  "product_count": 24,
+                  "url_key": "home-appliances"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Beg Lelaki",
+                  "id": 1787,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-18.jpg",
+                  "meta_title": null,
+                  "name": "Men Bags",
+                  "product_count": 13,
+                  "url_key": "men-bags"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Pakaian Lelaki",
+                  "id": 1807,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-16.jpg",
+                  "meta_title": null,
+                  "name": "Men Clothes",
+                  "product_count": 27,
+                  "url_key": "men-clothes"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Kasut Lelaki",
+                  "id": 1853,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-17.jpg",
+                  "meta_title": null,
+                  "name": "Men Shoes",
+                  "product_count": 1,
+                  "url_key": "men-shoes"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Telefon Bimbit & Peranti",
+                  "id": 1877,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-11.jpg",
+                  "meta_title": null,
+                  "name": "Mobile & Gadgets",
+                  "product_count": 5,
+                  "url_key": "mobile-gadgets"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Ibu & Bayi",
+                  "id": 1924,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-12.jpg",
+                  "meta_title": null,
+                  "name": "Mom & Baby",
+                  "product_count": 50,
+                  "url_key": "mom-baby"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Motosikal",
+                  "id": 2058,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-13.jpg",
+                  "meta_title": null,
+                  "name": "Motorcycles",
+                  "product_count": 0,
+                  "url_key": "motorcycles"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Fesyen Muslim",
+                  "id": 2101,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-15.jpg",
+                  "meta_title": null,
+                  "name": "Muslim Fashion",
+                  "product_count": 531,
+                  "url_key": "muslim-fashion"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Haiwan Peliharaan",
+                  "id": 2164,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-10.jpg",
+                  "meta_title": null,
+                  "name": "Pets",
+                  "product_count": 40,
+                  "url_key": "pets"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Sukan & Luar",
+                  "id": 2222,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-9.jpg",
+                  "meta_title": null,
+                  "name": "Sports & Outdoors",
+                  "product_count": 9,
+                  "url_key": "sports-outdoors"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Alat Tulis",
+                  "id": 2371,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-8.jpg",
+                  "meta_title": null,
+                  "name": "Stationery",
+                  "product_count": 159,
+                  "url_key": "stationery"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Tiket, Kupon & Perkhidmatan",
+                  "id": 2434,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-7.jpg",
+                  "meta_title": null,
+                  "name": "Tickets, Vouchers & Services",
+                  "product_count": 0,
+                  "url_key": "tickets-vouchers-services"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Perjalanan & Bagasi",
+                  "id": 2482,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-2.jpg",
+                  "meta_title": null,
+                  "name": "Travel & Luggage",
+                  "product_count": 9,
+                  "url_key": "travel-luggage"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Jam Tangan",
+                  "id": 2501,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-3.jpg",
+                  "meta_title": null,
+                  "name": "Watches",
+                  "product_count": 2,
+                  "url_key": "watches-watches"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Beg Wanita",
+                  "id": 2513,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-4.jpg",
+                  "meta_title": null,
+                  "name": "Women Bags",
+                  "product_count": 7,
+                  "url_key": "women-bags"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Pakaian Wanita",
+                  "id": 2540,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-6.jpg",
+                  "meta_title": null,
+                  "name": "Women Clothes",
+                  "product_count": 11,
+                  "url_key": "women-clothes"
+                },
+                {
+                  "__typename": "CategoryTree",
+                  "category_bm_name": "Kasut Wanita",
+                  "id": 2635,
+                  "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-5.jpg",
+                  "meta_title": null,
+                  "name": "Women Shoes",
+                  "product_count": 0,
+                  "url_key": "women-shoes"
+                }
+              ],
+              "id": 54,
+              "image": null,
+              "meta_title": null,
+              "name": "All Products",
+              "product_count": 7561,
+              "url_key": "all-products"
+            }
+          ]
+        }
+      },
+      "loading": false,
+      "networkStatus": 7
+    }
+  },
+  "serverRendered": false,
+  "state": {
+    "$scategory-all-products": {
+      "data": {
+        "__typename": "CategoryResult",
+        "items": [
+          {
+            "__typename": "CategoryTree",
+            "breadcrumbs": [
+              {
+                "__typename": "Breadcrumb",
+                "category_id": 103,
+                "category_level": 2,
+                "category_name": "Menu",
+                "category_url_key": "menu"
+              }
+            ],
+            "cms_block": {
+              "__typename": "CmsBlock",
+              "content": "<div data-content-type=\"html\" data-appearance=\"default\" data-element=\"main\">&lt;div class=\"category-block\"&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/food-beverage\"&gt;\r\n&lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/fb-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"F&amp;B\"&gt;F&amp;B&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/beauty\"&gt;\r\n           &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/beauty-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Kosmetik\"&gt;Beauty&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/mom-baby\"&gt;\r\n            &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/mombaby.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"IBu dan anak\"&gt;Mom &amp; Baby&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/pets\"&gt;\r\n           &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/pets-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Haiwan Peliharaan\"&gt;Pets&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/stationery\"&gt;\r\n            &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/stationery-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Alat Tulis\"&gt;Stationery&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/home-living\"&gt;\r\n           &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/sofa.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Rumah &amp; Kehidupan\"&gt;Home &amp; Living&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/home-appliances\"&gt;\r\n           &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/appliances-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Peralatan\"&gt;Home Appliances&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n    &lt;div class=\"item\"&gt;\r\n        &lt;a href=\"/category/health-health\"&gt;\r\n          &lt;img src=\"https://mymgtbe.mydin.my/media/.renditions/wysiwyg/mydin/health-2.png\" alt=\"\" /&gt;\r\n            &lt;h2 data-bm=\"Kesihatan\"&gt;Health&lt;/h2&gt;\r\n        &lt;/a&gt;\r\n    &lt;/div&gt;\r\n&lt;/div&gt;\r\n\r\n&lt;style&gt;\r\n    .category-block {\r\n        display: flex;\r\n        flex-direction: row;\r\n        justify-content: center;\r\n        gap: 4rem;\r\n        padding-bottom: 1rem;\r\n        overflow-x: auto; \r\n    }\r\n\r\n    .category-block .item {\r\n         width: 100px;\r\n        flex-shrink: 0;\r\n    }\r\n\r\n    .category-block img {\r\n        width: 100px;\r\n        height: 100px;\r\n        object-fit: contain;\r\n        margin: 0 auto;\r\n        border-radius: 12px;\r\n        padding: 5px;\r\n        background: #ffff;\r\n    }\r\n\r\n    .category-block h2 {\r\n        margin-top: 8px;\r\n        text-align: center;\r\n        font-size: 14px;\r\n        font-weight: 600;\r\n        line-height: 1rem;\r\n    }\r\n\r\n    @media screen and (max-width: 768px) { \r\n        .category-block {\r\n            justify-content: flex-start;\r\n            gap: 2rem;\r\n            overflow-x: scroll; \r\n            overflow-y: hidden; \r\n        }\r\n        .category-block img {\r\n            width: 100px;\r\n            height: 100px;\r\n        }\r\n    }\r\n&lt;/style&gt;\r\n</div>"
+            },
+            "description": "<div data-content-type=\"html\" data-appearance=\"default\" data-element=\"main\">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris felis tortor, dignissim ac mollis quis, iaculis et dolor. Integer et magna luctus enim eleifend vulputate.</div>",
+            "id": 54,
+            "image": null,
+            "level": 3,
+            "name": "All Products"
+          }
+        ]
+      },
+      "filteredCategories": null,
+      "loading": false,
+      "productLoading": false
+    },
+    "$scategoryProducts-54": {
+      "base": null,
+      "baseLoading": false,
+      "category": null,
+      "categoryLoading": false,
+      "data": null,
+      "loading": true
+    },
+    "$snotification": null,
+    "$suseBlockContent-footer_app": {
+      "data": {
+        "cmsBlocks": {
+          "__typename": "CmsBlocks",
+          "items": [
+            {
+              "__typename": "CmsBlock",
+              "content": "<div data-content-type=\"html\" data-appearance=\"default\" data-element=\"main\">&lt;div class=\"footer-list-wrapper\"&gt;\r\n    &lt;h6 data-bm=\"MYDINPay\"&gt;Download MYDINPay&lt;/h6&gt;\r\n    &lt;div class=\"app-block\"&gt;\r\n        &lt;div class=\"qr-item\"&gt;\r\n            &lt;img src=\"https://mymgtbe.mydin.my/media/wysiwyg/mydin/mydinpay-qr.png\" alt=\"\" /&gt;\r\n        &lt;/div&gt;\r\n        &lt;div class=\"app-item\"&gt;\r\n            &lt;a href=\"https://apps.apple.com/my/app/mydinpay/id6476868127?l=ms\"&gt;\r\n            &lt;img src=\"https://mymgtbe.mydin.my/media/wysiwyg/mydin/appstore2.png\" alt=\"\" /&gt;\r\n            &lt;/a&gt;\r\n        &lt;/div&gt;\r\n        &lt;div class=\"app-item\"&gt;\r\n            &lt;a href=\"https://play.google.com/store/apps/details?id=net.mydinpay.wallet\"&gt;\r\n                &lt;img src=\"https://mymgtbe.mydin.my/media/wysiwyg/mydin/googleplay.png\" alt=\"\" /&gt;\r\n            &lt;/a&gt;\r\n        &lt;/div&gt;\r\n    &lt;/div&gt;\r\n&lt;/div&gt;\r\n\r\n&lt;div class=\"footer-list-wrapper\"&gt;\r\n    &lt;h6 data-bm=\"MYDIN Rewards\"&gt;Download MYDIN Rewards&lt;/h6&gt;\r\n    &lt;div class=\"app-block\"&gt;\r\n        &lt;div class=\"qr-item\"&gt;\r\n            &lt;img src=\"https://mymgtbe.mydin.my/media/wysiwyg/mydin/mydinrewards-qr.png\" alt=\"\" /&gt;\r\n        &lt;/div&gt;\r\n        &lt;div class=\"app-item\"&gt;\r\n            &lt;a href=\"https://apps.apple.com/my/app/mydin-rewards/id6478905253\"&gt;\r\n            &lt;img src=\"https://mymgtbe.mydin.my/media/wysiwyg/mydin/appstore2.png\" alt=\"\" /&gt;\r\n            &lt;/a&gt;\r\n        &lt;/div&gt;\r\n        &lt;div class=\"app-item\"&gt;\r\n            &lt;a href=\"https://play.google.com/store/apps/details?id=my.mydin.meriah&amp;pcampaignid=web_share\"&gt;\r\n                &lt;img src=\"https://mymgtbe.mydin.my/media/wysiwyg/mydin/googleplay.png\" alt=\"\" /&gt;\r\n            &lt;/a&gt;\r\n        &lt;/div&gt;\r\n    &lt;/div&gt;\r\n&lt;/div&gt;</div>",
+              "identifier": "footer_app",
+              "title": "Footer Applications"
+            }
+          ]
+        }
+      },
+      "loading": false
+    },
+    "$suseCart": {
+      "addressLoading": false,
+      "couponLoading": false,
+      "data": null,
+      "loading": false
+    },
+    "$suseCurrency": {
+      "data": {
+        "__typename": "Currency",
+        "available_currency_codes": [
+          "MYR"
+        ],
+        "base_currency_code": "MYR",
+        "base_currency_symbol": "RM",
+        "default_display_currecy_code": null,
+        "default_display_currecy_symbol": null,
+        "default_display_currency_code": "MYR",
+        "default_display_currency_symbol": "RM",
+        "exchange_rates": [
+          {
+            "__typename": "ExchangeRate",
+            "currency_to": "MYR",
+            "rate": 1
+          }
+        ]
+      },
+      "loading": false
+    },
+    "$suseCustomer": {
+      "data": null,
+      "loading": false
+    },
+    "$suseFooter": {
+      "data": [
+        {
+          "__typename": "CmsBlock",
+          "content": "<div data-content-type=\"html\" data-appearance=\"default\" data-element=\"main\">&lt;div class=\"footer-list-wrapper\"&gt;\r\n    &lt;h6 data-bm=\"Tentang Mydin\"&gt;About Mydin&lt;/h6&gt;\r\n    &lt;div class=\"footer-list\"&gt;\r\n        &lt;ul&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Tanggungjawab Sosial Korporat\" href=\"/corporate-social-responsibility\"&gt;\r\n                    Corporate Social Responsibility\r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Berita &amp; Artikel\" href=\"/news-articles\"&gt;\r\n                    News &amp; Articles\r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Kelestarian\" href=\"/sustainability\"&gt;\r\n                    Sustainability\r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n        &lt;/ul&gt;\r\n    &lt;/div&gt;\r\n&lt;/div&gt;\r\n\r\n&lt;div class=\"footer-list-wrapper\"&gt;\r\n    &lt;h6 data-bm=\"Polisi\"&gt;Policies&lt;/h6&gt;\r\n    &lt;div class=\"footer-list\"&gt;\r\n        &lt;ul&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Terma &amp; Syarat\" href=\"/terms-conditions\"&gt;\r\n                    Terms &amp; Conditions\r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Polisi Privasi\" href=\"/privacy-policy\"&gt;\r\n                    Privacy Policy \r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Akta Perlindungan Data Peribadi (PDPA)\" href=\"/pdpa\"&gt;\r\n                    Personal Data Protection Act (PDPA)\r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Polisi Pemulangan\" href=\"/return-policy\"&gt;\r\n                    Return Policy\r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Polisi Bayaran Balik\" href=\"/refund-policy\"&gt;\r\n                    Refund Policy\r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n            &lt;li&gt;\r\n                &lt;a data-bm=\"Polisi Pembatalan\" href=\"/cancellation-policy\"&gt;\r\n                    Cancellation Policy\r\n                &lt;/a&gt;\r\n            &lt;/li&gt;\r\n        &lt;/ul&gt;\r\n    &lt;/div&gt;\r\n&lt;/div&gt;</div>",
+          "identifier": "footer",
+          "title": "Footer"
+        }
+      ],
+      "loading": false
+    },
+    "$suseMWishlist": {
+      "data": null,
+      "itemData": null,
+      "itemLoading": false,
+      "loading": false
+    },
+    "$suseMaintenance": {
+      "data": false,
+      "loading": false
+    },
+    "$suseMegaMenu": {
+      "baseData": {
+        "__typename": "CategoryTree",
+        "category_bm_name": "Semua Produk",
+        "children": [
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Buku & Majalah",
+            "id": 1024,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-24.jpg",
+            "meta_title": null,
+            "name": "Books & Magazines",
+            "product_count": 6,
+            "url_key": "books-magazines"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Audio",
+            "id": 667,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-31.jpg",
+            "meta_title": null,
+            "name": "Audio",
+            "product_count": 1,
+            "url_key": "audio"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Automobil",
+            "id": 684,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-30.jpg",
+            "meta_title": null,
+            "name": "Automobiles",
+            "product_count": 18,
+            "url_key": "automobiles"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Fesyen Bayi & Kanak-kanak",
+            "id": 765,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-29.jpg",
+            "meta_title": null,
+            "name": "Baby & Kids Fashion",
+            "product_count": 24,
+            "url_key": "baby-kids-fashion"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Kecantikan",
+            "id": 881,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-28.jpg",
+            "meta_title": null,
+            "name": "Beauty",
+            "product_count": 340,
+            "url_key": "beauty"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Kamera & Drone",
+            "id": 1064,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-25.jpg",
+            "meta_title": null,
+            "name": "Cameras & Drones",
+            "product_count": 0,
+            "url_key": "cameras-drones"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Komputer & Aksesori",
+            "id": 1111,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-1.jpg",
+            "meta_title": null,
+            "name": "Computers & Accessories",
+            "product_count": 1,
+            "url_key": "computers-accessories"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Aksesori Fesyen",
+            "id": 1182,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-26.jpg",
+            "meta_title": null,
+            "name": "Fashion Accessories",
+            "product_count": 9,
+            "url_key": "fashion-accessories"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Makanan & Minuman",
+            "id": 1222,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-27_1.jpg",
+            "meta_title": null,
+            "name": "Food & Beverage",
+            "product_count": 439,
+            "url_key": "food-beverage"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Konsol Permainan ",
+            "id": 1377,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-23.jpg",
+            "meta_title": null,
+            "name": "Gaming & Consoles",
+            "product_count": 0,
+            "url_key": "gaming-consoles"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Kesihatan",
+            "id": 1401,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-22.jpg",
+            "meta_title": null,
+            "name": "Health",
+            "product_count": 26,
+            "url_key": "health-health"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Hobi & Koleksi",
+            "id": 1469,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-21.jpg",
+            "meta_title": null,
+            "name": "Hobbies & Collections",
+            "product_count": 1,
+            "url_key": "hobbies-collections"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Rumah & Kehidupan",
+            "id": 1513,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-20.jpg",
+            "meta_title": null,
+            "name": "Home & Living",
+            "product_count": 389,
+            "url_key": "home-living"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Peralatan Rumah",
+            "id": 1701,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-19.jpg",
+            "meta_title": null,
+            "name": "Home Appliances",
+            "product_count": 24,
+            "url_key": "home-appliances"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Beg Lelaki",
+            "id": 1787,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-18.jpg",
+            "meta_title": null,
+            "name": "Men Bags",
+            "product_count": 13,
+            "url_key": "men-bags"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Pakaian Lelaki",
+            "id": 1807,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-16.jpg",
+            "meta_title": null,
+            "name": "Men Clothes",
+            "product_count": 27,
+            "url_key": "men-clothes"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Kasut Lelaki",
+            "id": 1853,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-17.jpg",
+            "meta_title": null,
+            "name": "Men Shoes",
+            "product_count": 1,
+            "url_key": "men-shoes"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Telefon Bimbit & Peranti",
+            "id": 1877,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-11.jpg",
+            "meta_title": null,
+            "name": "Mobile & Gadgets",
+            "product_count": 5,
+            "url_key": "mobile-gadgets"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Ibu & Bayi",
+            "id": 1924,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-12.jpg",
+            "meta_title": null,
+            "name": "Mom & Baby",
+            "product_count": 50,
+            "url_key": "mom-baby"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Motosikal",
+            "id": 2058,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-13.jpg",
+            "meta_title": null,
+            "name": "Motorcycles",
+            "product_count": 0,
+            "url_key": "motorcycles"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Fesyen Muslim",
+            "id": 2101,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-15.jpg",
+            "meta_title": null,
+            "name": "Muslim Fashion",
+            "product_count": 531,
+            "url_key": "muslim-fashion"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Haiwan Peliharaan",
+            "id": 2164,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-10.jpg",
+            "meta_title": null,
+            "name": "Pets",
+            "product_count": 40,
+            "url_key": "pets"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Sukan & Luar",
+            "id": 2222,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-9.jpg",
+            "meta_title": null,
+            "name": "Sports & Outdoors",
+            "product_count": 9,
+            "url_key": "sports-outdoors"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Alat Tulis",
+            "id": 2371,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-8.jpg",
+            "meta_title": null,
+            "name": "Stationery",
+            "product_count": 159,
+            "url_key": "stationery"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Tiket, Kupon & Perkhidmatan",
+            "id": 2434,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-7.jpg",
+            "meta_title": null,
+            "name": "Tickets, Vouchers & Services",
+            "product_count": 0,
+            "url_key": "tickets-vouchers-services"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Perjalanan & Bagasi",
+            "id": 2482,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-2.jpg",
+            "meta_title": null,
+            "name": "Travel & Luggage",
+            "product_count": 9,
+            "url_key": "travel-luggage"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Jam Tangan",
+            "id": 2501,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-3.jpg",
+            "meta_title": null,
+            "name": "Watches",
+            "product_count": 2,
+            "url_key": "watches-watches"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Beg Wanita",
+            "id": 2513,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-4.jpg",
+            "meta_title": null,
+            "name": "Women Bags",
+            "product_count": 7,
+            "url_key": "women-bags"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Pakaian Wanita",
+            "id": 2540,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-6.jpg",
+            "meta_title": null,
+            "name": "Women Clothes",
+            "product_count": 11,
+            "url_key": "women-clothes"
+          },
+          {
+            "__typename": "CategoryTree",
+            "category_bm_name": "Kasut Wanita",
+            "id": 2635,
+            "image": "https://mymgtbe.mydin.my/media/catalog/category/mydin-cat-banner-5.jpg",
+            "meta_title": null,
+            "name": "Women Shoes",
+            "product_count": 0,
+            "url_key": "women-shoes"
+          }
+        ],
+        "id": 54,
+        "image": null,
+        "meta_title": null,
+        "name": "All Products",
+        "product_count": 7561,
+        "url_key": "all-products"
+      },
+      "baseLoading": false,
+      "baseMenuIds": [
+        2101,
+        1222,
+        1513,
+        881,
+        2371,
+        1924,
+        2164,
+        1807,
+        1401,
+        765
+      ],
+      "data": null,
+      "datas": null,
+      "datasLoading": true,
+      "loading": false
+    },
+    "$susePoint": {
+      "appliedData": null,
+      "appliedLoading": false,
+      "applyLoading": false,
+      "data": null,
+      "historyData": null,
+      "historyLoading": false,
+      "loading": false
+    },
+    "$suseProducts": {
+      "banner": [
+        {
+          "click_url": "https://mydin.my/promotions/telur-percuma-bersama-atome",
+          "id": "117",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/h/o/homepage_banner_1920px_w_x_787px_h_.jpg",
+          "title": null
+        },
+        {
+          "click_url": "https://mydin.my/promotions/member-specials-edisi-sabah--sarawak",
+          "id": "118",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/c/m/cmp-banner-suh_homepage_1_.jpg",
+          "title": "Back To School with MYDIN Edisi Sabah & Sarawak!"
+        },
+        {
+          "click_url": "https://mydin.my/promotions/member-specials-sarawak",
+          "id": "119",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/c/m/cmp-banner-swk_homepage_1_.jpg",
+          "title": "New Years Members Special Edisi Sarawak"
+        },
+        {
+          "click_url": "https://mydin.my/promotions/member-specials-edisi-sabah",
+          "id": "120",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/c/m/cmp-banner-suh_homepage_1__1.jpg",
+          "title": "New Years Members Special Edisi Sabah"
+        },
+        {
+          "click_url": "https://mydin.my/promotions/jimat-lebih-senyum-lebih",
+          "id": "121",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/i/c/icu_promo-app_banner_18dis-05jan_homepage_banner.jpg",
+          "title": "Jimat Lebih Senyum Lebih"
+        },
+        {
+          "click_url": "https://mydin.my/promotions/promosi-tahun-baru-bersama-mydin",
+          "id": "122",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/n/e/newyear-banner-homepage_1920px_w_x_787px_h_.jpg",
+          "title": "Promosi Tahun Baru Bersama MYDIN!"
+        },
+        {
+          "click_url": "https://mydin.my/promotions/back-to-school-promotions-edisi-semenanjung",
+          "id": "123",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/b/t/bts-banner-homepage_1920px_w_x_787px_h_.jpg",
+          "title": "Back to School Promotions Edisi Semenanjung!"
+        },
+        {
+          "click_url": "https://mydin.my/promotions/pasar-segar-deals",
+          "id": "124",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/p/s/psd-homepage-banner_25-28dis_1920px_w_x_787px_h_.jpg",
+          "title": "Pasar Segar Deals"
+        },
+        {
+          "click_url": "https://mydin.my/promotions/bonanza-hujung-minggu",
+          "id": "115",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/b/h/bhm-banner_-_ny2026_homepage.jpg",
+          "title": null
+        },
+        {
+          "click_url": "https://mydin.my/promotions/bonanza-hujung-minggu-sarawak",
+          "id": "116",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/p/a/paswk-banner_homepage_8.jpg",
+          "title": null
+        },
+        {
+          "click_url": "https://mydin.my/promotions/setel-je-bersama-mydin",
+          "id": "88",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/9/_/9.jpg",
+          "title": null
+        },
+        {
+          "click_url": "https://mydin.my/promotions/promosi-bersama-mydin-rewards",
+          "id": "113",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/m/y/mydin_homepage_banners_1920_x_787_1_.jpg",
+          "title": null
+        },
+        {
+          "click_url": "https://mydin.my/promotions/promosi-bersama-mydin-rewards-sabah--sarawak%20l",
+          "id": "112",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/m/y/mydin_homepage_banners_1920_x_787.jpg",
+          "title": null
+        },
+        {
+          "click_url": "https://mydin.my/promotions/shopback-pay-x-mydin",
+          "id": "95",
+          "image_url": "https://mymgtbe.mydin.my/media/mageplaza/bannerslider/banner/image/1/1/11.jpg",
+          "title": null
+        }
+      ],
+      "bannerLoading": false,
+      "categoryBanners": null,
+      "customDetails": null,
+      "customDetailsLoading": false,
+      "data": null,
+      "initCategoryBanners": [
+        {
+          "__typename": "BannerDetails",
+          "banner_no": 1,
+          "category_bm_name": "Meriah Promotion",
+          "category_id": 2740,
+          "category_name": "Meriah Promotion",
+          "category_url": "/meriah-promotion",
+          "image": "https://mymgtbe.mydin.my/pub/media/banner/default/1.jpg"
+        },
+        {
+          "__typename": "BannerDetails",
+          "banner_no": 2,
+          "category_bm_name": "Food & Beverages",
+          "category_id": 2665,
+          "category_name": "Food & Beverages",
+          "category_url": "/food-beverage",
+          "image": "https://mymgtbe.mydin.my/pub/media/banner/default/12.jpg"
+        },
+        {
+          "__typename": "BannerDetails",
+          "banner_no": 3,
+          "category_bm_name": "Health and Beauty",
+          "category_id": 2668,
+          "category_name": "Health and Beauty",
+          "category_url": "/product-sliders-beauty",
+          "image": "https://mymgtbe.mydin.my/pub/media/banner/default/11.jpg"
+        },
+        {
+          "__typename": "BannerDetails",
+          "banner_no": 4,
+          "category_bm_name": "Mom & Baby",
+          "category_id": 2667,
+          "category_name": "Mom & Baby",
+          "category_url": "/product-sliders-mom-baby",
+          "image": "https://mymgtbe.mydin.my/pub/media/banner/default/2.jpg"
+        },
+        {
+          "__typename": "BannerDetails",
+          "banner_no": 5,
+          "category_bm_name": "Home & Living",
+          "category_id": 2669,
+          "category_name": "Home & Living",
+          "category_url": "/home-living",
+          "image": "https://mymgtbe.mydin.my/pub/media/banner/default/5.jpg"
+        },
+        {
+          "__typename": "BannerDetails",
+          "banner_no": 7,
+          "category_bm_name": "Haiwan Peliharaan",
+          "category_id": 2672,
+          "category_name": "Pets",
+          "category_url": "/pets",
+          "image": "https://mymgtbe.mydin.my/pub/media/banner/default/3.jpg"
+        },
+        {
+          "__typename": "BannerDetails",
+          "banner_no": 8,
+          "category_bm_name": "Stationery",
+          "category_id": 2666,
+          "category_name": "Stationery",
+          "category_url": "/stationery",
+          "image": "https://mymgtbe.mydin.my/pub/media/banner/default/4.jpg"
+        },
+        {
+          "__typename": "BannerDetails",
+          "banner_no": 9,
+          "category_bm_name": "Muslimin Needs",
+          "category_id": 2675,
+          "category_name": "Muslimin Needs",
+          "category_url": "/muslimin-needs",
+          "image": "https://mymgtbe.mydin.my/pub/media/banner/default/9.jpg"
+        }
+      ],
+      "loading": true,
+      "salableData": null,
+      "salableLoading": false
+    }
+  }
+}

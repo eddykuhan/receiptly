@@ -14,7 +14,7 @@ public class PurchaseAnalyticsResponseDto
 public class PurchaseAnalyticsItemDto
 {
     public Guid ItemId { get; init; }
-    public Guid ReceiptId { get; init; }
+    public Guid? ReceiptId { get; init; }
     public string ItemName { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string? CanonicalName { get; init; }
