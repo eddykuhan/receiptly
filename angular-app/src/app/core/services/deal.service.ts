@@ -19,6 +19,7 @@ export interface Deal {
     longitude?: number;
     imageUrl: string;
     lastSeenDate: Date; // When this price was last recorded
+    category?: string;
 }
 
 interface PurchaseAnalyticsMetadataDto {
@@ -38,6 +39,7 @@ interface PurchaseAnalyticsItemDto {
     quantity: number;
     purchaseDate: string;
     storeName: string;
+    category?: string;
     metadata?: PurchaseAnalyticsMetadataDto | null;
 }
 
@@ -57,11 +59,32 @@ export class DealService {
      * Get hot deals near a location
      * Fetches recent purchases and groups by product to find deals
      */
-    getHotDeals(lat?: number, lng?: number): Observable<Deal[]> {
-        const params = new HttpParams()
+    getHotDeals(
+        lat?: number,
+        lng?: number,
+        radius: number = 10,
+        category?: string,
+        storeName?: string
+    ): Observable<Deal[]> {
+        let params = new HttpParams()
             .set('pageSize', 100)
             .set('includeMetadata', true)
             .set('page', 1);
+
+        if (lat && lng) {
+            params = params.set('minLat', lat - radius / 111)
+                .set('maxLat', lat + radius / 111)
+                .set('minLng', lng - radius / (111 * Math.cos(lat * (Math.PI / 180))))
+                .set('maxLng', lng + radius / (111 * Math.cos(lat * (Math.PI / 180))));
+        }
+
+        if (category) {
+            params = params.set('category', category);
+        }
+
+        if (storeName) {
+            params = params.set('storeName', storeName);
+        }
 
         return this.http.get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params }).pipe(
             map(response => this.transformToDeals(response, lat, lng))
@@ -90,6 +113,7 @@ export class DealService {
                 date: Date;
                 latitude?: number;
                 longitude?: number;
+                category?: string;
             }>;
         }>();
 
@@ -128,7 +152,8 @@ export class DealService {
                     price: finalPrice,
                     date: purchaseDate,
                     latitude,
-                    longitude
+                    longitude,
+                    category: item.category
                 });
             }
         });
@@ -176,7 +201,8 @@ export class DealService {
                     latitude: cheapestStore.latitude,
                     longitude: cheapestStore.longitude,
                     imageUrl: this.getProductImage(productName),
-                    lastSeenDate: cheapestStore.date
+                    lastSeenDate: cheapestStore.date,
+                    category: cheapestStore.category
                 });
             }
         });
@@ -189,7 +215,7 @@ export class DealService {
             console.log(`Filtering deals with user location (${MAX_RADIUS_KM}km radius):`, { userLat, userLon, totalDeals: deals.length });
             const dealsWithDistance = deals.map(d => ({ name: d.productName, distance: d.distance, hasCoords: !!(d.latitude && d.longitude) }));
             console.log('Deals with distances:', dealsWithDistance);
-            
+
             // Filter: must have coordinates AND be within radius AND not Infinity distance
             deals = deals.filter(deal => {
                 const hasValidCoordinates = !!(deal.latitude && deal.longitude);
@@ -247,5 +273,27 @@ export class DealService {
      */
     getSavingsAmount(deal: Deal): number {
         return deal.averagePrice - deal.lowestPrice;
+    }
+
+    getSuggestions(query: string, lat?: number, lng?: number, radius?: number): Observable<string[]> {
+        let params = new HttpParams().set('query', query);
+        if (lat && lng && radius) {
+            params = params.set('latitude', lat.toString())
+                .set('longitude', lng.toString())
+                .set('radius', radius.toString());
+        }
+        return this.http.get<string[]>(`${environment.apiUrl}/analytics/suggestions`, { params });
+    }
+
+    getCategories(): Observable<string[]> {
+        return this.http.get<string[]>(`${environment.apiUrl}/analytics/categories`);
+    }
+
+    getNearbyStores(lat: number, lng: number, radius: number = 10): Observable<any[]> {
+        const params = new HttpParams()
+            .set('latitude', lat.toString())
+            .set('longitude', lng.toString())
+            .set('radius', radius.toString());
+        return this.http.get<any[]>(`${environment.apiUrl}/analytics/stores`, { params });
     }
 }

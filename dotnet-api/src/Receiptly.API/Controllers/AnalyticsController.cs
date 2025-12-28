@@ -45,6 +45,7 @@ public class AnalyticsController : ControllerBase
             EndDate = request.EndDate,
             StoreName = request.StoreName,
             ProductName = request.ProductName,
+            Category = request.Category,
             MinLatitude = request.MinLat,
             MaxLatitude = request.MaxLat,
             MinLongitude = request.MinLng,
@@ -286,6 +287,35 @@ public class AnalyticsController : ControllerBase
         return Ok(suggestions);
     }
 
+    [HttpGet("categories")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<string>>> GetCategories(CancellationToken cancellationToken)
+    {
+        var categories = await _purchaseAnalyticsService.GetCategoriesAsync(cancellationToken);
+        return Ok(categories);
+    }
+
+    [HttpGet("stores")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(List<StoreStatsDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<StoreStatsDto>>> GetNearbyStores(
+        [FromQuery] double latitude,
+        [FromQuery] double longitude,
+        [FromQuery] double radius = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var stores = await _purchaseAnalyticsService.GetNearbyStoresAsync(latitude, longitude, radius, cancellationToken);
+        var response = stores.Select(s => new StoreStatsDto
+        {
+            StoreName = s.StoreName,
+            Latitude = s.Latitude.HasValue ? (decimal)s.Latitude.Value : null,
+            Longitude = s.Longitude.HasValue ? (decimal)s.Longitude.Value : null
+        }).ToList();
+        
+        return Ok(response);
+    }
+
     private static PurchaseAnalyticsItemDto MapToDto(PurchaseAnalyticsRecord record, bool includeMetadata)
     {
         return new PurchaseAnalyticsItemDto
@@ -300,6 +330,7 @@ public class AnalyticsController : ControllerBase
             Quantity = record.Quantity,
             PurchaseDate = record.PurchaseDate,
             StoreName = record.StoreName,
+            Category = record.Category,
             Metadata = includeMetadata
                 ? new PurchaseAnalyticsMetadataDto
                 {

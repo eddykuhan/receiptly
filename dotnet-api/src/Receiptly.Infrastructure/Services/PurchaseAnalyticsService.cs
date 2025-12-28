@@ -66,6 +66,11 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             goldQuery = goldQuery.Where(g => EF.Functions.ILike(g.CanonicalName ?? g.ItemName, productFilter));
         }
 
+        if (!string.IsNullOrWhiteSpace(query.Category))
+        {
+            goldQuery = goldQuery.Where(g => g.Category == query.Category);
+        }
+
         if (query.MinLatitude.HasValue)
         {
             var minLat = query.MinLatitude.Value;
@@ -116,6 +121,7 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             Quantity = g.Quantity,
             PurchaseDate = g.PurchaseDate,
             StoreName = g.StoreName,
+            Category = g.Category,
             StoreAddress = g.StoreAddress,
             StorePhoneNumber = g.StorePhoneNumber,
             Latitude = g.Latitude,
@@ -449,6 +455,55 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .OrderBy(s => s)
             .ToList();
+    }
+
+    public async Task<List<string>> GetCategoriesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.PurchaseAnalyticsGold
+            .AsNoTracking()
+            .Where(g => g.Category != null)
+            .Select(g => g.Category!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<StoreStats>> GetNearbyStoresAsync(
+        double lat,
+        double lng,
+        double radiusKm,
+        CancellationToken cancellationToken = default)
+    {
+        // Calculate bounding box
+        var latDelta = radiusKm / 111.0;
+        var minLat = lat - latDelta;
+        var maxLat = lat + latDelta;
+        var lngDelta = radiusKm / (111.0 * Math.Cos(lat * (Math.PI / 180.0)));
+        var minLng = lng - lngDelta;
+        var maxLng = lng + lngDelta;
+
+        var stores = await _context.PurchaseAnalyticsGold
+            .AsNoTracking()
+            .Where(g => g.Latitude.HasValue && g.Longitude.HasValue &&
+                        g.Latitude >= minLat && g.Latitude <= maxLat &&
+                        g.Longitude >= minLng && g.Longitude <= maxLng)
+            .Select(g => new { g.StoreName, g.StoreAddress, g.Latitude, g.Longitude })
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        return stores.Select(s => new StoreStats
+        {
+            StoreName = s.StoreName,
+            Latitude = s.Latitude,
+            Longitude = s.Longitude
+            // Address isn't in StoreStats but we could add it if needed. 
+            // For now, StoreStats only has StoreName, PurchaseCount, etc.
+            // Let's stick to what StoreStats has.
+        })
+        .GroupBy(s => s.StoreName) // Ensure unique store names for the dropdown
+        .Select(g => g.First())
+        .OrderBy(s => s.StoreName)
+        .ToList();
     }
 }
 

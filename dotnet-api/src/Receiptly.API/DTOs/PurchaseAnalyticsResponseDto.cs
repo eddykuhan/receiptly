@@ -23,6 +23,7 @@ public class PurchaseAnalyticsItemDto
     public decimal? TotalPrice { get; init; }
     public DateTime PurchaseDate { get; init; }
     public string StoreName { get; init; } = string.Empty;
+    public string? Category { get; init; }
     public PurchaseAnalyticsMetadataDto? Metadata { get; init; }
 }
 

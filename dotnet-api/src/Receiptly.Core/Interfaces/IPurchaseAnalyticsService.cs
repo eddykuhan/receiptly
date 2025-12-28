@@ -31,6 +31,14 @@ public interface IPurchaseAnalyticsService
         double? radiusKm = null,
         int limit = 10,
         CancellationToken cancellationToken = default);
+
+    Task<List<string>> GetCategoriesAsync(CancellationToken cancellationToken = default);
+
+    Task<List<StoreStats>> GetNearbyStoresAsync(
+        double lat,
+        double lng,
+        double radiusKm,
+        CancellationToken cancellationToken = default);
 }
 
 public class PurchaseAnalyticsQuery
@@ -41,6 +49,7 @@ public class PurchaseAnalyticsQuery
     public DateTime? EndDate { get; init; }
     public string? StoreName { get; init; }
     public string? ProductName { get; init; }
+    public string? Category { get; init; }
     public double? MinLatitude { get; init; }
     public double? MaxLatitude { get; init; }
     public double? MinLongitude { get; init; }
@@ -68,6 +77,7 @@ public class PurchaseAnalyticsRecord
     public int Quantity { get; init; }
     public DateTime PurchaseDate { get; init; }
     public string StoreName { get; init; } = string.Empty;
+    public string? Category { get; init; }
     public string? StoreAddress { get; init; }
     public string? StorePhoneNumber { get; init; }
     public double? Latitude { get; init; }
