@@ -69,7 +69,18 @@ import { FeedbackModalComponent } from '../../shared/components/feedback-modal.c
                 @if (receipt()!.storeAddress) {
                   <div>
                     <div class="text-sm text-base-content/60">Address</div>
-                    <div>{{ receipt()!.storeAddress }}</div>
+                    <div class="flex items-start gap-3">
+                      <div class="flex-1">{{ receipt()!.storeAddress }}</div>
+                      @if (hasMissingCoordinates()) {
+                        <button 
+                          (click)="openLocationCorrectionModal()"
+                          class="btn btn-sm btn-warning gap-2 flex-shrink-0 shadow-sm hover:shadow-md transition-all"
+                          title="Location coordinates missing - click to correct">
+                          <span class="material-icons text-base">warning</span>
+                          <span>Fix Location</span>
+                        </button>
+                      }
+                    </div>
                   </div>
                 }
 
@@ -296,6 +307,15 @@ export class ReceiptDetailComponent implements OnInit {
     if (confidence >= 0.85) return 'confidence-high';
     if (confidence >= 0.7) return 'confidence-medium';
     return 'confidence-low';
+  }
+
+  hasMissingCoordinates(): boolean {
+    const r = this.receipt();
+    return r?.storeAddress != null && (r.latitude == null || r.longitude == null);
+  }
+
+  openLocationCorrectionModal() {
+    this.feedbackModal?.openForLocationCorrection();
   }
 
   openFeedbackModal() {

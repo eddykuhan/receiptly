@@ -321,16 +321,18 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.ItemId)
                 .IsRequired();
             
-            entity.Property(e => e.ReceiptId)
-                .IsRequired();
+            entity.Property(e => e.ReceiptId); // Nullable for scraped data
             
             entity.Property(e => e.UserId)
-                .IsRequired()
-                .HasMaxLength(450);
+                .HasMaxLength(450); // Nullable for scraped data
             
             entity.Property(e => e.ItemName)
                 .IsRequired()
                 .HasMaxLength(300);
+            
+            entity.Property(e => e.Source)
+                .HasMaxLength(50)
+                .HasDefaultValue("UserReceipt");
             
             entity.Property(e => e.CanonicalName)
                 .HasMaxLength(300);

@@ -400,6 +400,26 @@ export class FeedbackModalComponent {
     this.closed.emit();
   }
 
+  openForLocationCorrection() {
+    this.isOpen.set(true);
+    this.correctionData.receiptId = this.receipt.id;
+    this.correctionData.fieldName = 'StoreAddress';
+    this.correctionData.incorrectValue = this.receipt.storeAddress || '';
+    this.correctionData.correctedValue = this.receipt.storeAddress || '';
+    this.correctionData.latitude = undefined;
+    this.correctionData.longitude = undefined;
+    this.suggestions.set([]);
+    this.showSuggestions.set(false);
+
+    // Trigger location search after a brief delay to ensure DOM is ready
+    setTimeout(() => {
+      if (this.correctionData.correctedValue) {
+        this.fetchSuggestions(this.correctionData.correctedValue);
+        this.showSuggestions.set(true);
+      }
+    }, 100);
+  }
+
   submitCorrection() {
     if (!this.correctionData.fieldName || !this.correctionData.correctedValue) {
       return;

@@ -20,6 +20,7 @@ public class PurchaseAnalyticsRequest
     public DateTime? EndDate { get; set; }
     public string? StoreName { get; set; }
     public string? ProductName { get; set; }
+    public string? Category { get; set; }
     public double? MinLat { get; set; }
     public double? MaxLat { get; set; }
     public double? MinLng { get; set; }

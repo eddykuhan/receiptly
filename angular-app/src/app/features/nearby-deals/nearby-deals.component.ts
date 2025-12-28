@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, OnInit, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { DealService, Deal } from '../../core/services/deal.service';
@@ -25,24 +25,64 @@ export class NearbyDealsComponent implements OnInit {
     userLocation = computed(() => this.locationService.userLocation());
     radius = computed(() => this.userPreferencesService.getSearchRadius()); // Dynamic radius from user preferences
 
+    // Filters
+    selectedStore = signal<string | null>(null);
+    selectedCategory = signal<string | null>(null);
+
+    // Filter options from backend
+    availableCategories = signal<string[]>([]);
+    availableStores = signal<any[]>([]);
+
+    constructor() {
+        // Load initial filter options
+        this.loadFilterOptions();
+
+        // Use an effect to reload deals when location or radius changes
+        effect(() => {
+            const location = this.userLocation();
+            if (location) {
+                this.loadNearbyDeals();
+                this.loadNearbyStores();
+            }
+        }, { allowSignalWrites: true });
+    }
+
     ngOnInit() {
-        // Location is already requested during splash screen
-        this.loadNearbyDeals();
+        // No-op for now, logic moved to constructor/effect
+    }
+
+    private loadFilterOptions() {
+        this.dealService.getCategories().subscribe(categories => {
+            this.availableCategories.set(categories);
+        });
+    }
+
+    private loadNearbyStores() {
+        const loc = this.userLocation();
+        if (!loc) return;
+
+        const searchRadius = this.radius();
+        this.dealService.getNearbyStores(loc.lat, loc.lon, searchRadius).subscribe(stores => {
+            this.availableStores.set(stores);
+        });
     }
 
     loadNearbyDeals() {
-        this.isLoading.set(true);
         const location = this.userLocation();
+        if (!location) return;
+
+        this.isLoading.set(true);
         const searchRadius = this.radius();
 
-        this.dealService.getHotDeals(location?.lat, location?.lon).subscribe({
+        this.dealService.getHotDeals(
+            location.lat,
+            location.lon,
+            searchRadius,
+            this.selectedCategory() || undefined,
+            this.selectedStore() || undefined
+        ).subscribe({
             next: (deals) => {
-                // Filter deals within user's configured radius if location is available
-                if (location) {
-                    this.deals.set(deals.filter(deal => deal.distance <= searchRadius));
-                } else {
-                    this.deals.set(deals);
-                }
+                this.deals.set(deals);
                 this.isLoading.set(false);
             },
             error: (err) => {
@@ -59,6 +99,18 @@ export class NearbyDealsComponent implements OnInit {
     getSavingsPercent(deal: Deal): number {
         if (deal.averagePrice === 0) return 0;
         return ((deal.averagePrice - deal.lowestPrice) / deal.averagePrice) * 100;
+    }
+
+    onStoreFilterChange(event: Event) {
+        const value = (event.target as HTMLSelectElement).value;
+        this.selectedStore.set(value === 'All Stores' || value === '' ? null : value);
+        this.loadNearbyDeals();
+    }
+
+    onCategoryFilterChange(event: Event) {
+        const value = (event.target as HTMLSelectElement).value;
+        this.selectedCategory.set(value === 'All Categories' || value === '' ? null : value);
+        this.loadNearbyDeals();
     }
 
     openInMaps(deal: Deal) {

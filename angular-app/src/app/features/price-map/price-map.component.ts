@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import * as L from 'leaflet';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { PriceMapService, StoreWithPrice } from './price-map.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
@@ -48,7 +48,10 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     isBottomSheetExpanded = signal(false);
     showMobileResults = signal(false);
     daysFilter = signal(7); // Default to 7 days
-    distanceFilter = signal<number | null>(null); // null = no distance filter
+
+    // Subject for map movement events to enable debouncing
+    // private mapMoveSubject = new Subject<void>();
+    private destroy$ = new Subject<void>();
 
     // Computed properties
     hasResults = computed(() => this.searchResults().length > 0);
@@ -78,10 +81,21 @@ export class PriceMapComponent implements OnInit, OnDestroy {
                 // User needs to manually click search button or press enter
             }
         });
+
+        // Setup debounced map movement listener
+        // Browsing disabled: Map is search-only now.
+        // this.mapMoveSubject.pipe(
+        //     debounceTime(500), 
+        //     takeUntil(this.destroy$)
+        // ).subscribe(() => {
+        //     this.loadItemsInViewport();
+        // });
     }
 
     ngOnDestroy() {
         this.map?.remove();
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     onDaysFilterChange(days: number) {
@@ -90,26 +104,18 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         if (this.searchQuery()) {
             this.performSearch();
         } else {
-            this.loadNearbyItems();
+            this.clearMarkers();
         }
     }
 
-    onDistanceFilterChange(distance: number | null) {
-        this.distanceFilter.set(distance);
-        // Reload results with new filter
-        if (this.searchQuery()) {
-            this.performSearch();
-        } else {
-            this.loadNearbyItems();
-        }
-    }
+
 
     private initMap() {
         // Get user location or default to Kuala Lumpur
         const userLoc = this.userLocation();
         const initialLat = userLoc?.lat ?? 3.1390;
         const initialLon = userLoc?.lon ?? 101.6869;
-        
+
         this.map = L.map('map').setView([initialLat, initialLon], 11);
 
         // Add OpenStreetMap tiles (free, no API key needed!)
@@ -146,13 +152,50 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             .bindPopup('<strong>📍 Your Location</strong>')
             .addTo(this.map);
 
-        // Load nearby items but don't auto-zoom to fit them
-        this.loadNearbyItems();
+        // Load initial data based on current view
+        // Browsing disabled: we don't load items initially anymore.
+        // this.loadItemsInViewport();
+
+        // Listen for map movements to lazy load data
+        // this.map.on('moveend', () => {
+        //    this.loadItemsInViewport();
+        // });
     }
 
     onSearchInput(value: string) {
         this.searchQuery.set(value);
-        this.showSuggestions.set(value.length > 0);
+        if (value.length >= 2) {
+            // Get current filters
+            const userLoc = this.userLocation();
+
+            // Get distance preference from user profile
+            const distFilter = this.userPreferencesService.getSearchRadius();
+
+            // Pass lat/lng/radius only if both location and distance filter are available
+            let lat: number | undefined;
+            let lng: number | undefined;
+            let radius: number | undefined;
+
+            if (userLoc && distFilter > 0) {
+                lat = userLoc.lat;
+                lng = userLoc.lon;
+                radius = distFilter;
+            }
+
+            this.priceMapService.searchSuggestions(value, lat, lng, radius).subscribe({
+                next: (suggestions) => {
+                    this.productSuggestions.set(suggestions);
+                    this.showSuggestions.set(suggestions.length > 0);
+                },
+                error: () => {
+                    this.productSuggestions.set([]);
+                    this.showSuggestions.set(false);
+                }
+            });
+        } else {
+            this.productSuggestions.set([]);
+            this.showSuggestions.set(false);
+        }
     }
 
     selectSuggestion(productName: string) {
@@ -177,10 +220,10 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             const userLoc = this.userLocation();
             if (userLoc) {
                 results = this.priceMapService.addDistanceToResults(results, userLoc.lat, userLoc.lon);
-                
-                // Apply distance filter if set
-                const distFilter = this.distanceFilter();
-                if (distFilter !== null) {
+
+                // Apply distance filter from user preferences
+                const distFilter = this.userPreferencesService.getSearchRadius();
+                if (distFilter > 0) {
                     results = results.filter(r => r.distance !== undefined && r.distance <= distFilter);
                 }
             }
@@ -193,7 +236,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             this.searchResults.set(results);
             this.showSuggestions.set(false);
             this.updateMapMarkers(results);
-            
+
             // Show mobile bottom sheet when search completes
             if (results.length > 0) {
                 this.showMobileResults.set(true);
@@ -209,40 +252,8 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }
     }
 
-    async loadNearbyItems() {
-        const userLoc = this.userLocation();
-        if (!userLoc) {
-            console.log('No user location available for nearby items');
-            return;
-        }
-
-        this.isLoading.set(true);
-        const userSearchRadius = this.userPreferencesService.getSearchRadius();
-        console.log(`🔍 Loading items within ${userSearchRadius}km...`);
-
-        try {
-            const radiusKm = this.distanceFilter() ?? userSearchRadius;
-            const nearbyItems = await firstValueFrom(
-                this.priceMapService.getNearbyItems(userLoc.lat, userLoc.lon, radiusKm, this.daysFilter())
-            );
-
-            console.log(`✅ Found ${nearbyItems.length} items within ${radiusKm}km`);
-            // If a store details view is active, only show items for that store
-            const activeStore = this.storeDetails();
-            let itemsToShow = nearbyItems;
-            if (activeStore) {
-                itemsToShow = nearbyItems.filter(r => r.store.id === activeStore.id);
-            }
-
-            this.searchResults.set(itemsToShow);
-            this.updateMapMarkers(itemsToShow, false); // Don't auto-zoom
-        } catch (error) {
-            console.error('Failed to load nearby items:', error);
-            this.errorMessage.set('Unable to load nearby items.');
-        } finally {
-            this.isLoading.set(false);
-        }
-    }
+    // Browsing disabled
+    // async loadItemsInViewport() { ... }
 
     private updateMapMarkers(results: StoreWithPrice[], autoZoom: boolean = true) {
         this.clearMarkers();
@@ -407,11 +418,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             const item = this.activePopups.pop();
             try {
                 item?.popup?.remove();
-            } catch {}
+            } catch { }
             try {
                 this.appRef.detachView(item!.viewRef);
                 item!.viewRef.destroy();
-            } catch {}
+            } catch { }
         }
     }
 
@@ -430,9 +441,9 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
         if (storeId) {
             const marker = this.markersMap.get(storeId);
-                if (marker) {
+            if (marker) {
                 this.setMarkerSelectedVisual(marker, true);
-                try { (marker as any).bringToFront?.(); } catch {}
+                try { (marker as any).bringToFront?.(); } catch { }
             }
         }
     }
@@ -479,11 +490,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     }
 
     getFilteredSuggestions() {
-        const query = this.searchQuery().toLowerCase();
-        if (!query) return [];
-        return this.productSuggestions()
-            .filter(name => name.toLowerCase().includes(query))
-            .slice(0, 5);
+        return this.productSuggestions();
     }
 
     toggleBottomSheet() {
@@ -507,6 +514,12 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
     }
 
+    private loadProductSuggestions() {
+        // No-op: Suggestions are now loaded dynamically via searchSuggestions()
+    }
+
+    /*
+    // Old implementation removed
     private async loadProductSuggestions() {
         try {
             const suggestions = await firstValueFrom(this.priceMapService.getProductSuggestions(60));
@@ -515,6 +528,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
             console.warn('Unable to load product suggestions', error);
         }
     }
+    */
 
     private clearMarkers() {
         // Close and cleanup any open popups first
@@ -523,7 +537,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.markers = [];
         // clear map and selection state
         this.markersMap.forEach(m => {
-            try { (m as any).remove(); } catch {};
+            try { (m as any).remove(); } catch { };
         });
         this.markersMap.clear();
         this.setSelectedMarker(null);

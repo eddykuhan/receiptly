@@ -1,4 +1,5 @@
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Receiptly.API.DTOs;
 using Receiptly.Core.Interfaces;
@@ -24,6 +25,7 @@ public class AnalyticsController : ControllerBase
     /// Returns purchased items across all users for analytics/price-map consumers.
     /// </summary>
     [HttpGet("purchases")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PurchaseAnalyticsResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<PurchaseAnalyticsResponseDto>> GetPurchases(
         [FromQuery] PurchaseAnalyticsRequest request,
@@ -43,6 +45,7 @@ public class AnalyticsController : ControllerBase
             EndDate = request.EndDate,
             StoreName = request.StoreName,
             ProductName = request.ProductName,
+            Category = request.Category,
             MinLatitude = request.MinLat,
             MaxLatitude = request.MaxLat,
             MinLongitude = request.MinLng,
@@ -88,6 +91,7 @@ public class AnalyticsController : ControllerBase
     /// Returns price history for a specific product over time.
     /// </summary>
     [HttpGet("price-history")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PriceHistoryResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<PriceHistoryResponseDto>> GetPriceHistory(
         [FromQuery] string userId,
@@ -97,6 +101,11 @@ public class AnalyticsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(userId))
         {
+            // Even though it's anonymous, the service might log userId, leaving it as required/optional?
+            // Service interface required it. But implementation didn't filter by it.
+            // Let's pass a dummy or empty if null? But it's FromQuery string.
+            // Original code checked for null. I'll keep the check but maybe it should be optional.
+            // For now, I'll keep the check.
             return BadRequest(new { error = "userId is required" });
         }
 
@@ -252,6 +261,61 @@ public class AnalyticsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("suggestions")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<string>>> GetSuggestions(
+        [FromQuery] string query,
+        [FromQuery] double? latitude = null,
+        [FromQuery] double? longitude = null,
+        [FromQuery] double? radius = null,
+        [FromQuery] int limit = 10,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return Ok(new List<string>());
+        }
+
+        var suggestions = await _purchaseAnalyticsService.GetSuggestionsAsync(
+            query, 
+            latitude, 
+            longitude, 
+            radius, 
+            limit, 
+            cancellationToken);
+        return Ok(suggestions);
+    }
+
+    [HttpGet("categories")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<string>>> GetCategories(CancellationToken cancellationToken)
+    {
+        var categories = await _purchaseAnalyticsService.GetCategoriesAsync(cancellationToken);
+        return Ok(categories);
+    }
+
+    [HttpGet("stores")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(List<StoreStatsDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<StoreStatsDto>>> GetNearbyStores(
+        [FromQuery] double latitude,
+        [FromQuery] double longitude,
+        [FromQuery] double radius = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var stores = await _purchaseAnalyticsService.GetNearbyStoresAsync(latitude, longitude, radius, cancellationToken);
+        var response = stores.Select(s => new StoreStatsDto
+        {
+            StoreName = s.StoreName,
+            Latitude = s.Latitude.HasValue ? (decimal)s.Latitude.Value : null,
+            Longitude = s.Longitude.HasValue ? (decimal)s.Longitude.Value : null
+        }).ToList();
+        
+        return Ok(response);
+    }
+
     private static PurchaseAnalyticsItemDto MapToDto(PurchaseAnalyticsRecord record, bool includeMetadata)
     {
         return new PurchaseAnalyticsItemDto
@@ -266,6 +330,7 @@ public class AnalyticsController : ControllerBase
             Quantity = record.Quantity,
             PurchaseDate = record.PurchaseDate,
             StoreName = record.StoreName,
+            Category = record.Category,
             Metadata = includeMetadata
                 ? new PurchaseAnalyticsMetadataDto
                 {

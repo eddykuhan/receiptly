@@ -11,8 +11,9 @@ public class PurchaseAnalyticsGold
     
     // Source references (preserved even if original receipt/item deleted)
     public Guid ItemId { get; set; }
-    public Guid ReceiptId { get; set; }
-    public string UserId { get; set; } = string.Empty;
+    public Guid? ReceiptId { get; set; }
+    public string? UserId { get; set; } = string.Empty;
+    public string Source { get; set; } = "UserReceipt";
     
     // Item details (denormalized from Items table)
     public string ItemName { get; set; } = string.Empty;
@@ -20,6 +21,7 @@ public class PurchaseAnalyticsGold
     public decimal UnitPrice { get; set; }
     public decimal TotalPrice { get; set; }
     public int Quantity { get; set; }
+    public string? Category { get; set; }
     
     // Purchase context (denormalized from Receipts table)
     public DateTime PurchaseDate { get; set; }

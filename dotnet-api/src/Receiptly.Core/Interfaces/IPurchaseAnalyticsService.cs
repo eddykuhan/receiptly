@@ -23,6 +23,22 @@ public interface IPurchaseAnalyticsService
         string userId,
         int days,
         CancellationToken cancellationToken = default);
+
+    Task<List<string>> GetSuggestionsAsync(
+        string query,
+        double? userLat = null,
+        double? userLng = null,
+        double? radiusKm = null,
+        int limit = 10,
+        CancellationToken cancellationToken = default);
+
+    Task<List<string>> GetCategoriesAsync(CancellationToken cancellationToken = default);
+
+    Task<List<StoreStats>> GetNearbyStoresAsync(
+        double lat,
+        double lng,
+        double radiusKm,
+        CancellationToken cancellationToken = default);
 }
 
 public class PurchaseAnalyticsQuery
@@ -33,6 +49,7 @@ public class PurchaseAnalyticsQuery
     public DateTime? EndDate { get; init; }
     public string? StoreName { get; init; }
     public string? ProductName { get; init; }
+    public string? Category { get; init; }
     public double? MinLatitude { get; init; }
     public double? MaxLatitude { get; init; }
     public double? MinLongitude { get; init; }
@@ -51,7 +68,7 @@ public class PurchaseAnalyticsResult
 public class PurchaseAnalyticsRecord
 {
     public Guid ItemId { get; init; }
-    public Guid ReceiptId { get; init; }
+    public Guid? ReceiptId { get; init; }
     public string ItemName { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string? CanonicalName { get; init; }
@@ -60,6 +77,7 @@ public class PurchaseAnalyticsRecord
     public int Quantity { get; init; }
     public DateTime PurchaseDate { get; init; }
     public string StoreName { get; init; } = string.Empty;
+    public string? Category { get; init; }
     public string? StoreAddress { get; init; }
     public string? StorePhoneNumber { get; init; }
     public double? Latitude { get; init; }

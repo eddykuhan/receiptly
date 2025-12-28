@@ -14,7 +14,7 @@ export interface UserPreferences {
 })
 export class UserPreferencesService {
     private readonly STORAGE_KEY = 'receiptly_user_preferences';
-    
+
     // Default preferences
     private defaultPreferences: UserPreferences = {
         searchRadiusKm: APP_CONSTANTS.DEFAULT_SEARCH_RADIUS_KM,
@@ -27,10 +27,7 @@ export class UserPreferencesService {
     // Signal to track current preferences
     preferences = signal<UserPreferences>(this.loadPreferences());
 
-    constructor() {
-        // Load preferences from localStorage on init
-        this.preferences.set(this.loadPreferences());
-    }
+    constructor() { }
 
     /**
      * Load preferences from localStorage

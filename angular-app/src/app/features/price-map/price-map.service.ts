@@ -69,40 +69,46 @@ export class PriceMapService {
     }
 
     /**
-     * Fetch cached product suggestions derived from analytics data.
-     * Uses canonical names for better grouping.
-     * Only includes items that have valid latitude/longitude coordinates.
-     * @param days Number of days to look back (default: 60)
+     * Search for product suggestions from the backend API.
+     * @param query Search query string
+     * @param limit Max number of suggestions (default: 10)
      */
-    getProductSuggestions(days: number = 60): Observable<string[]> {
+    searchSuggestions(query: string, lat?: number, lng?: number, radius?: number, limit: number = 10): Observable<string[]> {
+        if (!query || query.trim().length < 2) {
+            return of([]);
+        }
+
+        let params = new HttpParams()
+            .set('query', query.trim())
+            .set('limit', limit);
+
+        if (lat !== undefined && lng !== undefined && radius !== undefined && radius !== null) {
+            params = params
+                .set('latitude', lat)
+                .set('longitude', lng)
+                .set('radius', radius);
+        }
+
+        return this.http.get<string[]>(`${environment.apiUrl}/analytics/suggestions`, { params });
+    }
+
+    /**
+     * Get all items within specific viewport bounds
+     * Grouped by store to show all available items
+     */
+    getItemsInBounds(bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number }, days: number = 7): Observable<StoreWithPrice[]> {
         const params = new HttpParams()
             .set('pageSize', 500)
-            .set('includeMetadata', true);
+            .set('includeMetadata', true)
+            .set('page', 1)
+            .set('minLat', bounds.minLat)
+            .set('maxLat', bounds.maxLat)
+            .set('minLng', bounds.minLng)
+            .set('maxLng', bounds.maxLng);
 
-        return this.http
-            .get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params })
-            .pipe(
-                map(response => {
-                    const cutoffDate = new Date();
-                    cutoffDate.setDate(cutoffDate.getDate() - days);
-
-                    const uniqueNames = new Set(
-                        response.items
-                            // Filter: Only include items from last X days
-                            .filter(item => {
-                                const metadata = item.metadata;
-                                const latitude = metadata?.latitude;
-                                const longitude = metadata?.longitude;
-                                const purchaseDate = new Date(item.purchaseDate);
-                                return latitude != null && longitude != null && purchaseDate >= cutoffDate;
-                            })
-                            // Prefer canonical name over raw item name
-                            .map(item => (item.canonicalName || item.itemName).trim())
-                            .filter(Boolean)
-                    );
-                    return Array.from(uniqueNames).sort();
-                })
-            );
+        return this.http.get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params }).pipe(
+            map(response => this.transformResponse(response, days))
+        );
     }
 
     /**
