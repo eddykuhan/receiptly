@@ -29,6 +29,7 @@ public class ApplicationDbContext : DbContext
     
     // Analytics Gold Layer
     public DbSet<PurchaseAnalyticsGold> PurchaseAnalyticsGold { get; set; }
+    public DbSet<MasterProduct> MasterProducts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -403,6 +404,15 @@ public class ApplicationDbContext : DbContext
             // Composite index for time-series and product analysis
             entity.HasIndex(e => new { e.CanonicalName, e.PurchaseDate, e.Latitude, e.Longitude })
                 .HasDatabaseName("idx_gold_analytics");
+        });
+
+        // Configure MasterProduct entity
+        modelBuilder.Entity<MasterProduct>(entity =>
+        {
+            entity.ToTable("master_products");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired();
+            entity.HasIndex(e => e.Name).IsUnique().HasDatabaseName("idx_master_products_name");
         });
     }
 }
