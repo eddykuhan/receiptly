@@ -36,7 +36,8 @@ docker run -p 8500:8500 \
   -e USE_GROQ=false \
   --name receiptly-llm-service \
   receiptly-llm-service
-
+#
+sudo docker run -d  -p 8500:8500 --env-file .env llm-service
 # Or use docker-compose in llm_service directory
 docker-compose up
 ```
