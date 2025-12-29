@@ -238,6 +238,69 @@ def transform_to_gold_schema(df, location):
             
     return gold_df[target_columns]
 
+def sync_to_master_products(engine, df):
+    """Sync unique products from the provided dataframe to master_products table."""
+    if df.empty:
+        return
+    
+    # Load OpenAI key
+    load_dotenv("../llm_service/.env")
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("Warning: OPENAI_API_KEY not found. Skipping master product sync.")
+        return
+
+    from openai import OpenAI
+    client = OpenAI(api_key=api_key)
+
+    # 1. Get unique products by name
+    unique_products = df[['ItemName', 'Category', 'Source']].drop_duplicates(subset=['ItemName'])
+    
+    # 2. Extract Brand (Heuristic)
+    def parse_brand(name):
+        brands = ["Farm Fresh", "Dutch Lady", "F&N", "Milo", "Nestle", "Anchor", "Fernleaf", "Anlene"]
+        for b in brands:
+            if b.lower() in name.lower():
+                return b
+        return None
+    unique_products['Brand'] = unique_products['ItemName'].apply(parse_brand)
+
+    print(f"Syncing {len(unique_products)} unique products to master_products...")
+
+    # 3. Process in batches
+    BATCH_SIZE = 50
+    for i in range(0, len(unique_products), BATCH_SIZE):
+        batch = unique_products.iloc[i:i+BATCH_SIZE].copy()
+        
+        # Fetch embeddings
+        try:
+            response = client.embeddings.create(input=batch['ItemName'].tolist(), model="text-embedding-3-small")
+            batch['Embedding'] = [data.embedding for data in response.data]
+        except Exception as e:
+            print(f"Error generating embeddings for batch: {e}")
+            batch['Embedding'] = None
+
+        with engine.begin() as conn:
+            for _, row in batch.iterrows():
+                conn.execute(text("""
+                    INSERT INTO master_products ("Id", "Name", "Category", "Brand", "Source", "Embedding", "CreatedAt")
+                    VALUES (:Id, :Name, :Category, :Brand, :Source, :Embedding, :CreatedAt)
+                    ON CONFLICT ("Name") DO UPDATE SET
+                        "Category" = EXCLUDED."Category",
+                        "Brand" = EXCLUDED."Brand",
+                        "Source" = EXCLUDED."Source",
+                        "Embedding" = COALESCE(EXCLUDED."Embedding", master_products."Embedding")
+                """), {
+                    "Id": str(uuid.uuid4()),
+                    "Name": row["ItemName"],
+                    "Category": row["Category"],
+                    "Brand": row["Brand"],
+                    "Source": row["Source"],
+                    "Embedding": str(row["Embedding"]) if row["Embedding"] is not None else None,
+                    "CreatedAt": datetime.now()
+                })
+    print("Master product sync complete.")
+
 def main():
     print("Starting data loading pipeline...")
     
@@ -273,7 +336,8 @@ def main():
                 final_jg_df = pd.concat(all_jg_gold)
                 print(f"Inserting {len(final_jg_df)} records for Jaya Grocer...")
                 final_jg_df.to_sql('purchase_analytics_gold', engine, if_exists='append', index=False)
-                print("Done.")
+                print("Done. Syncing master products...")
+                sync_to_master_products(engine, final_jg_df)
         else:
             print("No Jaya Grocer products found.")
     else:
@@ -332,7 +396,8 @@ def main():
                 final_mydin_df = pd.concat(all_mydin_gold)
                 print(f"Inserting {len(final_mydin_df)} records for Mydin...")
                 final_mydin_df.to_sql('purchase_analytics_gold', engine, if_exists='append', index=False)
-                print("Done.")
+                print("Done. Syncing master products...")
+                sync_to_master_products(engine, final_mydin_df)
         else:
             print("No Mydin products found.")
     else:

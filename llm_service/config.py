@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8500
     
+    # Database Configuration
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_NAME: str = "receiptly"
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "postgres"
+    
     class Config:
         env_file = ".env"
 

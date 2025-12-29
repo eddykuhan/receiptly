@@ -33,6 +33,7 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("vector");
         base.OnModelCreating(modelBuilder);
 
         // Configure Points and Rewards System models
@@ -412,6 +413,7 @@ public class ApplicationDbContext : DbContext
             entity.ToTable("master_products");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.Embedding).HasColumnType("vector(1536)");
             entity.HasIndex(e => e.Name).IsUnique().HasDatabaseName("idx_master_products_name");
         });
     }

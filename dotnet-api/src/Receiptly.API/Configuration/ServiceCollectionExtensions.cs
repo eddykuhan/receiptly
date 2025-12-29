@@ -95,6 +95,7 @@ public static class ServiceCollectionExtensions
         {
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
+                npgsqlOptions.UseVector();
                 npgsqlOptions.EnableRetryOnFailure(
                     maxRetryCount: 3,
                     maxRetryDelay: TimeSpan.FromSeconds(5),

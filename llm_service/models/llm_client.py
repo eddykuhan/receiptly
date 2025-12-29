@@ -30,3 +30,12 @@ class LLMClient:
         except Exception as e:
             print(f"LLM API Error: {type(e).__name__}: {str(e)}")
             raise
+
+    async def embed(self, text, model="text-embedding-3-small"):
+        try:
+            # We use text-embedding-3-small for 1536 dims (same as configured in DB)
+            response = await self.client.embeddings.create(input=[text], model=model)
+            return response.data[0].embedding
+        except Exception as e:
+            print(f"Embedding API Error: {str(e)}")
+            return None
