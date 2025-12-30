@@ -37,122 +37,117 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             query.StartDate,
             query.EndDate);
 
-        // Query gold layer directly (no joins needed, corrections already applied)
-        var goldQuery = _context.PurchaseAnalyticsGold
-            .AsNoTracking();
+        // Query gold layer and propagate pricing zone records to physical stores
+        // We need to handle two cases: 
+        // 1. Records with PricingZoneId (propagated to all stores in that zone)
+        // 2. Records without PricingZoneId (Standalone/User receipts)
 
+        var queryable = from gold in _context.PurchaseAnalyticsGold.AsNoTracking()
+                        
+                        // Left join with stores if PricingZoneId is present
+                        from store in _context.Stores.AsNoTracking()
+                            .Where(s => gold.PricingZoneId != null && s.PricingZoneId == gold.PricingZoneId)
+                            .DefaultIfEmpty()
+                        
+                        select new
+                        {
+                            Gold = gold,
+                            Store = store
+                        };
+
+        // Filter based on query parameters
         if (query.StartDate.HasValue)
         {
             var startUtc = EnsureUtc(query.StartDate.Value);
-            goldQuery = goldQuery.Where(g => g.PurchaseDate >= startUtc);
+            queryable = queryable.Where(q => q.Gold.PurchaseDate >= startUtc);
         }
 
         if (query.EndDate.HasValue)
         {
             var endUtc = EnsureUtc(query.EndDate.Value);
-            goldQuery = goldQuery.Where(g => g.PurchaseDate <= endUtc);
+            queryable = queryable.Where(q => q.Gold.PurchaseDate <= endUtc);
+        }
+
+        if (query.CanonicalItemId.HasValue)
+        {
+            queryable = queryable.Where(q => q.Gold.CanonicalItemId == query.CanonicalItemId.Value);
+        }
+        else if (!string.IsNullOrWhiteSpace(query.ProductName))
+        {
+            var productFilter = $"%{query.ProductName.Trim()}%";
+            queryable = queryable.Where(q => EF.Functions.ILike(q.Gold.CanonicalName ?? q.Gold.ItemName, productFilter));
         }
 
         if (!string.IsNullOrWhiteSpace(query.StoreName))
         {
             var storeFilter = $"%{query.StoreName.Trim()}%";
-            goldQuery = goldQuery.Where(g => EF.Functions.ILike(g.StoreName, storeFilter));
-        }
-
-        if (query.CanonicalItemId.HasValue)
-        {
-            goldQuery = goldQuery.Where(g => g.CanonicalItemId == query.CanonicalItemId.Value);
-        }
-        else if (!string.IsNullOrWhiteSpace(query.ProductName))
-        {
-            var productFilter = $"%{query.ProductName.Trim()}%";
-            // Search by canonical name for better grouping of similar products
-            goldQuery = goldQuery.Where(g => EF.Functions.ILike(g.CanonicalName ?? g.ItemName, productFilter));
+            queryable = queryable.Where(q => 
+                EF.Functions.ILike(q.Store != null ? q.Store.Name : q.Gold.StoreName, storeFilter));
         }
 
         if (!string.IsNullOrWhiteSpace(query.Category))
         {
-            goldQuery = goldQuery.Where(g => g.Category == query.Category);
+            queryable = queryable.Where(q => q.Gold.Category == query.Category);
         }
 
-        if (query.MinLatitude.HasValue)
-        {
-            var minLat = query.MinLatitude.Value;
-            goldQuery = goldQuery.Where(g => g.Latitude.HasValue && g.Latitude.Value >= minLat);
-        }
+        // Location filtering logic
+        if (query.MinLatitude.HasValue) queryable = queryable.Where(q => (q.Store != null ? q.Store.Latitude : q.Gold.Latitude) >= query.MinLatitude.Value);
+        if (query.MaxLatitude.HasValue) queryable = queryable.Where(q => (q.Store != null ? q.Store.Latitude : q.Gold.Latitude) <= query.MaxLatitude.Value);
+        if (query.MinLongitude.HasValue) queryable = queryable.Where(q => (q.Store != null ? q.Store.Longitude : q.Gold.Longitude) >= query.MinLongitude.Value);
+        if (query.MaxLongitude.HasValue) queryable = queryable.Where(q => (q.Store != null ? q.Store.Longitude : q.Gold.Longitude) <= query.MaxLongitude.Value);
 
-        if (query.MaxLatitude.HasValue)
-        {
-            var maxLat = query.MaxLatitude.Value;
-            goldQuery = goldQuery.Where(g => g.Latitude.HasValue && g.Latitude.Value <= maxLat);
-        }
+        // Filter to only items with location data (either from store or gold record)
+        queryable = queryable.Where(q => 
+            (q.Store != null) || (q.Gold.Latitude.HasValue && q.Gold.Longitude.HasValue));
 
-        if (query.MinLongitude.HasValue)
-        {
-            var minLng = query.MinLongitude.Value;
-            goldQuery = goldQuery.Where(g => g.Longitude.HasValue && g.Longitude.Value >= minLng);
-        }
-
-        if (query.MaxLongitude.HasValue)
-        {
-            var maxLng = query.MaxLongitude.Value;
-            goldQuery = goldQuery.Where(g => g.Longitude.HasValue && g.Longitude.Value <= maxLng);
-        }
-
-        // Filter to only items with location data for price map
-        goldQuery = goldQuery.Where(g => g.Latitude.HasValue && g.Longitude.HasValue);
-
-        var totalCount = await goldQuery.LongCountAsync(cancellationToken);
+        var totalCount = await queryable.LongCountAsync(cancellationToken);
         var skip = (page - 1) * pageSize;
 
         // Apply distance-based sorting if user coordinates are provided
-        IOrderedQueryable<PurchaseAnalyticsGold> orderedQuery;
+        IQueryable<dynamic> orderedQuery;
         if (query.UserLatitude.HasValue && query.UserLongitude.HasValue)
         {
             var userLat = query.UserLatitude.Value;
             var userLng = query.UserLongitude.Value;
             
-            // Note: EF Core doesn't directly support distance functions in Postgres without plugins,
-            // but we can approximate it or use a simple distance formula for ordering.
-            // For closer results, we order by the absolute difference in lat/lng as a simple heuristic.
-            orderedQuery = goldQuery
-                .OrderBy(g => Math.Abs((g.Latitude ?? 0) - userLat) + Math.Abs((g.Longitude ?? 0) - userLng))
-                .ThenByDescending(g => g.PurchaseDate);
+            orderedQuery = queryable
+                .OrderBy(q => Math.Abs((q.Store != null ? q.Store.Latitude : (q.Gold.Latitude ?? 0)) - userLat) + 
+                              Math.Abs((q.Store != null ? q.Store.Longitude : (q.Gold.Longitude ?? 0)) - userLng))
+                .ThenByDescending(q => q.Gold.PurchaseDate);
         }
         else
         {
-            orderedQuery = goldQuery
-                .OrderByDescending(g => g.PurchaseDate)
-                .ThenBy(g => g.ItemName);
+            orderedQuery = queryable
+                .OrderByDescending(q => q.Gold.PurchaseDate)
+                .ThenBy(q => q.Gold.ItemName);
         }
 
-        var records = await orderedQuery
+        var results = await orderedQuery
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        // Map to PurchaseAnalyticsRecord (after materialization to avoid expression tree limitations)
-        var mappedRecords = records.Select(g => new PurchaseAnalyticsRecord
+        var mappedRecords = results.Select(r => new PurchaseAnalyticsRecord
         {
-            ItemId = g.ItemId,
-            ReceiptId = g.ReceiptId,
-            ItemName = g.ItemName,
-            Description = null, // Not stored in gold layer
-            CanonicalName = g.CanonicalName,
-            UnitPrice = g.UnitPrice,
-            TotalPrice = g.TotalPrice,
-            Quantity = g.Quantity,
-            PurchaseDate = g.PurchaseDate,
-            StoreName = g.StoreName,
-            Category = g.Category,
-            StoreAddress = g.StoreAddress,
-            StorePhoneNumber = g.StorePhoneNumber,
-            Latitude = g.Latitude,
-            Longitude = g.Longitude,
-            ReceiptType = g.ReceiptType,
-            TransactionId = g.TransactionId,
-            PaymentMethod = g.PaymentMethod,
-            Status = Enum.TryParse<Receiptly.Domain.Enums.ReceiptStatus>(g.ReceiptStatus, out var status) 
+            ItemId = r.Gold.ItemId,
+            ReceiptId = r.Gold.ReceiptId,
+            ItemName = r.Gold.ItemName,
+            CanonicalName = r.Gold.CanonicalName,
+            UnitPrice = r.Gold.UnitPrice,
+            TotalPrice = r.Gold.TotalPrice,
+            Quantity = r.Gold.Quantity,
+            PurchaseDate = r.Gold.PurchaseDate,
+            // Prioritize store-specific data
+            StoreName = r.Store != null ? r.Store.Name : r.Gold.StoreName,
+            StoreAddress = r.Store != null ? r.Store.Address ?? r.Gold.StoreAddress : r.Gold.StoreAddress,
+            Latitude = r.Store != null ? r.Store.Latitude : r.Gold.Latitude,
+            Longitude = r.Store != null ? r.Store.Longitude : r.Gold.Longitude,
+            Category = r.Gold.Category,
+            StorePhoneNumber = r.Gold.StorePhoneNumber,
+            ReceiptType = r.Gold.ReceiptType,
+            TransactionId = r.Gold.TransactionId,
+            PaymentMethod = r.Gold.PaymentMethod,
+            Status = Enum.TryParse<Receiptly.Domain.Enums.ReceiptStatus>((string)r.Gold.ReceiptStatus, out Receiptly.Domain.Enums.ReceiptStatus status) 
                 ? status 
                 : Receiptly.Domain.Enums.ReceiptStatus.PendingValidation
         }).ToList();
