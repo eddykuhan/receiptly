@@ -24,18 +24,18 @@ from scrapers.aeon import AeonScraper
 
 # Scraper configurations
 SCRAPERS = [
-    {
-        'scraper_class': JayaGrocerScraper,
-        'store_url': 'https://jggp.jayagrocer.com',
-        'pricing_zone_id': 'JG_PENANG'
-    },
+    # {
+    #     'scraper_class': JayaGrocerScraper,
+    #     'store_url': 'https://jggp.jayagrocer.com',
+    #     'pricing_zone_id': 'JG_PENANG'
+    # },
     {
         'scraper_class': MydinScraper,
-        'store_url': 'https://mydin.my/category/all-products',
-        'max_pages': 10,
+        'store_url': 'https://mydin.my/category/all-products?category_uid=1222&category_uid=1513',
+        'max_pages': 100,
         'pricing_zone_id': 'MYDIN_NATIONAL'
     },
-    # {
+    # { 
     #     'scraper_class': LotusScraper,
     #     'store_url': 'https://www.lotuss.com.my/en/browse/all-products',
     #     'max_pages': 5

@@ -196,7 +196,7 @@ class Canonicalizer:
             return {'canonical_item_id': canonical_id, 'match_method': 'alias'}
         
         # Step 4: Generate embedding and check similarity
-        embedding = self.model.encode(normalized).tolist()
+        embedding = self.model.encode(normalized, show_progress_bar=False).tolist()
         similar = self.find_similar_embedding(embedding)
         
         if similar:

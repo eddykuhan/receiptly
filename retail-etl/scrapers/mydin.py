@@ -89,7 +89,7 @@ class MydinScraper(BaseScraper):
         
         try:
             for page in range(1, self.max_pages + 1):
-                url = f"{self.base_url}?page={page}"
+                url = f"{self.base_url}&page={page}"
                 print(f"Scraping MYDIN page {page}: {url}")
                 
                 self.driver.get(url)

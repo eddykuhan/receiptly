@@ -195,6 +195,52 @@ SCRAPERS = [
 
 ## How It Works
 
+### Architecture Diagram
+
+```mermaid
+graph TD
+    Scheduler[Scheduler / Manual Run] -->|Trigger| Manager[ETL Manager]
+
+    subgraph "Extract Phase"
+        Manager -->|1. Run| Scrapers{Scrapers}
+        Scrapers -->|Scrape| JG[Jaya Grocer]
+        Scrapers -->|Scrape| Mydin[Mydin]
+        JG -->|Raw Data| Items[Raw Items List]
+        Mydin -->|Raw Data| Items
+    end
+
+    subgraph "Transform Phase"
+        Manager -->|2. Transform| Canon[Canonicalizer]
+        Items -->|Item Name| Canon
+        Canon -->|Normalize| Norm[Clean Text]
+        Norm -->|Check| Exact{Exact Match?}
+        Exact -->|Yes| ID[Return CanonicalID]
+        Exact -->|No| Alias{Alias Match?}
+        Alias -->|Yes| ID
+        Alias -->|No| Vector[Generate Embedding]
+        Vector -->|PGVector Search| Sim{Similarity > 0.9?}
+        Sim -->|Yes| ID
+        Sim -->|No| New[Create New Canonical Item]
+        New -->|Insert with Vector| DB_Items[(Canonical Items DB)]
+        New -->|Return| ID
+    end
+
+    subgraph "Load Phase"
+        Manager -->|3. Load| Loader[Postgres Loader]
+        ID -->|Transformed Record| Loader
+        Loader -->|Query| History{Price Changed?}
+        History -->|Yes| Insert[Insert New Record]
+        History -->|No| Update[Update Timestamp]
+        Insert -->|Write| Gold[(Purchase Analytics Gold)]
+        Update -->|Write| Gold
+    end
+
+    subgraph "Regional Pricing Support"
+        Gold -.->|FK| DB_Items
+        Gold -.->|PricingZoneId| Stores[(Stores Table)]
+    end
+```
+
 ### 1. Extract (Scrape)
 - Each scraper inherits from `BaseScraper`
 - Implements `scrape()` method returning standardized product dicts
