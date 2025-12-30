@@ -123,12 +123,13 @@ class JayaGrocerScraper:
         
         return records
     
-    def scrape_all_products(self, delay: float = 1.5) -> List[Dict]:
+    def scrape_all_products(self, delay: float = 1.5, max_pages: Optional[int] = None) -> List[Dict]:
         """
         Scrape all products from the store by paginating through the API.
         
         Args:
             delay: Delay in seconds between page requests (rate limiting)
+            max_pages: Maximum number of pages to scrape (optional)
             
         Returns:
             List of all product records
@@ -157,10 +158,13 @@ class JayaGrocerScraper:
             
             print(f"  Extracted {len(products)} products ({len(all_records)} total records)")
             
-            # Rate limiting
             if products:  # Only delay if we got results
                 time.sleep(delay)
             
+            if max_pages and page >= max_pages:
+                print(f"Reached max_pages limit ({max_pages}). Stopping.")
+                break
+                
             page += 1
         
         print(f"\nScraping complete! Total records: {len(all_records)}")

@@ -99,6 +99,7 @@ public static class ServiceCollectionExtensions
                     maxRetryCount: 3,
                     maxRetryDelay: TimeSpan.FromSeconds(5),
                     errorCodesToAdd: null);
+                npgsqlOptions.UseVector(); // Enable pgvector support
             });
 
             if (environment.IsDevelopment())

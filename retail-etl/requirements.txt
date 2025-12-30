@@ -1,0 +1,9 @@
+psycopg2-binary
+sentence-transformers
+python-dotenv==1.0.0
+APScheduler==3.10.4
+requests==2.31.0
+beautifulsoup4==4.12.2
+scrapy==2.11.0
+selenium==4.15.2
+webdriver-manager==4.0.1

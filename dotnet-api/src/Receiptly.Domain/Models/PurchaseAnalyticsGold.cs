@@ -18,6 +18,7 @@ public class PurchaseAnalyticsGold
     // Item details (denormalized from Items table)
     public string ItemName { get; set; } = string.Empty;
     public string? CanonicalName { get; set; }
+    public Guid? CanonicalItemId { get; set; } // Reference to canonical_items table
     public decimal UnitPrice { get; set; }
     public decimal TotalPrice { get; set; }
     public int Quantity { get; set; }
@@ -33,6 +34,12 @@ public class PurchaseAnalyticsGold
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public double? LocationConfidence { get; set; }
+    
+    /// <summary>
+    /// Links this price observation to a pricing zone (e.g. "MYDIN_NATIONAL").
+    /// Null for user uploads (which are point-specific).
+    /// </summary>
+    public string? PricingZoneId { get; set; }
     
     // Receipt metadata
     public string? ReceiptType { get; set; }
