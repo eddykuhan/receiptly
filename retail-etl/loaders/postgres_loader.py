@@ -22,8 +22,22 @@ class PostgresLoader:
         self.connect()
 
     def connect(self):
-        """Establish database connection."""
-        if not self.conn or self.conn.closed:
+        """Establish or refresh database connection."""
+        is_broken = False
+        if self.conn:
+            try:
+                # Execution of a simple query to check if connection is alive
+                with self.conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+            except (psycopg2.OperationalError, psycopg2.InterfaceError):
+                is_broken = True
+
+        if not self.conn or self.conn.closed or is_broken:
+            if self.conn:
+                try:
+                    self.conn.close()
+                except Exception:
+                    pass
             try:
                 self.conn = psycopg2.connect(**self.db_config)
                 logger.info("Connected to database")
@@ -61,66 +75,81 @@ class PostgresLoader:
             
         return stats
 
-    def upsert_gold_price(self, records: List[Dict]) -> Dict:
+    def upsert_gold_price(self, records: List[Dict], batch_size: int = 100) -> Dict:
         """
-        Insert or update price records in purchase_analytics_gold.
+        Insert or update price records in purchase_analytics_gold in batches.
         """
         if not records:
             return {'inserted': 0, 'skipped': 0, 'total': 0}
             
-        if not self.conn or self.conn.closed:
-            self.connect()
-            
         inserted = 0
         skipped = 0
+        total = len(records)
         
-        with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            for record in records:
-                try:
-                    canonical_id = record.get('canonical_item_id')
-                    store_name = record.get('store_name')
-                    price = record.get('unit_price')
-                    
-                    if not canonical_id or not store_name or price is None:
-                        continue
+        for i in range(0, total, batch_size):
+            batch = records[i:i + batch_size]
+            self.connect() # Ensure connection is alive for this batch
+            
+            try:
+                with self.conn.cursor(cursor_factory=DictCursor) as cur:
+                    for record in batch:
+                        try:
+                            canonical_id = record.get('canonical_item_id')
+                            store_name = record.get('store_name')
+                            price = record.get('unit_price')
+                            
+                            if not canonical_id or not store_name or price is None:
+                                continue
 
-                    # Check latest record
-                    cur.execute(
-                        '''
-                        SELECT "Id", "UnitPrice", "PurchaseDate"
-                        FROM purchase_analytics_gold 
-                        WHERE "CanonicalItemId" = %s AND "StoreName" = %s 
-                        ORDER BY "PurchaseDate" DESC 
-                        LIMIT 1
-                        ''',
-                        (canonical_id, store_name)
-                    )
-                    latest = cur.fetchone()
+                            # Check latest record
+                            cur.execute(
+                                '''
+                                SELECT "Id", "UnitPrice", "PurchaseDate"
+                                FROM purchase_analytics_gold 
+                                WHERE "CanonicalItemId" = %s AND "StoreName" = %s 
+                                ORDER BY "PurchaseDate" DESC 
+                                LIMIT 1
+                                ''',
+                                (canonical_id, store_name)
+                            )
+                            latest = cur.fetchone()
+                            
+                            if latest and abs(float(latest['UnitPrice']) - float(price)) < 0.01:
+                                # Price same, update PurchaseDate
+                                cur.execute(
+                                    '''
+                                    UPDATE purchase_analytics_gold 
+                                    SET "PurchaseDate" = %s 
+                                    WHERE "Id" = %s
+                                    ''',
+                                    (datetime.now(), latest['Id'])
+                                )
+                                skipped += 1
+                            else:
+                                # Insert new record
+                                self._insert_record(cur, record)
+                                inserted += 1
+                                
+                        except Exception as e:
+                            logger.error(f"Error processing record {record.get('item_name')}: {e}")
+                            continue 
                     
-                    if latest and abs(float(latest['UnitPrice']) - float(price)) < 0.01:
-                        # Price same, update PurchaseDate
-                        cur.execute(
-                            '''
-                            UPDATE purchase_analytics_gold 
-                            SET "PurchaseDate" = %s 
-                            WHERE "Id" = %s
-                            ''',
-                            (datetime.now(), latest['Id'])
-                        )
-                        skipped += 1
-                    else:
-                        # Insert new record
-                        self._insert_record(cur, record)
-                        inserted += 1
-                        
-                except Exception as e:
-                    logger.error(f"Error loading record {record.get('item_name')}: {e}")
+                    self.conn.commit()
+                    logger.info(f"Batch Progress: {min(i + batch_size, total)}/{total} processed...")
+                    
+            except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+                logger.error(f"Database connection lost during batch: {e}. Reconnecting...")
+                self.conn = None # Force reconnect on next iteration
+                # Rewind index to retry this batch
+                i -= batch_size 
+                continue
+            except Exception as e:
+                logger.error(f"Fatal error in batch load: {e}")
+                if self.conn:
                     self.conn.rollback()
-                    continue 
-            
-            self.conn.commit()
-            
-        return {'inserted': inserted, 'skipped': skipped, 'total': len(records)}
+                raise
+
+        return {'inserted': inserted, 'skipped': skipped, 'total': total}
 
     def _insert_record(self, cur, record: Dict):
         """Insert a single record into purchase_analytics_gold."""

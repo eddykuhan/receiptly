@@ -1,35 +1,39 @@
 """
 MYDIN scraper adapter for the unified ETL pipeline.
 
-Adapts the existing Selenium-based logic to BaseScraper interface.
+Refactored to use Mydin's GraphQL API instead of Selenium/Requests-HTML.
 """
-import time
 import json
+import time
 from typing import List, Dict
+import requests
 from datetime import datetime
-
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+import logging
 
 from scrapers.base_scraper import BaseScraper
 
+logger = logging.getLogger(__name__)
 
 class MydinScraper(BaseScraper):
-    """MYDIN scraper using Selenium."""
+    """MYDIN scraper using internal GraphQL API."""
     
-    def __init__(self, store_url: str = "https://mydin.my/category/all-products", max_pages: int = 5, pricing_zone_id: str = "MYDIN_NATIONAL"):
+    # Main categories from Mydin (Food, Groceries, etc.)
+    # 1222: Groceries/Food? (Found Wonda Coffee here)
+    # 1513: Groceries?
+    # 2665: Food & Beverages (from analysis)
+    # 2669: Home & Living
+    # 2667: Mom & Baby
+    TARGET_CATEGORIES = [1222, 1513, 2665, 2667, 2668, 2669]
+
+    def __init__(self, store_url: str = "https://myapi.mydin.my/magento/products", max_pages: int = 10, pricing_zone_id: str = "MYDIN_NATIONAL", target_categories: List[int] = None):
         """
         Initialize MYDIN scraper.
         
         Args:
-            store_url: Base URL for MYDIN products
-            max_pages: Maximum number of pages to scrape (prevent infinite loops)
+            store_url: The Base GraphQL API URL
+            max_pages: Maximum number of pages to scrape PER CATEGORY
             pricing_zone_id: Pricing Zone ID
+            target_categories: List of category IDs to scrape
         """
         super().__init__(
             pricing_zone_id=pricing_zone_id,
@@ -38,193 +42,162 @@ class MydinScraper(BaseScraper):
             latitude=None, 
             longitude=None
         )
-        self.base_url = store_url
         self.max_pages = max_pages
-        self.driver = None
-
-    def _setup_driver(self):
-        """Initialize Selenium WebDriver."""
-        if self.driver:
-            return
-
-        chrome_options = Options()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--disable-gpu')
-        chrome_options.add_argument('--window-size=1920,1080')
-        chrome_options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36')
-        
-        driver_path = ChromeDriverManager().install()
-        # Workaround: webdriver-manager sometimes picks the wrong file (THIRD_PARTY_NOTICES, LICENSE)
-        if "THIRD_PARTY_NOTICES" in driver_path or "LICENSE" in driver_path:
-            import os
-            driver_dir = os.path.dirname(driver_path)
-            driver_path = os.path.join(driver_dir, "chromedriver")
-            
-        # Ensure executable permissions
-        try:
-            os.chmod(driver_path, 0o755)
-        except Exception:
-            pass  # Ignore if not allowed
-
-        service = Service(driver_path)
-        self.driver = webdriver.Chrome(service=service, options=chrome_options)
-    
-    def _close_driver(self):
-        """Close WebDriver."""
-        if self.driver:
-            self.driver.quit()
-            self.driver = None
+        self.base_api_url = store_url
+        self.target_categories = target_categories or self.TARGET_CATEGORIES
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+            "Origin": "https://mydin.my",
+            "Referer": "https://mydin.my/",
+            "Content-Type": "application/json"
+        }
 
     def scrape(self) -> List[Dict]:
         """
-        Scrape products from MYDIN.
-        
-        Returns:
-            List of product dictionaries.
+        Scrape products from MYDIN APIs.
         """
-        self._setup_driver()
         all_products = []
         
-        try:
-            for page in range(1, self.max_pages + 1):
-                url = f"{self.base_url}&page={page}"
-                print(f"Scraping MYDIN page {page}: {url}")
-                
-                self.driver.get(url)
-                
-                # Wait for body
-                try:
-                    WebDriverWait(self.driver, 15).until(
-                        EC.presence_of_element_located((By.TAG_NAME, "body"))
-                    )
-                except Exception as e:
-                    print(f"Timeout waiting for page {page}: {e}")
-                    break
-                
-                # Allow JS to execute
-                time.sleep(3)
-                
-                # Retrieve data from window.__NUXT__
-                products = self._extract_products_from_nuxt()
-                
-                if not products:
-                    print(f"No products found on page {page}. Stopping.")
-                    break
-                
-                all_products.extend(products)
-                print(f"Found {len(products)} products on page {page}")
-                
-                time.sleep(2)  # Respectful delay
-                
-        except Exception as e:
-            print(f"Error during MYDIN scraping: {e}")
-        finally:
-            self._close_driver()
+        for category_id in self.TARGET_CATEGORIES:
+            logger.info(f"Scraping Category ID: {category_id}")
+            category_products = self._scrape_category(category_id)
+            all_products.extend(category_products)
             
         return all_products
 
-    def _extract_products_from_nuxt(self) -> List[Dict]:
-        """Extract product data from window.__NUXT__."""
-        max_wait = 15
-        poll_interval = 1
-        waited = 0
-        products_loaded = False
+    def _scrape_category(self, category_id: int) -> List[Dict]:
+        """Scrape all pages for a single category."""
+        category_items = []
         
-        # Poll for data
-        while waited < max_wait:
-            nuxt_data = self.driver.execute_script("return window.__NUXT__;")
+        for page in range(1, self.max_pages + 1):
+            logger.info(f"Fetching page {page} for category {category_id}...")
             
-            if nuxt_data and 'state' in nuxt_data:
-                state = nuxt_data['state']
-                for key in state.keys():
-                    if key.startswith('$scategoryProducts-'):
-                        category_data = state.get(key)
-                        if category_data and isinstance(category_data, dict):
-                            data_obj = category_data.get('data')
-                            if data_obj is not None:
-                                products_loaded = True
-                                break
+            items = self._fetch_graphql_products(category_id, page)
             
-            if products_loaded:
+            if not items:
+                logger.info(f"No more items found for category {category_id} at page {page}")
                 break
+                
+            for item in items:
+                transformed = self._transform_item(item)
+                if transformed:
+                    category_items.append(transformed)
             
-            time.sleep(poll_interval)
-            waited += poll_interval
+            logger.info(f"Found {len(items)} items on page {page}")
+            time.sleep(1) # Polite delay
             
-        if not products_loaded:
-            print("Products did not load in time")
-            return []
+        return category_items
 
-        # Extract items
-        nuxt_data = self.driver.execute_script("return window.__NUXT__;")
-        state = nuxt_data.get('state', {})
+    def _fetch_graphql_products(self, category_id: int, page: int, page_size: int = 48) -> List[Dict]:
+        """Execute GraphQL query to fetch products."""
+        query_body = [
+            {
+                "filter": {"category_id": {"eq": str(category_id)}},
+                "pageSize": page_size,
+                "currentPage": page,
+                "sort": {"position": "ASC"}
+            },
+            {
+                "products": "products-custom-query",
+                "metadata": {
+                    "fields": """
+                        items {
+                            id
+                            sku
+                            name
+                            custom_productname
+                            url_key
+                            image { url label }
+                            thumbnail { url label }
+                            salable_quantity
+                            price_range {
+                                minimum_price {
+                                    final_price { value currency }
+                                }
+                            }
+                            categories { name }
+                        }
+                    """
+                }
+            },
+            {}
+        ]
         
-        scraped_items = []
-        
-        for key in state.keys():
-            if key.startswith('$scategoryProducts-'):
-                category_data = state.get(key)
-                if category_data and isinstance(category_data, dict):
-                    data_obj = category_data.get('data', {})
-                    if isinstance(data_obj, dict):
-                        items = data_obj.get('items', [])
-                        
-                        for item in items:
-                            transformed = self._transform_item(item)
-                            if transformed:
-                                scraped_items.append(transformed)
-                                
-        return scraped_items
+        try:
+            resp = requests.get(
+                self.base_api_url, 
+                params={'body': json.dumps(query_body)}, 
+                headers=self.headers, 
+                timeout=20
+            )
+            
+            if resp.status_code == 200:
+                data = resp.json()
+                if data and 'data' in data and data['data'] and 'products' in data['data'] and data['data']['products']:
+                    return data['data']['products'].get('items', []) or []
+            else:
+                logger.error(f"Error fetching data: {resp.status_code} - {resp.text[:200]}")
+                
+        except Exception as e:
+            logger.error(f"Exception during request: {e}")
+            
+        return []
 
     def _transform_item(self, product: Dict) -> Dict:
-        """Transform raw NUXT product to BaseScraper format."""
-        name = product.get('custom_productname') or product.get('name', '')
+        """Transform raw GraphQL product to BaseScraper format."""
+        
+        # Name
+        name = product.get('custom_productname') or product.get('name')
         if not name:
             return None
             
-        # Price extraction
+        # Price
         price = 0.0
         try:
-            price_range = product.get('price_range', {})
-            minimum_price = price_range.get('minimum_price', {})
-            final_price = minimum_price.get('final_price', {})
-            price = float(final_price.get('value', 0))
+            price_data = product.get('price_range', {}).get('minimum_price', {}).get('final_price', {})
+            price = float(price_data.get('value', 0))
         except (ValueError, TypeError, AttributeError):
             pass
             
-        # Category
-        categories = product.get('categories', [])
-        category = ''
-        if categories and len(categories) > 0:
-            category = categories[0].get('name', '') if isinstance(categories[0], dict) else ''
-            
-        # Availability
-        salable_qty = product.get('salable_quantity', 0)
-        available = salable_qty > 0
+        if price <= 0:
+            return None
 
         # Image
-        image = ''
-        image_obj = product.get('image') or product.get('thumbnail')
-        if image_obj and isinstance(image_obj, dict):
-            image = image_obj.get('url', '')
+        image_url = ""
+        img_obj = product.get('image') or product.get('thumbnail')
+        if img_obj:
+            image_url = img_obj.get('url', "")
 
+        # Category
+        cat_name = "Unknown"
+        cats = product.get('categories', [])
+        if cats:
+            cat_name = cats[0].get('name', 'Unknown')
+
+        # Availability
+        salable_qty = product.get('salable_quantity')
+        if salable_qty is None:
+            salable_qty = 0
+            
         return {
             'item_name': name,
             'unit_price': price,
-            'category': category,
-            'brand': '', # Brand not explicitly in the snippet, maybe in attributes
+            'category': cat_name,
+            'brand': '',
             'sku': product.get('sku', ''),
-            'product_url': '', # Not provided easily
-            'image_url': image,
-            'available': available,
+            'product_url': f"https://mydin.my/{product.get('url_key')}.html",
+            'image_url': image_url,
+            'available': salable_qty > 0,
             'scraped_at': datetime.utcnow().isoformat(),
-            'source': 'mydin_selenium_nuxt'
+            'source': 'mydin_graphql'
         }
 
 if __name__ == "__main__":
-    scraper = MydinScraper(max_pages=2)
-    products = scraper.run()
-    if products:
-        print(f"First product: {products[0]}")
+    # Test run
+    scraper = MydinScraper(max_pages=1)
+    # Temporarily limit categories for testing
+    scraper.TARGET_CATEGORIES = [1222] 
+    results = scraper.scrape()
+    print(f"Scraped {len(results)} items")
+    if results:
+        print(f"Sample: {results[0]}")
