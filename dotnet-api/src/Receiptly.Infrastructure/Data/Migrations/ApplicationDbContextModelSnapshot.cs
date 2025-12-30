@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Pgvector;
 using Receiptly.Infrastructure.Data;
 
 #nullable disable
@@ -20,6 +21,7 @@ namespace Receiptly.Infrastructure.Data.Migrations
                 .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Receiptly.Domain.Models.CanonicalCache", b =>
@@ -39,6 +41,91 @@ namespace Receiptly.Infrastructure.Data.Migrations
                     b.HasKey("RawName");
 
                     b.ToTable("canonical_cache", (string)null);
+                });
+
+            modelBuilder.Entity("Receiptly.Domain.Models.CanonicalItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category")
+                        .HasDatabaseName("idx_canonical_items_category");
+
+                    b.HasIndex("Name")
+                        .HasDatabaseName("idx_canonical_items_name");
+
+                    b.ToTable("canonical_items", (string)null);
+                });
+
+            modelBuilder.Entity("Receiptly.Domain.Models.CanonicalItemAlias", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid>("CanonicalItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Alias")
+                        .HasDatabaseName("idx_canonical_aliases_alias");
+
+                    b.HasIndex("CanonicalItemId")
+                        .HasDatabaseName("idx_canonical_aliases_item_id");
+
+                    b.ToTable("canonical_item_aliases", (string)null);
+                });
+
+            modelBuilder.Entity("Receiptly.Domain.Models.CanonicalItemEmbedding", b =>
+                {
+                    b.Property<Guid>("CanonicalItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Vector>("Embedding")
+                        .HasColumnType("vector(384)");
+
+                    b.HasKey("CanonicalItemId");
+
+                    b.ToTable("canonical_item_embeddings", (string)null);
                 });
 
             modelBuilder.Entity("Receiptly.Domain.Models.IssueReport", b =>
@@ -152,6 +239,40 @@ namespace Receiptly.Infrastructure.Data.Migrations
                     b.ToTable("items", (string)null);
                 });
 
+            modelBuilder.Entity("Receiptly.Domain.Models.MasterProduct", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Brand")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Category")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Size")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Source")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("idx_master_products_name");
+
+                    b.ToTable("master_products", (string)null);
+                });
+
             modelBuilder.Entity("Receiptly.Domain.Models.PointTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -208,6 +329,9 @@ namespace Receiptly.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("CanonicalItemId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("CanonicalName")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
@@ -248,6 +372,9 @@ namespace Receiptly.Infrastructure.Data.Migrations
                     b.Property<string>("PaymentMethod")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PricingZoneId")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("timestamp with time zone");
@@ -302,6 +429,9 @@ namespace Receiptly.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CanonicalItemId")
+                        .HasDatabaseName("idx_gold_canonical_item_id");
 
                     b.HasIndex("CanonicalName")
                         .HasDatabaseName("idx_gold_canonical_name");
@@ -459,6 +589,59 @@ namespace Receiptly.Infrastructure.Data.Migrations
                     b.HasIndex("UserId", "ImageHash");
 
                     b.ToTable("receipts", (string)null);
+                });
+
+            modelBuilder.Entity("Receiptly.Domain.Models.Store", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<double>("Latitude")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasPrecision(10, 7)
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("PricingZoneId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("RetailChain")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PricingZoneId")
+                        .HasDatabaseName("idx_stores_pricing_zone");
+
+                    b.HasIndex("Latitude", "Longitude")
+                        .HasDatabaseName("idx_stores_location");
+
+                    b.ToTable("stores", (string)null);
                 });
 
             modelBuilder.Entity("Receiptly.Domain.Models.UserAchievement", b =>
@@ -815,6 +998,28 @@ namespace Receiptly.Infrastructure.Data.Migrations
                     b.ToTable("weekly_challenges", (string)null);
                 });
 
+            modelBuilder.Entity("Receiptly.Domain.Models.CanonicalItemAlias", b =>
+                {
+                    b.HasOne("Receiptly.Domain.Models.CanonicalItem", "CanonicalItem")
+                        .WithMany()
+                        .HasForeignKey("CanonicalItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CanonicalItem");
+                });
+
+            modelBuilder.Entity("Receiptly.Domain.Models.CanonicalItemEmbedding", b =>
+                {
+                    b.HasOne("Receiptly.Domain.Models.CanonicalItem", "CanonicalItem")
+                        .WithOne()
+                        .HasForeignKey("Receiptly.Domain.Models.CanonicalItemEmbedding", "CanonicalItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CanonicalItem");
+                });
+
             modelBuilder.Entity("Receiptly.Domain.Models.IssueReport", b =>
                 {
                     b.HasOne("Receiptly.Domain.Models.Receipt", "Receipt")
@@ -835,6 +1040,14 @@ namespace Receiptly.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Receipt");
+                });
+
+            modelBuilder.Entity("Receiptly.Domain.Models.PurchaseAnalyticsGold", b =>
+                {
+                    b.HasOne("Receiptly.Domain.Models.CanonicalItem", null)
+                        .WithMany()
+                        .HasForeignKey("CanonicalItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("Receiptly.Domain.Models.UserCorrection", b =>

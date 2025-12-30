@@ -21,6 +21,11 @@ export interface StoreWithPrice {
     itemName?: string; // Add itemName for nearby items display
 }
 
+export interface ProductSuggestion {
+    id: string;
+    name: string;
+}
+
 interface PurchaseAnalyticsMetadataDto {
     storeAddress?: string;
     storePhoneNumber?: string;
@@ -54,14 +59,25 @@ export class PriceMapService {
     private suggestions$?: Observable<string[]>;
 
     /**
-     * Query the analytics endpoint for a given product name.
+     * Query the analytics endpoint for a given product.
      */
-    searchProduct(productName: string, days: number = 7): Observable<StoreWithPrice[]> {
-        const params = new HttpParams()
-            .set('productName', productName)
+    searchProduct(query: { productName?: string, canonicalItemId?: string, userLat?: number, userLng?: number }, days: number = 7): Observable<StoreWithPrice[]> {
+        let params = new HttpParams()
             .set('includeMetadata', true)
             .set('pageSize', 500)
             .set('page', 1);
+
+        if (query.productName) {
+            params = params.set('productName', query.productName);
+        }
+        if (query.canonicalItemId) {
+            params = params.set('canonicalItemId', query.canonicalItemId);
+        }
+        if (query.userLat !== undefined && query.userLng !== undefined) {
+            params = params
+                .set('userLat', query.userLat)
+                .set('userLng', query.userLng);
+        }
 
         return this.http.get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params }).pipe(
             map(response => this.transformResponse(response, days))
@@ -73,7 +89,7 @@ export class PriceMapService {
      * @param query Search query string
      * @param limit Max number of suggestions (default: 10)
      */
-    searchSuggestions(query: string, lat?: number, lng?: number, radius?: number, limit: number = 10): Observable<string[]> {
+    searchSuggestions(query: string, lat?: number, lng?: number, radius?: number, limit: number = 10): Observable<ProductSuggestion[]> {
         if (!query || query.trim().length < 2) {
             return of([]);
         }
@@ -89,7 +105,7 @@ export class PriceMapService {
                 .set('radius', radius);
         }
 
-        return this.http.get<string[]>(`${environment.apiUrl}/analytics/suggestions`, { params });
+        return this.http.get<ProductSuggestion[]>(`${environment.apiUrl}/analytics/suggestions`, { params });
     }
 
     /**

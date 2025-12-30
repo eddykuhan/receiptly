@@ -29,10 +29,20 @@ public class ApplicationDbContext : DbContext
     
     // Analytics Gold Layer
     public DbSet<PurchaseAnalyticsGold> PurchaseAnalyticsGold { get; set; }
+    public DbSet<MasterProduct> MasterProducts { get; set; }
+    
+    // Canonical Items System
+    public DbSet<CanonicalItem> CanonicalItems { get; set; }
+    public DbSet<CanonicalItemAlias> CanonicalItemAliases { get; set; }
+    public DbSet<CanonicalItemEmbedding> CanonicalItemEmbeddings { get; set; }
+    public DbSet<Store> Stores { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Enable pgvector extension
+        modelBuilder.HasPostgresExtension("vector");
 
         // Configure Points and Rewards System models
         modelBuilder.ConfigurePointsSystemModels();
@@ -337,6 +347,8 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.CanonicalName)
                 .HasMaxLength(300);
             
+            entity.Property(e => e.CanonicalItemId); // Nullable - will be populated by ETL or LLM service
+            
             // Decimal fields
             entity.Property(e => e.UnitPrice)
                 .HasColumnType("decimal(18,2)")
@@ -396,6 +408,9 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.CanonicalName)
                 .HasDatabaseName("idx_gold_canonical_name");
             
+            entity.HasIndex(e => e.CanonicalItemId)
+                .HasDatabaseName("idx_gold_canonical_item_id");
+            
             // Composite index for location-based queries (critical for price map)
             entity.HasIndex(e => new { e.Latitude, e.Longitude })
                 .HasDatabaseName("idx_gold_location");
@@ -403,6 +418,138 @@ public class ApplicationDbContext : DbContext
             // Composite index for time-series and product analysis
             entity.HasIndex(e => new { e.CanonicalName, e.PurchaseDate, e.Latitude, e.Longitude })
                 .HasDatabaseName("idx_gold_analytics");
+            
+            // Foreign key to canonical_items (nullable - not all records will have this initially)
+            entity.HasOne<CanonicalItem>()
+                .WithMany()
+                .HasForeignKey(e => e.CanonicalItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure MasterProduct entity
+        modelBuilder.Entity<MasterProduct>(entity =>
+        {
+            entity.ToTable("master_products");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired();
+            entity.HasIndex(e => e.Name).IsUnique().HasDatabaseName("idx_master_products_name");
+        });
+
+        // Configure CanonicalItem entity
+        modelBuilder.Entity<CanonicalItem>(entity =>
+        {
+            entity.ToTable("canonical_items");
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(300);
+            
+            entity.Property(e => e.Category)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.HasIndex(e => e.Name)
+                .HasDatabaseName("idx_canonical_items_name");
+            
+            entity.HasIndex(e => e.Category)
+                .HasDatabaseName("idx_canonical_items_category");
+        });
+
+        // Configure CanonicalItemAlias entity
+        modelBuilder.Entity<CanonicalItemAlias>(entity =>
+        {
+            entity.ToTable("canonical_item_aliases");
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Alias)
+                .IsRequired()
+                .HasMaxLength(300);
+            
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.HasOne(e => e.CanonicalItem)
+                .WithMany()
+                .HasForeignKey(e => e.CanonicalItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.Alias)
+                .HasDatabaseName("idx_canonical_aliases_alias");
+            
+            entity.HasIndex(e => e.CanonicalItemId)
+                .HasDatabaseName("idx_canonical_aliases_item_id");
+        });
+
+        // Configure CanonicalItemEmbedding entity
+        modelBuilder.Entity<CanonicalItemEmbedding>(entity =>
+        {
+            entity.ToTable("canonical_item_embeddings");
+            entity.HasKey(e => e.CanonicalItemId);
+            
+            entity.Property(e => e.Embedding)
+                .HasColumnType("vector(384)"); // all-MiniLM-L6-v2 produces 384-dim vectors
+            
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.HasOne(e => e.CanonicalItem)
+                .WithOne()
+                .HasForeignKey<CanonicalItemEmbedding>(e => e.CanonicalItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Store entity
+        modelBuilder.Entity<Store>(entity =>
+        {
+            entity.ToTable("stores");
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.RetailChain)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.PricingZoneId)
+                .IsRequired()
+                .HasMaxLength(100); // e.g., "MYDIN_NATIONAL"
+            
+            entity.Property(e => e.Address)
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.Latitude)
+                .HasPrecision(10, 7)
+                .IsRequired();
+            
+            entity.Property(e => e.Longitude)
+                .HasPrecision(10, 7)
+                .IsRequired();
+            
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            
+            // Indexes for location-based search
+            entity.HasIndex(e => new { e.Latitude, e.Longitude })
+                .HasDatabaseName("idx_stores_location");
+            
+            // Index for zone lookup
+            entity.HasIndex(e => e.PricingZoneId)
+                .HasDatabaseName("idx_stores_pricing_zone");
         });
     }
 }

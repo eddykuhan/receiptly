@@ -71,6 +71,7 @@ export class ProfileComponent implements OnInit {
     receipts = signal<Receipt[]>([]);
     isLoading = signal(true);
     userPoints = signal<UserPoints | null>(null);
+    totalSpent = computed(() => this.receipts().reduce((sum, receipt) => sum + receipt.totalAmount, 0));
     private receiptService = inject(ReceiptService);
     private authService = inject(ClerkAuthService);
     private themeService = inject(ThemeService);

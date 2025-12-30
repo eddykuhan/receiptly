@@ -24,7 +24,7 @@ public interface IPurchaseAnalyticsService
         int days,
         CancellationToken cancellationToken = default);
 
-    Task<List<string>> GetSuggestionsAsync(
+    Task<List<SuggestionResult>> GetSuggestionsAsync(
         string query,
         double? userLat = null,
         double? userLng = null,
@@ -49,7 +49,10 @@ public class PurchaseAnalyticsQuery
     public DateTime? EndDate { get; init; }
     public string? StoreName { get; init; }
     public string? ProductName { get; init; }
+    public Guid? CanonicalItemId { get; init; }
     public string? Category { get; init; }
+    public double? UserLatitude { get; init; }
+    public double? UserLongitude { get; init; }
     public double? MinLatitude { get; init; }
     public double? MaxLatitude { get; init; }
     public double? MinLongitude { get; init; }
@@ -159,3 +162,10 @@ public class StoreStats
     public double? Longitude { get; init; }
     public List<string> TopItems { get; init; } = new();
 }
+
+public class SuggestionResult
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+}
+

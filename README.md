@@ -80,6 +80,12 @@ receiptly/
 - **httpx** for downloading images from S3 presigned URLs
 - **Pillow** for image preprocessing
 
+### Unified Retail ETL
+- **Python-based** modular scraper framework
+- **Postgres + pgvector** for vector-based canonicalization
+- **Hybrid Pricing Model** (Regional Zones + User Locations)
+- See [retail-etl/README.md](retail-etl/README.md) for details
+
 ### Infrastructure
 - **AWS S3** for object storage
 - **AWS ECS Fargate** for production deployment (optional)
