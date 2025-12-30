@@ -43,11 +43,11 @@
                     <div
                         class="autocomplete-dropdown absolute top-full mt-1 w-full bg-base-100 rounded-box shadow-xl border border-base-200">
                         <ul class="menu p-2">
-                            @for (suggestion of getFilteredSuggestions(); track suggestion) {
+                            @for (suggestion of getFilteredSuggestions(); track suggestion.id) {
                             <li>
                                 <a (click)="selectSuggestion(suggestion)" class="text-sm">
                                     <span class="material-icons text-base">shopping_basket</span>
-                                    {{ suggestion }}
+                                    {{ suggestion.name }}
                                 </a>
                             </li>
                             }

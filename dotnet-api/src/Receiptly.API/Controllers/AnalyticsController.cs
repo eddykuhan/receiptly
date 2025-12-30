@@ -45,7 +45,10 @@ public class AnalyticsController : ControllerBase
             EndDate = request.EndDate,
             StoreName = request.StoreName,
             ProductName = request.ProductName,
+            CanonicalItemId = request.CanonicalItemId,
             Category = request.Category,
+            UserLatitude = request.UserLat,
+            UserLongitude = request.UserLng,
             MinLatitude = request.MinLat,
             MaxLatitude = request.MaxLat,
             MinLongitude = request.MinLng,
@@ -263,8 +266,8 @@ public class AnalyticsController : ControllerBase
 
     [HttpGet("suggestions")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<string>>> GetSuggestions(
+    [ProducesResponseType(typeof(List<SuggestionDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<SuggestionDto>>> GetSuggestions(
         [FromQuery] string query,
         [FromQuery] double? latitude = null,
         [FromQuery] double? longitude = null,
@@ -274,16 +277,23 @@ public class AnalyticsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(query))
         {
-            return Ok(new List<string>());
+            return Ok(new List<SuggestionDto>());
         }
 
-        var suggestions = await _purchaseAnalyticsService.GetSuggestionsAsync(
+        var results = await _purchaseAnalyticsService.GetSuggestionsAsync(
             query, 
             latitude, 
             longitude, 
             radius, 
             limit, 
             cancellationToken);
+
+        var suggestions = results.Select(s => new SuggestionDto
+        {
+            Id = s.Id,
+            Name = s.Name
+        }).ToList();
+
         return Ok(suggestions);
     }
 

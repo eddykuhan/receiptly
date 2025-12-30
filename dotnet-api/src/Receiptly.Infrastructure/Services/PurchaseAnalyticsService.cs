@@ -59,7 +59,11 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             goldQuery = goldQuery.Where(g => EF.Functions.ILike(g.StoreName, storeFilter));
         }
 
-        if (!string.IsNullOrWhiteSpace(query.ProductName))
+        if (query.CanonicalItemId.HasValue)
+        {
+            goldQuery = goldQuery.Where(g => g.CanonicalItemId == query.CanonicalItemId.Value);
+        }
+        else if (!string.IsNullOrWhiteSpace(query.ProductName))
         {
             var productFilter = $"%{query.ProductName.Trim()}%";
             // Search by canonical name for better grouping of similar products
@@ -101,9 +105,28 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
         var totalCount = await goldQuery.LongCountAsync(cancellationToken);
         var skip = (page - 1) * pageSize;
 
-        var records = await goldQuery
-            .OrderByDescending(g => g.PurchaseDate)
-            .ThenBy(g => g.ItemName)
+        // Apply distance-based sorting if user coordinates are provided
+        IOrderedQueryable<PurchaseAnalyticsGold> orderedQuery;
+        if (query.UserLatitude.HasValue && query.UserLongitude.HasValue)
+        {
+            var userLat = query.UserLatitude.Value;
+            var userLng = query.UserLongitude.Value;
+            
+            // Note: EF Core doesn't directly support distance functions in Postgres without plugins,
+            // but we can approximate it or use a simple distance formula for ordering.
+            // For closer results, we order by the absolute difference in lat/lng as a simple heuristic.
+            orderedQuery = goldQuery
+                .OrderBy(g => Math.Abs((g.Latitude ?? 0) - userLat) + Math.Abs((g.Longitude ?? 0) - userLng))
+                .ThenByDescending(g => g.PurchaseDate);
+        }
+        else
+        {
+            orderedQuery = goldQuery
+                .OrderByDescending(g => g.PurchaseDate)
+                .ThenBy(g => g.ItemName);
+        }
+
+        var records = await orderedQuery
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -391,7 +414,7 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             : dateTime.ToUniversalTime();
     }
 
-    public async Task<List<string>> GetSuggestionsAsync(
+    public async Task<List<SuggestionResult>> GetSuggestionsAsync(
         string query,
         double? userLat = null,
         double? userLng = null,
@@ -401,60 +424,30 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
     {
         if (string.IsNullOrWhiteSpace(query))
         {
-            return new List<string>();
+            return new List<SuggestionResult>();
         }
 
         var normalizedQuery = $"%{query.Trim()}%";
 
-        var goldQuery = _context.PurchaseAnalyticsGold
+        // Query canonical_items table instead of analytics directly for cleaner suggestions
+        var canonicalQuery = _context.CanonicalItems
             .AsNoTracking()
-            .Where(g => EF.Functions.ILike(g.CanonicalName ?? g.ItemName, normalizedQuery));
+            .Where(c => EF.Functions.ILike(c.Name, normalizedQuery));
 
-        // Apply location filter if valid parameters are provided
-        if (userLat.HasValue && userLng.HasValue && radiusKm.HasValue && radiusKm.Value > 0)
-        {
-            // Calculate bounding box for faster filtering
-            // 1 degree of latitude is ~111km
-            // 1 degree of longitude is ~111km * cos(latitude)
-            
-            var lat = userLat.Value;
-            var lng = userLng.Value;
-            var r = radiusKm.Value;
-            
-            var latDelta = r / 111.0;
-            var minLat = lat - latDelta;
-            var maxLat = lat + latDelta;
-            
-            // Approximate longitude delta (using latitude for cos scaling)
-            // Handle pole edge cases simply by not filtering longitude if too close to poles
-            var lngDelta = r / (111.0 * Math.Cos(lat * (Math.PI / 180.0)));
-            
-            var minLng = lng - lngDelta;
-            var maxLng = lng + lngDelta;
+        // Note: In a real production scenario, we might want to join with gold layer
+        // to only show items that actually have price points near the user.
+        // For now, we return canonical item matches directly.
 
-            goldQuery = goldQuery.Where(g => 
-                g.Latitude.HasValue && g.Longitude.HasValue &&
-                g.Latitude >= minLat && g.Latitude <= maxLat &&
-                g.Longitude >= minLng && g.Longitude <= maxLng);
-                
-            // Note: We are using a bounding box approximation here for speed on suggestion lookup.
-            // A precise Haversine distance check would require evaluating distance for every row
-            // which might be too slow for autosuggestions. The bounding box is sufficient to 
-            // exclude items that are far away (e.g. different city/state).
-        }
-
-        // Query gold layer for distinct product names matching the query
-        // Prefer canonical name, fallback to item name
-        var suggestions = await goldQuery
-            .Select(g => g.CanonicalName ?? g.ItemName)
-            .Distinct()
+        var results = await canonicalQuery
+            .Select(c => new SuggestionResult
+            {
+                Id = c.Id,
+                Name = c.Name
+            })
             .Take(limit)
             .ToListAsync(cancellationToken);
             
-        return suggestions
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .OrderBy(s => s)
-            .ToList();
+        return results.OrderBy(r => r.Name).ToList();
     }
 
     public async Task<List<string>> GetCategoriesAsync(CancellationToken cancellationToken = default)

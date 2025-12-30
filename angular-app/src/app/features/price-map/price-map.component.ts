@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import * as L from 'leaflet';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
-import { PriceMapService, StoreWithPrice } from './price-map.service';
+import { PriceMapService, ProductSuggestion, StoreWithPrice } from './price-map.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
 import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
 import { APP_CONSTANTS } from '../../core/constants/app.constants';
@@ -40,7 +40,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     // When showing a specific store's items in the side sheet
     storeDetails = signal<any | null>(null);
     previousSearchResults = signal<StoreWithPrice[] | null>(null);
-    productSuggestions = signal<string[]>([]);
+    productSuggestions = signal<ProductSuggestion[]>([]);
     showSuggestions = signal(false);
     userLocation = computed(() => this.locationService.userLocation());
     isLoading = signal(false);
@@ -184,7 +184,11 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
             this.priceMapService.searchSuggestions(value, lat, lng, radius).subscribe({
                 next: (suggestions) => {
-                    this.productSuggestions.set(suggestions);
+                    const uppercased = suggestions.map(s => ({
+                        ...s,
+                        name: s.name.toUpperCase()
+                    }));
+                    this.productSuggestions.set(uppercased);
                     this.showSuggestions.set(suggestions.length > 0);
                 },
                 error: () => {
@@ -198,15 +202,15 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }
     }
 
-    selectSuggestion(productName: string) {
-        this.searchQuery.set(productName);
+    selectSuggestion(suggestion: import('./price-map.service').ProductSuggestion) {
+        this.searchQuery.set(suggestion.name);
         this.showSuggestions.set(false);
-        this.performSearch();
+        this.performSearch(suggestion.id);
     }
 
-    async performSearch() {
+    async performSearch(canonicalItemId?: string) {
         const query = this.searchQuery().trim();
-        if (!query) {
+        if (!query && !canonicalItemId) {
             this.clearSearch();
             return;
         }
@@ -215,9 +219,16 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.errorMessage.set(null);
 
         try {
-            let results = await firstValueFrom(this.priceMapService.searchProduct(query, this.daysFilter()));
-
             const userLoc = this.userLocation();
+            const searchParams: any = {
+                productName: canonicalItemId ? undefined : query,
+                canonicalItemId: canonicalItemId,
+                userLat: userLoc?.lat,
+                userLng: userLoc?.lon
+            };
+
+            let results = await firstValueFrom(this.priceMapService.searchProduct(searchParams, this.daysFilter()));
+
             if (userLoc) {
                 results = this.priceMapService.addDistanceToResults(results, userLoc.lat, userLoc.lon);
 
