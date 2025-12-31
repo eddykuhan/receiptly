@@ -17,7 +17,7 @@ public class LlmServiceClient
         _httpClient.BaseAddress = new Uri(llmConfig.BaseUrl);
     }
 
-    public async Task<string> CanonicalizeItemAsync(string rawItem)
+    public async Task<CanonicalizationResult> CanonicalizeItemAsync(string rawItem)
     {
         try
         {
@@ -30,17 +30,18 @@ public class LlmServiceClient
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            return doc.RootElement.GetProperty("canonical_name").GetString() ?? rawItem;
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return JsonSerializer.Deserialize<CanonicalizationResult>(json, options) 
+                ?? new CanonicalizationResult { CanonicalName = rawItem };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calling LLM service for item: {Item}", rawItem);
-            return rawItem; // Fallback to raw item
+            return new CanonicalizationResult { CanonicalName = rawItem }; // Fallback to raw item
         }
     }
 
-    public async Task<List<string>> CanonicalizeBatchAsync(List<string> items)
+    public async Task<List<CanonicalizationResult>> CanonicalizeBatchAsync(List<string> items)
     {
         try
         {
@@ -54,18 +55,23 @@ public class LlmServiceClient
 
             var json = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
-            var array = doc.RootElement.GetProperty("canonical_names");
-            var result = new List<string>();
-            foreach (var element in array.EnumerateArray())
-            {
-                result.Add(element.GetString() ?? string.Empty);
-            }
-            return result;
+            var resultsArray = doc.RootElement.GetProperty("results");
+            
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return JsonSerializer.Deserialize<List<CanonicalizationResult>>(resultsArray.GetRawText(), options) 
+                ?? items.Select(i => new CanonicalizationResult { CanonicalName = i }).ToList();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calling LLM service for batch");
-            return items; // Fallback
+            return items.Select(i => new CanonicalizationResult { CanonicalName = i }).ToList();
         }
     }
 }
+
+public class CanonicalizationResult
+{
+    public string CanonicalName { get; set; } = string.Empty;
+    public Guid? CanonicalItemId { get; set; }
+}
+

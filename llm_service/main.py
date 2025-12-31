@@ -22,12 +22,13 @@ async def health_check():
 @app.post("/canonicalize_item")
 async def api_canonicalize_item(body: dict):
     raw = body["raw_item"]
-    return {"canonical_name": await canonicalize_item(raw)}
+    return await canonicalize_item(raw)
 
 @app.post("/canonicalize_batch")
 async def api_canonicalize_batch(body: dict):
     items = body["items"]
-    return {"canonical_names": await canonicalize_batch(items)}
+    results = await canonicalize_batch(items)
+    return {"results": results}
 
 @app.post("/normalize_merchant")
 async def api_normalize_merchant(body: dict):
