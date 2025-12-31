@@ -18,6 +18,37 @@ pip install -r requirements.txt
 
 ## Usage
 
+### 99 Speedmart Location Fetcher
+
+Fetch all 99 Speedmart store locations from their WordPress API with optional Google Places enrichment:
+
+```bash
+# Basic usage (uses cached data if available)
+python fetch_more_99speedmart.py
+
+# Force refresh from WordPress API
+python fetch_more_99speedmart.py --refresh-cache
+
+# Use Google Places API for missing coordinates
+python fetch_more_99speedmart.py --use-google-places
+
+# Combined: refresh cache and enrich with Google Places
+python fetch_more_99speedmart.py --refresh-cache --use-google-places
+
+# Testing options
+python fetch_more_99speedmart.py --limit 10 --offset 400  # Process 10 stores starting from index 400
+
+# Copy to retail-etl for receipt processing
+cp data/99_speedmart_complete.json ../retail-etl/data/99_speedmart_locations.json
+```
+
+**Workflow:**
+1. Run the fetcher (uses cache by default for speed)
+2. Copy the output to `../retail-etl/data/99_speedmart_locations.json` for receipt processing
+3. Use `--refresh-cache` periodically to update store data
+
+**Caching**: The script automatically caches raw WordPress API data to `data/wordpress_stores_cache.json` to avoid repeated API calls. Use `--refresh-cache` to update the cache.
+
 ### Basic Scraping
 
 ```bash
@@ -75,6 +106,8 @@ Each store location contains:
 
 Scraped data is saved to the `data/` directory:
 
+- `99_speedmart_complete.json` - All 99 Speedmart locations with processed data
+- `wordpress_stores_cache.json` - Raw WordPress API data (cached)
 - `jaya_grocer_locations.json` - Jaya Grocer locations
 - `mydin_locations.json` - Mydin locations
 - `lotuss_locations.json` - Lotus's locations
@@ -103,6 +136,15 @@ def find_closest_location(ocr_address, known_locations):
 ```
 
 ## Notes
+
+### Data Caching
+
+The 99 Speedmart fetcher implements intelligent caching:
+
+- Raw WordPress API data is cached locally to avoid repeated API calls
+- Cache file: `data/wordpress_stores_cache.json` (~1MB)
+- Use `--refresh-cache` to force update from API
+- Cache includes all 3,000+ stores with complete metadata
 
 ### Web Scraping Considerations
 

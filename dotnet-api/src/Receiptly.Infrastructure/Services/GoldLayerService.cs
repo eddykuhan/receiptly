@@ -43,6 +43,7 @@ public class GoldLayerService : IGoldLayerService
                 // Item details
                 ItemName = item.Name,
                 CanonicalName = item.CanonicalName,
+                CanonicalItemId = item.CanonicalItemId,
                 UnitPrice = item.UnitPrice ?? item.Price,
                 TotalPrice = item.TotalPrice ?? (item.UnitPrice ?? item.Price) * item.Quantity,
                 Quantity = item.Quantity,

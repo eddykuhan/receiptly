@@ -680,7 +680,9 @@ public class ReceiptProcessingService : IReceiptProcessingService
                 // Canonicalize name
                 if (!string.IsNullOrWhiteSpace(item.Name))
                 {
-                    item.CanonicalName = await _canonicalizationService.GetCanonicalNameAsync(item.Name);
+                    var canonResult = await _canonicalizationService.GetCanonicalNameAsync(item.Name);
+                    item.CanonicalName = canonResult.CanonicalName;
+                    item.CanonicalItemId = canonResult.CanonicalItemId;
                 }
 
                 items.Add(item);

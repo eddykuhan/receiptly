@@ -6,3 +6,6 @@ python-dotenv
 pydantic-settings
 python-multipart
 httpx
+sentence-transformers
+psycopg2-binary
+numpy
