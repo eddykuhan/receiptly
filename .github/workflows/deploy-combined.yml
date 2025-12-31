@@ -289,6 +289,7 @@ jobs:
           GROQ_API_KEY=${{ steps.secrets.outputs.groq_api_key }}
           HOST=0.0.0.0
           PORT=8500
+          DB_CONNECTION=${{ steps.secrets.outputs.db_connection }}
           EOF
           
           # Upload to S3

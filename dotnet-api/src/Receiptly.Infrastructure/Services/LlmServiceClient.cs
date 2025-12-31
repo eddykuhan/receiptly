@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Receiptly.Infrastructure.Configuration;
 
@@ -71,7 +72,9 @@ public class LlmServiceClient
 
 public class CanonicalizationResult
 {
+    [JsonPropertyName("canonical_name")]
     public string CanonicalName { get; set; } = string.Empty;
+    [JsonPropertyName("canonical_item_id")]
     public Guid? CanonicalItemId { get; set; }
 }
 
