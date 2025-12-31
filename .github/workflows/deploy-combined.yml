@@ -128,6 +128,11 @@ jobs:
           echo "azure_endpoint=$AZURE_ENDPOINT" >> $GITHUB_OUTPUT
           echo "azure_key=$AZURE_KEY" >> $GITHUB_OUTPUT
           echo "db_connection=Host=$DB_HOST;Port=$DB_PORT;Database=$DB_NAME;Username=$DB_USER;Password=$DB_PASS" >> $GITHUB_OUTPUT
+          echo "db_host=$DB_HOST" >> $GITHUB_OUTPUT
+          echo "db_port=$DB_PORT" >> $GITHUB_OUTPUT
+          echo "db_name=$DB_NAME" >> $GITHUB_OUTPUT
+          echo "db_user=$DB_USER" >> $GITHUB_OUTPUT
+          echo "db_password=$DB_PASS" >> $GITHUB_OUTPUT
           echo "s3_bucket=$S3_BUCKET" >> $GITHUB_OUTPUT
           echo "s3_region=$S3_REGION" >> $GITHUB_OUTPUT
           echo "dotnet_api_repo=$DOTNET_API_REPO" >> $GITHUB_OUTPUT
@@ -289,7 +294,11 @@ jobs:
           GROQ_API_KEY=${{ steps.secrets.outputs.groq_api_key }}
           HOST=0.0.0.0
           PORT=8500
-          DB_CONNECTION=${{ steps.secrets.outputs.db_connection }}
+          DB_HOST=${{ steps.secrets.outputs.db_host }}
+          DB_PORT=${{ steps.secrets.outputs.db_port }}
+          DB_NAME=${{ steps.secrets.outputs.db_name }}
+          DB_USER=${{ steps.secrets.outputs.db_user }}
+          DB_PASSWORD=${{ steps.secrets.outputs.db_password }}
           EOF
           
           # Upload to S3

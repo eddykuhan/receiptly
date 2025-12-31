@@ -74,7 +74,12 @@ Return ONLY the canonical name, no explanation.
 
 def get_db_connection():
     try:
-        conn = psycopg2.connect(settings.DB_CONNECTION
+        conn = psycopg2.connect(
+            host=settings.DB_HOST,
+            port=settings.DB_PORT,
+            database=settings.DB_NAME,
+            user=settings.DB_USER,
+            password=settings.DB_PASSWORD
         )
         logger.debug("Database connection established")
         return conn
