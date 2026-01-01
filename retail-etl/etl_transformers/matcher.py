@@ -36,6 +36,7 @@ class AmazonStyleMatcher:
             else:
                 device = 'cpu'
             self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
+            self.embedding_model.encode(['test'], show_progress_bar=False)  # Set default
             print(f"[Matcher] Using device: {device}")
         else:
             self.embedding_model = embedding_model
@@ -254,9 +255,13 @@ class AmazonStyleMatcher:
         if not query_text or not candidate_text:
             return 0.0
         
+        # Normalize text: remove hyphens, extra spaces for better matching
+        query_normalized = ' '.join(query_text.replace('-', ' ').split())
+        candidate_normalized = ' '.join(candidate_text.replace('-', ' ').split())
+        
         # Generate embeddings
-        query_emb = self.embedding_model.encode([query_text])[0]
-        candidate_emb = self.embedding_model.encode([candidate_text])[0]
+        query_emb = self.embedding_model.encode([query_normalized], show_progress_bar=False)[0]
+        candidate_emb = self.embedding_model.encode([candidate_normalized], show_progress_bar=False)[0]
         
         # Cosine similarity
         similarity = np.dot(query_emb, candidate_emb) / (
@@ -271,8 +276,18 @@ class AmazonStyleMatcher:
         if not query_tokens or not candidate_tokens:
             return 0.0
         
-        query_set = set(query_tokens)
-        candidate_set = set(candidate_tokens)
+        # Normalize tokens: remove hyphens and split hyphenated words
+        def normalize_tokens(tokens):
+            normalized = []
+            for token in tokens:
+                # Split hyphenated words and add both forms
+                if '-' in token:
+                    normalized.extend(token.split('-'))
+                normalized.append(token.replace('-', ''))
+            return normalized
+        
+        query_set = set(normalize_tokens(query_tokens))
+        candidate_set = set(normalize_tokens(candidate_tokens))
         
         intersection = len(query_set & candidate_set)
         union = len(query_set | candidate_set)

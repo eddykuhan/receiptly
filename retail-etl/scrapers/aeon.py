@@ -1,152 +1,276 @@
 """
-Aeon scraper adapter for the unified ETL pipeline.
+AEON myAEON2go scraper for the unified ETL pipeline.
 
-Uses Selenium to scrape product data from Aeon (myAeon).
+Uses AEON's web-slug-configs API to scrape grocery products.
 """
+import json
 import time
-from typing import List, Dict
+from typing import List, Dict, Optional
+import requests
 from datetime import datetime
-
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+import logging
 
 from scrapers.base_scraper import BaseScraper
 
+logger = logging.getLogger(__name__)
+
 
 class AeonScraper(BaseScraper):
-    """Aeon scraper using Selenium."""
+    """AEON myAEON2go scraper using their web API."""
     
-    def __init__(self, store_url: str = "https://myaeon.com.my/view-all-products", max_pages: int = 5):
+    BASE_URL = 'https://myaeon2go.com/api'
+    
+    # Known category IDs from investigation
+    CATEGORIES = {
+        'featured_items': 1066,
+        'pick_of_the_week': 1559,
+        'fresh_foods': 928,
+        'ready_to_eat': 940,
+        'electrical_appliances': 1598,
+    }
+    
+    def __init__(self, store_url: str = None, max_products: int = None, pricing_zone_id: str = "AEON_NATIONAL"):
         """
-        Initialize Aeon scraper.
+        Initialize AEON scraper.
         
         Args:
-            store_url: Base URL for Aeon products
-            max_pages: Maximum number of pages to scrape
+            store_url: Not used (kept for interface compatibility)
+            max_products: Maximum products to scrape (None = all)
+            pricing_zone_id: Pricing Zone ID
         """
         super().__init__(
-            store_name="Aeon Queensbay Mall", # Example store
-            store_address="Queensbay Mall, 100, Persiaran Bayan Indah, 11900 Bayan Lepas, Pulau Pinang",
-            latitude=5.3332,
-            longitude=100.3067
+            pricing_zone_id=pricing_zone_id,
+            store_name="AEON myAEON2go",
+            store_address="Malaysia",
+            latitude=None,
+            longitude=None
         )
-        self.base_url = store_url
-        self.max_pages = max_pages
-        self.driver = None
+        self.max_products = max_products
+        self.headers = {
+            'accept': 'application/json, text/plain, */*',
+            'accept-language': 'en-US,en;q=0.9',
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            'referer': 'https://myaeon2go.com/',
+            'origin': 'https://myaeon2go.com'
+        }
+        self.session = requests.Session()
+        self.session.headers.update(self.headers)
+        self.discovered_categories = []
 
-    def _setup_driver(self):
-        """Initialize Selenium WebDriver."""
-        if self.driver:
-            return
-
-        chrome_options = Options()
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36')
+    def _discover_all_categories(self) -> List[int]:
+        """
+        Discover all available category IDs by trying different approaches.
         
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=chrome_options)
-    
-    def _close_driver(self):
-        """Close WebDriver."""
-        if self.driver:
-            self.driver.quit()
-            self.driver = None
+        For now, uses known categories. Future enhancement: scrape category tree.
+        
+        Returns:
+            List of category IDs to scrape
+        """
+        # Return known categories
+        categories = list(self.CATEGORIES.values())
+        logger.info(f"Using {len(categories)} known AEON categories")
+        return categories
 
     def scrape(self) -> List[Dict]:
         """
-        Scrape products from Aeon.
+        Scrape all products from AEON myAEON2go (all categories).
         
         Returns:
-            List of product dictionaries.
+            List of product dictionaries conforming to BaseScraper schema
         """
-        self._setup_driver()
-        all_products = []
+        # Discover categories
+        if not self.discovered_categories:
+            self.discovered_categories = self._discover_all_categories()
         
-        try:
-            url = self.base_url
-            print(f"Scraping Aeon: {url}")
+        if not self.discovered_categories:
+            logger.error("No categories found, unable to scrape")
+            return []
+        
+        all_products = []
+        total_scraped = 0
+        
+        logger.info(f"Starting AEON scrape for {len(self.discovered_categories)} categories")
+        
+        for idx, category_id in enumerate(self.discovered_categories, 1):
+            if self.max_products and total_scraped >= self.max_products:
+                logger.info(f"Reached max products limit: {self.max_products}")
+                break
             
-            self.driver.get(url)
+            logger.info(f"Scraping category {idx}/{len(self.discovered_categories)} (ID: {category_id})")
+            category_products = self._scrape_category(category_id)
             
-            # Wait for content
-            try:
-                WebDriverWait(self.driver, 20).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "body"))
-                )
-            except Exception as e:
-                print(f"Timeout waiting for page: {e}")
-                return []
+            all_products.extend(category_products)
+            total_scraped += len(category_products)
             
-            time.sleep(3) # Wait for hydration
-            
-            # TODO: Update these selectors based on actual Aeon DOM structure
-            # Common e-commerce generic selectors
-            product_cards = self.driver.find_elements(By.CSS_SELECTOR, '.product-item, .item-card, div[class*="product"]')
-            
-            if not product_cards:
-                 product_cards = self.driver.find_elements(By.XPATH, '//div[contains(., "RM")]/ancestor::div[contains(@class, "card") or contains(@class, "col")]')
-            
-            print(f"Found {len(product_cards)} potential product cards")
-            
-            for index, card in enumerate(product_cards[:50]): 
-                try:
-                    product = self._extract_product_from_card(card)
-                    if product:
-                        all_products.append(product)
-                except Exception as e:
-                    continue
-
-        except Exception as e:
-            print(f"Error during Aeon scraping: {e}")
-        finally:
-            self._close_driver()
-            
+            logger.info(f"Scraped {len(category_products)} products (total so far: {total_scraped})")
+            time.sleep(1.0)  # Rate limiting between categories
+        
+        logger.info(f"Total products scraped: {len(all_products)}")
         return all_products
 
-    def _extract_product_from_card(self, card) -> Dict:
-        """Extract product info from a card WebElement."""
-        text = card.text
-        lines = text.split('\n')
+    def _scrape_category(self, category_id: int) -> List[Dict]:
+        """
+        Scrape all products from a single category using cursor-based pagination.
         
-        # Heuristic extraction
-        name = ""
-        price = 0.0
-        
-        for line in lines:
-            if 'RM' in line:
-                try:
-                    price_str = line.replace('RM', '').replace(',', '').strip()
-                    price = float(price_str)
-                except:
-                    continue
-            elif len(line) > 5 and not name and not 'RM' in line: 
-                name = line
-        
-        if not name or price == 0:
-            return None
+        Args:
+            category_id: AEON category ID (soft_category_gid)
             
-        return {
-            'item_name': name,
-            'unit_price': price,
-            'category': 'Unknown',
-            'brand': '',
-            'sku': '',
-            'product_url': '',
-            'image_url': '',
-            'available': True,
-            'scraped_at': datetime.utcnow().isoformat(),
-            'source': 'aeon_selenium_heuristic'
-        }
+        Returns:
+            List of transformed product dictionaries
+        """
+        products = []
+        cursor = None
+        limit = 100  # Items per page
+        
+        while True:
+            # Build query parameters
+            params = {
+                'limit': limit,
+                'sort': 'listPosition',
+                'soft_category_gid': category_id,
+                'moduleType': 'productListEntities'
+            }
+            
+            if cursor:
+                params['cursor'] = cursor
+            
+            # Make API request
+            url = f'{self.BASE_URL}/web-slug-configs/data'
+            
+            try:
+                response = self.session.get(url, params=params, timeout=30)
+                response.raise_for_status()
+                data = response.json()
+                
+                # Extract products from response
+                product_entities = data.get('data', {}).get('productListEntities', [])
+                
+                if not product_entities:
+                    logger.info(f"No more products in category {category_id}")
+                    break
+                
+                # Transform each product
+                for entity in product_entities:
+                    product = self._transform_product(entity)
+                    if product:
+                        products.append(product)
+                
+                # Check for next page cursor
+                cursor = data.get('data', {}).get('cursor')
+                if not cursor:
+                    logger.info(f"Reached end of category {category_id} (no cursor)")
+                    break
+                
+                logger.debug(f"Fetched {len(product_entities)} products, cursor: {cursor}")
+                time.sleep(0.3)  # Rate limiting between pages
+                
+            except requests.exceptions.HTTPError as e:
+                logger.error(f"HTTP error scraping category {category_id}: {e}")
+                break
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Request error scraping category {category_id}: {e}")
+                break
+            except Exception as e:
+                logger.error(f"Unexpected error scraping category {category_id}: {e}", exc_info=True)
+                break
+        
+        return products
 
-if __name__ == "__main__":
-    scraper = AeonScraper()
-    products = scraper.run()
-    if products:
-        print(f"First product: {products[0]}")
+    def _transform_product(self, entity: Dict) -> Optional[Dict]:
+        """
+        Transform AEON API product entity to standardized format.
+        
+        Args:
+            entity: Raw product entity from API
+            
+        Returns:
+            Standardized product dictionary or None if invalid
+        """
+        try:
+            variant = entity.get('variant', {})
+            inventory = entity.get('inventory', [{}])[0]  # Use first inventory location
+            product = entity.get('product', {})
+            
+            # Extract core fields
+            item_name = f"{variant.get('brandingText', '')} {variant.get('nameText', '')}".strip()
+            extended_info = variant.get('extendedInfoText', '')
+            if extended_info:
+                item_name = f"{item_name} {extended_info}"
+            
+            # Price data
+            price = inventory.get('price', 0)
+            standard_price = inventory.get('standardPrice', 0)
+            
+            # Category path (use deepest category)
+            categories = product.get('categories', [])
+            category = 'Unknown'
+            if categories:
+                # Get the most specific category (last in path)
+                last_category = categories[-1]
+                category = last_category.get('name', 'Unknown').replace('_', ' ').title()
+            
+            # Stock availability
+            available_count = inventory.get('availableCount', 0)
+            available = available_count > 0
+            
+            # Build product record
+            return {
+                'item_name': item_name,
+                'unit_price': float(price),
+                'category': category,
+                'brand': variant.get('brandingText', ''),
+                'sku': entity.get('sku', ''),
+                'available': available,
+                'scraped_at': datetime.utcnow().isoformat(),
+                'source': 'aeon_myaeon2go',
+                'metadata': {
+                    'gid': variant.get('gid'),
+                    'standard_price': float(standard_price) if standard_price else None,
+                    'sale_percentage': inventory.get('salePercentage'),
+                    'stock_count': available_count,
+                    'location': inventory.get('fulfillerLocationName'),
+                    'external_id': variant.get('externalIds', [{}])[0].get('value') if variant.get('externalIds') else None,
+                }
+            }
+            
+        except Exception as e:
+            logger.warning(f"Error transforming product: {e}")
+            logger.debug(f"Problematic entity: {json.dumps(entity, indent=2)}")
+            return None
+
+
+def main():
+    """Test the AEON scraper."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    scraper = AeonScraper(max_products=50)  # Test with 50 products
+    
+    logger.info("Starting AEON test scrape...")
+    raw_products = scraper.scrape()
+    
+    logger.info(f"Scraped {len(raw_products)} raw products")
+    
+    # Clean the products
+    cleaned_products = scraper.clean(raw_products)
+    
+    logger.info(f"Cleaned to {len(cleaned_products)} products")
+    
+    # Show sample
+    if cleaned_products:
+        logger.info("\nSample products:")
+        for product in cleaned_products[:5]:
+            logger.info(f"  - {product['item_name']} | RM {product['unit_price']:.2f} | {product['category']}")
+    
+    # Save to file
+    output_file = f"data/raw/aeon_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    with open(output_file, 'w') as f:
+        json.dump(cleaned_products, f, indent=2)
+    
+    logger.info(f"\nSaved to {output_file}")
+
+
+if __name__ == '__main__':
+    main()

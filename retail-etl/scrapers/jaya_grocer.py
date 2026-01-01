@@ -48,8 +48,12 @@ class JayaGrocerScraper(BaseScraper):
         # Transform to match BaseScraper schema
         transformed = []
         for product in products:
+            # Clean item name - remove "- 1 UNIT" suffix
+            item_name = product['item_name']
+            item_name = item_name.replace(' - 1 UNIT', '').replace(' - 1 unit', '')
+            
             record = {
-                'item_name': product['item_name'],
+                'item_name': item_name,
                 'unit_price': product['unit_price'],
                 'category': product.get('category', 'Unknown'),
                 'brand': product.get('brand', ''),

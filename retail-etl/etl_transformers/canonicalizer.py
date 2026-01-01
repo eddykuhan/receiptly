@@ -43,6 +43,7 @@ class Canonicalizer:
             device = 'cpu'
         
         self.model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
+        self.model.encode(['test'], show_progress_bar=False)  # Set default
         print(f"[Canonicalizer] Using device: {device}")
         
         self.conn = None
@@ -345,8 +346,9 @@ class Canonicalizer:
         items_to_insert = []
         normalized_names = []
         
-        # Phase 1: Extract attributes and find cross-store matches
+        # Phase 1: Extract attributes and do cross-store matching for all items
         for item in items:
+            # Extract attributes
             attributes = self.attribute_extractor.extract_all_attributes(item['item_name'])
             normalized = self.normalize_text(item['item_name'])
             
@@ -357,12 +359,13 @@ class Canonicalizer:
                 size_unit=attributes['size_unit'],
                 category=item.get('category', 'Unknown'),
                 name_tokens=attributes['name_tokens'],
-                max_candidates=50
+                max_candidates=20  # Reduced from 50 for speed
             )
             
             # Use Amazon-style matcher to find best match
             best_match, score, breakdown = self.matcher.find_best_match(
                 query_attributes={
+                    'item_name': item['item_name'],  # Add item_name for text similarity
                     'brand': attributes['brand'],
                     'size': attributes['size'],
                     'size_normalized': attributes['size_normalized'],
