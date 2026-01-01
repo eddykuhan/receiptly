@@ -447,11 +447,74 @@ public class ApplicationDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
+            // Amazon-style structured attributes
+            entity.Property(e => e.IsMaster)
+                .IsRequired()
+                .HasDefaultValue(false);
+            
+            entity.Property(e => e.SourceType)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.Confidence)
+                .HasColumnType("decimal(3,2)")
+                .HasDefaultValue(1.0m);
+            
+            entity.Property(e => e.Brand)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.Size)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.SizeNormalized)
+                .HasColumnType("decimal(10,2)");
+            
+            entity.Property(e => e.SizeUnit)
+                .HasMaxLength(10);
+            
+            entity.Property(e => e.PackCount)
+                .HasDefaultValue(1);
+            
+            entity.Property(e => e.Variant)
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.NameTokens)
+                .HasColumnType("text[]");
+            
+            // Self-referencing foreign key for master-child relationship
+            entity.HasOne(e => e.MasterItem)
+                .WithMany(e => e.ChildItems)
+                .HasForeignKey(e => e.MasterItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Indexes
             entity.HasIndex(e => e.Name)
                 .HasDatabaseName("idx_canonical_items_name");
             
             entity.HasIndex(e => e.Category)
                 .HasDatabaseName("idx_canonical_items_category");
+            
+            // Amazon-style indexes for fast retrieval
+            entity.HasIndex(e => e.IsMaster)
+                .HasFilter("\"IsMaster\" = TRUE")
+                .HasDatabaseName("idx_canonical_items_master");
+            
+            entity.HasIndex(e => e.Brand)
+                .HasFilter("\"IsMaster\" = TRUE AND \"Brand\" IS NOT NULL")
+                .HasDatabaseName("idx_canonical_items_brand");
+            
+            entity.HasIndex(e => new { e.SizeNormalized, e.SizeUnit })
+                .HasFilter("\"IsMaster\" = TRUE AND \"SizeNormalized\" IS NOT NULL")
+                .HasDatabaseName("idx_canonical_items_size");
+            
+            entity.HasIndex(e => e.NameTokens)
+                .HasMethod("gin")
+                .HasFilter("\"IsMaster\" = TRUE")
+                .HasDatabaseName("idx_canonical_items_tokens");
+            
+            // Composite index for dairy lookup (example category-specific)
+            entity.HasIndex(e => new { e.Brand, e.SizeNormalized, e.Category })
+                .HasFilter("\"IsMaster\" = TRUE AND \"Category\" = 'Dairy'")
+                .HasDatabaseName("idx_canonical_items_dairy_lookup");
         });
 
         // Configure CanonicalItemAlias entity
@@ -468,8 +531,23 @@ public class ApplicationDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
+            // Amazon-style tracking fields
+            entity.Property(e => e.Source)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.MatchConfidence)
+                .HasColumnType("decimal(3,2)");
+            
+            entity.Property(e => e.MatchMethod)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.UsageCount)
+                .HasDefaultValue(1);
+            
+            entity.Property(e => e.LastSeenAt);
+            
             entity.HasOne(e => e.CanonicalItem)
-                .WithMany()
+                .WithMany(e => e.Aliases)
                 .HasForeignKey(e => e.CanonicalItemId)
                 .OnDelete(DeleteBehavior.Cascade);
             
@@ -478,6 +556,11 @@ public class ApplicationDbContext : DbContext
             
             entity.HasIndex(e => e.CanonicalItemId)
                 .HasDatabaseName("idx_canonical_aliases_item_id");
+            
+            // Amazon-style index for alias performance tracking
+            entity.HasIndex(e => e.UsageCount)
+                .IsDescending()
+                .HasDatabaseName("idx_canonical_aliases_usage");
         });
 
         // Configure CanonicalItemEmbedding entity

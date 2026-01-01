@@ -106,7 +106,8 @@ class ETLManager:
     
     def transform(self, records: List[Dict], batch_size: int = 100) -> List[Dict]:
         """
-        Transform records by canonicalizing product names in batches.
+        Transform records with canonicalization using Amazon-style approach.
+        Scraped items are processed as MASTERS (IsMaster=true) in batches.
         """
         transformed = []
         total = len(records)
@@ -114,24 +115,24 @@ class ETLManager:
         for i in range(0, total, batch_size):
             batch = records[i:i + batch_size]
             try:
-                # Process the whole batch at once
-                processed_batch = self.canonicalizer.canonicalize_batch(batch)
+                # Batch process all items at once (MUCH faster)
+                canonical_ids = self.canonicalizer.process_scraped_items_batch(batch)
                 
-                for record in processed_batch:
-                    if 'canon_res' in record:
-                        res = record.pop('canon_res')
-                        record['canonical_item_id'] = res['canonical_item_id']
-                        record['match_method'] = res['match_method']
-                        transformed.append(record)
-                        self.stats['canonicalized'] += 1
+                # Assign canonical IDs back to records
+                for record, canonical_id in zip(batch, canonical_ids):
+                    record['canonical_item_id'] = canonical_id
+                    record['match_method'] = 'master_created'
+                    transformed.append(record)
+                    self.stats['canonicalized'] += 1
                 
                 logger.info(f"Transform Progress: {min(i + batch_size, total)}/{total} products...")
                 
             except Exception as e:
                 logger.error(f"Error in batch transformation: {e}")
+                logger.exception(e)
                 self.stats['errors'] += 1
         
-        logger.info(f"Successfully canonicalized {len(transformed)} products")
+        logger.info(f"Successfully processed {len(transformed)} products as masters")
         return transformed
     
     def load(self, records: List[Dict]) -> Dict:
