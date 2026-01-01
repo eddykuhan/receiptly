@@ -1,0 +1,2750 @@
+[
+  {
+    "categoryId": 4,
+    "name": "Hyper",
+    "level": 1,
+    "urlKey": "hyper"
+  },
+  {
+    "categoryId": 2730,
+    "name": "Grocery",
+    "level": 2,
+    "urlKey": "grocery"
+  },
+  {
+    "categoryId": 3189,
+    "name": "Fresh Produce",
+    "level": 2,
+    "urlKey": "fresh-produce"
+  },
+  {
+    "categoryId": 5304,
+    "name": "Meat & Poultry",
+    "level": 2,
+    "urlKey": "meat-poultry"
+  },
+  {
+    "categoryId": 5349,
+    "name": "Home & Gardening",
+    "level": 2,
+    "urlKey": "home-gardening"
+  },
+  {
+    "categoryId": 5370,
+    "name": "Office, Bags & Stationery",
+    "level": 2,
+    "urlKey": "office-bags-stationery"
+  },
+  {
+    "categoryId": 5475,
+    "name": "Pets",
+    "level": 2,
+    "urlKey": "pets"
+  },
+  {
+    "categoryId": 5499,
+    "name": "Sports & Leisure",
+    "level": 2,
+    "urlKey": "sports-leisure"
+  },
+  {
+    "categoryId": 5763,
+    "name": "Health & Beauty",
+    "level": 2,
+    "urlKey": "health-beauty"
+  },
+  {
+    "categoryId": 5868,
+    "name": "Small appliances, White Goods & Climate control",
+    "level": 2,
+    "urlKey": "appliances"
+  },
+  {
+    "categoryId": 5976,
+    "name": "AV & Tech",
+    "level": 2,
+    "urlKey": "av-tech"
+  },
+  {
+    "categoryId": 6003,
+    "name": "Baby",
+    "level": 2,
+    "urlKey": "baby"
+  },
+  {
+    "categoryId": 6504,
+    "name": "Bakery",
+    "level": 2,
+    "urlKey": "bakery"
+  },
+  {
+    "categoryId": 9405,
+    "name": "Beverages",
+    "level": 2,
+    "urlKey": "beverages"
+  },
+  {
+    "categoryId": 23946,
+    "name": "Chilled & Frozen",
+    "level": 2,
+    "urlKey": "chilled-frozen"
+  },
+  {
+    "categoryId": 49146,
+    "name": "Household ",
+    "level": 2,
+    "urlKey": "household"
+  },
+  {
+    "categoryId": 60333,
+    "name": "Bulk Purchase Section",
+    "level": 2,
+    "urlKey": "horeca-bulk-purchase-carton"
+  },
+  {
+    "categoryId": 60378,
+    "name": "ONLY AT LOTUS'S",
+    "level": 2,
+    "urlKey": "only-at-lotus-s"
+  },
+  {
+    "categoryId": 60933,
+    "name": "New Arrival",
+    "level": 2,
+    "urlKey": "new-arrival"
+  },
+  {
+    "categoryId": 60954,
+    "name": "Lotus's Shopping Bag",
+    "level": 2,
+    "urlKey": "lotus-s-shopping-bag"
+  },
+  {
+    "categoryId": 61041,
+    "name": "HORECA",
+    "level": 2,
+    "urlKey": "horeca"
+  },
+  {
+    "categoryId": 61116,
+    "name": "CNY 2026",
+    "level": 2,
+    "urlKey": "cny-2026"
+  },
+  {
+    "categoryId": 2733,
+    "name": "Baking Ingredients",
+    "level": 3,
+    "urlKey": "baking-ingredients"
+  },
+  {
+    "categoryId": 2751,
+    "name": "Biscuits & Cakes",
+    "level": 3,
+    "urlKey": "biscuits-cakes"
+  },
+  {
+    "categoryId": 2766,
+    "name": "Canned Food",
+    "level": 3,
+    "urlKey": "canned-food"
+  },
+  {
+    "categoryId": 2784,
+    "name": "Cereals",
+    "level": 3,
+    "urlKey": "cereals"
+  },
+  {
+    "categoryId": 2793,
+    "name": "Chocolates, Sweets & Jelly",
+    "level": 3,
+    "urlKey": "chocolates-sweets-jelly"
+  },
+  {
+    "categoryId": 2808,
+    "name": "Commodities",
+    "level": 3,
+    "urlKey": "commodities"
+  },
+  {
+    "categoryId": 2823,
+    "name": "Jams, Spreads & Honey",
+    "level": 3,
+    "urlKey": "jams-spreads-honey"
+  },
+  {
+    "categoryId": 2838,
+    "name": "Hair Care",
+    "level": 3,
+    "urlKey": "hair-care"
+  },
+  {
+    "categoryId": 2862,
+    "name": "Health Care & Supplement",
+    "level": 3,
+    "urlKey": "health-care-supplement"
+  },
+  {
+    "categoryId": 2883,
+    "name": "Men's Grooming",
+    "level": 3,
+    "urlKey": "men-s-grooming"
+  },
+  {
+    "categoryId": 2889,
+    "name": "Oral Care",
+    "level": 3,
+    "urlKey": "oral-care"
+  },
+  {
+    "categoryId": 2901,
+    "name": "Paper & Cotton Products",
+    "level": 3,
+    "urlKey": "paper-cotton-products"
+  },
+  {
+    "categoryId": 2919,
+    "name": "Personal Hygiene",
+    "level": 3,
+    "urlKey": "personal-hygeine"
+  },
+  {
+    "categoryId": 2925,
+    "name": "Soap",
+    "level": 3,
+    "urlKey": "soap-error"
+  },
+  {
+    "categoryId": 3198,
+    "name": "Women's Grooming",
+    "level": 3,
+    "urlKey": "women-s-grooming"
+  },
+  {
+    "categoryId": 3402,
+    "name": "Fish & Seafood",
+    "level": 3,
+    "urlKey": "fish-seafood"
+  },
+  {
+    "categoryId": 3771,
+    "name": "Noodles, Tofu & Condiments",
+    "level": 3,
+    "urlKey": "noodles-tofu-condiments"
+  },
+  {
+    "categoryId": 3777,
+    "name": "Desserts",
+    "level": 3,
+    "urlKey": "desserts"
+  },
+  {
+    "categoryId": 3783,
+    "name": "Fruits",
+    "level": 3,
+    "urlKey": "fruits"
+  },
+  {
+    "categoryId": 3792,
+    "name": "Organic",
+    "level": 3,
+    "urlKey": "organic"
+  },
+  {
+    "categoryId": 3798,
+    "name": "Eggs",
+    "level": 3,
+    "urlKey": "eggs"
+  },
+  {
+    "categoryId": 3840,
+    "name": "Ready To Cook",
+    "level": 3,
+    "urlKey": "ready-to-cook"
+  },
+  {
+    "categoryId": 3858,
+    "name": "Vegetables",
+    "level": 3,
+    "urlKey": "vegetables"
+  },
+  {
+    "categoryId": 5307,
+    "name": "Meat",
+    "level": 3,
+    "urlKey": "meat"
+  },
+  {
+    "categoryId": 5316,
+    "name": "Offals",
+    "level": 3,
+    "urlKey": "offals"
+  },
+  {
+    "categoryId": 5328,
+    "name": "Poultry",
+    "level": 3,
+    "urlKey": "poultry"
+  },
+  {
+    "categoryId": 5346,
+    "name": "Pre-Packed",
+    "level": 3,
+    "urlKey": "pre-packed"
+  },
+  {
+    "categoryId": 5373,
+    "name": "Art & Craft",
+    "level": 3,
+    "urlKey": "art-craft"
+  },
+  {
+    "categoryId": 5418,
+    "name": "Bags & Luggage",
+    "level": 3,
+    "urlKey": "bags-luggage"
+  },
+  {
+    "categoryId": 5433,
+    "name": "Stationery",
+    "level": 3,
+    "urlKey": "stationery"
+  },
+  {
+    "categoryId": 5469,
+    "name": "Home Furnishing",
+    "level": 3,
+    "urlKey": "deco-soft-furnishing"
+  },
+  {
+    "categoryId": 5478,
+    "name": "Pet Care & Accessories",
+    "level": 3,
+    "urlKey": "pet-care-accessories"
+  },
+  {
+    "categoryId": 5487,
+    "name": "Pet Food",
+    "level": 3,
+    "urlKey": "pet-food"
+  },
+  {
+    "categoryId": 5502,
+    "name": "Leisure Sports & Games",
+    "level": 3,
+    "urlKey": "leisure-sports-games"
+  },
+  {
+    "categoryId": 5523,
+    "name": "Sports & Fitness",
+    "level": 3,
+    "urlKey": "sports-fitness"
+  },
+  {
+    "categoryId": 5583,
+    "name": "DIY",
+    "level": 3,
+    "urlKey": "diy"
+  },
+  {
+    "categoryId": 5607,
+    "name": "Foils, Wraps & Food Bags",
+    "level": 3,
+    "urlKey": "foils-wraps-food-bags"
+  },
+  {
+    "categoryId": 5625,
+    "name": "Furniture",
+    "level": 3,
+    "urlKey": "furniture"
+  },
+  {
+    "categoryId": 5646,
+    "name": "Gardening",
+    "level": 3,
+    "urlKey": "gardening"
+  },
+  {
+    "categoryId": 5676,
+    "name": "Kitchen & Tableware",
+    "level": 3,
+    "urlKey": "kitchen-tableware"
+  },
+  {
+    "categoryId": 5715,
+    "name": "Lighting, Plugs & Electrical Accessories",
+    "level": 3,
+    "urlKey": "lighting-plugs-electrical-accessories"
+  },
+  {
+    "categoryId": 5727,
+    "name": "Paper Products",
+    "level": 3,
+    "urlKey": "paper-products"
+  },
+  {
+    "categoryId": 5739,
+    "name": "Plastic Storage",
+    "level": 3,
+    "urlKey": "plastic-storage"
+  },
+  {
+    "categoryId": 5871,
+    "name": "Fan & Coolers",
+    "level": 3,
+    "urlKey": "fan-coolers"
+  },
+  {
+    "categoryId": 5880,
+    "name": "Kitchen Appliances",
+    "level": 3,
+    "urlKey": "kitchen-appliances"
+  },
+  {
+    "categoryId": 5907,
+    "name": "Other Small Appliances",
+    "level": 3,
+    "urlKey": "other-small-appliances"
+  },
+  {
+    "categoryId": 5913,
+    "name": "Personal Grooming",
+    "level": 3,
+    "urlKey": "personal-grooming"
+  },
+  {
+    "categoryId": 5925,
+    "name": "Vacuum Cleaners",
+    "level": 3,
+    "urlKey": "vacuum-cleaners"
+  },
+  {
+    "categoryId": 5934,
+    "name": "Water Filter Accessories",
+    "level": 3,
+    "urlKey": "water-filter-accessories"
+  },
+  {
+    "categoryId": 5979,
+    "name": "Audio Visual",
+    "level": 3,
+    "urlKey": "audio-visual"
+  },
+  {
+    "categoryId": 5994,
+    "name": "Computing & Tech",
+    "level": 3,
+    "urlKey": "computing-tech"
+  },
+  {
+    "categoryId": 6006,
+    "name": "Baby Feeding",
+    "level": 3,
+    "urlKey": "baby-feeding"
+  },
+  {
+    "categoryId": 6018,
+    "name": "Baby Food",
+    "level": 3,
+    "urlKey": "baby-food"
+  },
+  {
+    "categoryId": 6030,
+    "name": "Baby Toiletries",
+    "level": 3,
+    "urlKey": "baby-toiletries"
+  },
+  {
+    "categoryId": 6048,
+    "name": "Diapers",
+    "level": 3,
+    "urlKey": "diapers"
+  },
+  {
+    "categoryId": 6057,
+    "name": "Milk Powder",
+    "level": 3,
+    "urlKey": "milk-powder"
+  },
+  {
+    "categoryId": 6072,
+    "name": "Travel & Changing ",
+    "level": 3,
+    "urlKey": "travel-changing"
+  },
+  {
+    "categoryId": 6591,
+    "name": "Bread",
+    "level": 3,
+    "urlKey": "bread"
+  },
+  {
+    "categoryId": 7401,
+    "name": "Bun ",
+    "level": 3,
+    "urlKey": "bun"
+  },
+  {
+    "categoryId": 7707,
+    "name": "Cakes & Donuts",
+    "level": 3,
+    "urlKey": "cakes-donuts"
+  },
+  {
+    "categoryId": 8472,
+    "name": "Jams & Spreads",
+    "level": 3,
+    "urlKey": "jams-spreads"
+  },
+  {
+    "categoryId": 9576,
+    "name": "Asian Drinks",
+    "level": 3,
+    "urlKey": "asian-drinks"
+  },
+  {
+    "categoryId": 13881,
+    "name": "Carbonated Drinks",
+    "level": 3,
+    "urlKey": "carbonated-drinks"
+  },
+  {
+    "categoryId": 14538,
+    "name": "Coffee & Tea",
+    "level": 3,
+    "urlKey": "coffee-tea"
+  },
+  {
+    "categoryId": 15561,
+    "name": "Cordials & Concentrates",
+    "level": 3,
+    "urlKey": "cordials-concentrates"
+  },
+  {
+    "categoryId": 16212,
+    "name": "Creamers",
+    "level": 3,
+    "urlKey": "creamers"
+  },
+  {
+    "categoryId": 17190,
+    "name": "Energy & Sports Drinks",
+    "level": 3,
+    "urlKey": "energy-sports-drinks"
+  },
+  {
+    "categoryId": 17874,
+    "name": "Flavoured Beverage",
+    "level": 3,
+    "urlKey": "flavoured-beverage"
+  },
+  {
+    "categoryId": 18948,
+    "name": "Fruit & Vegetable Juice",
+    "level": 3,
+    "urlKey": "fruit-vegetable-juice"
+  },
+  {
+    "categoryId": 19608,
+    "name": "Milk Powder",
+    "level": 3,
+    "urlKey": "milk-powder"
+  },
+  {
+    "categoryId": 19965,
+    "name": "Ready to Drink Milk",
+    "level": 3,
+    "urlKey": "ready-to-drink-milk"
+  },
+  {
+    "categoryId": 20586,
+    "name": "Water",
+    "level": 3,
+    "urlKey": "water"
+  },
+  {
+    "categoryId": 24105,
+    "name": "Dairy",
+    "level": 3,
+    "urlKey": "dairy"
+  },
+  {
+    "categoryId": 25371,
+    "name": "Desserts",
+    "level": 3,
+    "urlKey": "chilled-frozen-desserts"
+  },
+  {
+    "categoryId": 25857,
+    "name": "Frozen Food",
+    "level": 3,
+    "urlKey": "frozen-food"
+  },
+  {
+    "categoryId": 29481,
+    "name": "Ice Cream",
+    "level": 3,
+    "urlKey": "ice-cream"
+  },
+  {
+    "categoryId": 30675,
+    "name": "Juice & Drinks",
+    "level": 3,
+    "urlKey": "juice-drinks"
+  },
+  {
+    "categoryId": 49056,
+    "name": "Organic Food",
+    "level": 3,
+    "urlKey": "organic-food"
+  },
+  {
+    "categoryId": 49080,
+    "name": "Pasta & Instant Food",
+    "level": 3,
+    "urlKey": "pasta-instant-food"
+  },
+  {
+    "categoryId": 49095,
+    "name": "Sauce, Spice & Seasoning",
+    "level": 3,
+    "urlKey": "sauce-spice-seasoning"
+  },
+  {
+    "categoryId": 49107,
+    "name": "Snacks",
+    "level": 3,
+    "urlKey": "snacks"
+  },
+  {
+    "categoryId": 49131,
+    "name": "Sundry",
+    "level": 3,
+    "urlKey": "sundry"
+  },
+  {
+    "categoryId": 49149,
+    "name": "Air Freshener",
+    "level": 3,
+    "urlKey": "air-freshener"
+  },
+  {
+    "categoryId": 49164,
+    "name": "Baby Friendly",
+    "level": 3,
+    "urlKey": "baby-friendly"
+  },
+  {
+    "categoryId": 49174,
+    "name": "Bathroom & Toilet",
+    "level": 3,
+    "urlKey": "bathroom-toilet"
+  },
+  {
+    "categoryId": 49177,
+    "name": "Cleaning Accessories",
+    "level": 3,
+    "urlKey": "cleaning-accessories"
+  },
+  {
+    "categoryId": 49180,
+    "name": "Floor Cleaners",
+    "level": 3,
+    "urlKey": "floor-cleaners"
+  },
+  {
+    "categoryId": 49183,
+    "name": "Household Cleaner ",
+    "level": 3,
+    "urlKey": "household-cleaner"
+  },
+  {
+    "categoryId": 49186,
+    "name": "Insect Killer",
+    "level": 3,
+    "urlKey": "insect-killer"
+  },
+  {
+    "categoryId": 49189,
+    "name": "Kitchen Cleaners",
+    "level": 3,
+    "urlKey": "kitchen-cleaners"
+  },
+  {
+    "categoryId": 49192,
+    "name": "Laundry",
+    "level": 3,
+    "urlKey": "laundry"
+  },
+  {
+    "categoryId": 49195,
+    "name": "Shoe Care",
+    "level": 3,
+    "urlKey": "shoe-care"
+  },
+  {
+    "categoryId": 49300,
+    "name": "Bath & Other Accessories",
+    "level": 3,
+    "urlKey": "bath-other-accessories"
+  },
+  {
+    "categoryId": 60345,
+    "name": "Chocolates",
+    "level": 3,
+    "urlKey": "chocolates"
+  },
+  {
+    "categoryId": 60354,
+    "name": "Sauce",
+    "level": 3,
+    "urlKey": "sauce"
+  },
+  {
+    "categoryId": 60381,
+    "name": "Fresh & Food",
+    "level": 3,
+    "urlKey": "fresh-food"
+  },
+  {
+    "categoryId": 60384,
+    "name": "Groceries",
+    "level": 3,
+    "urlKey": "groceries"
+  },
+  {
+    "categoryId": 60387,
+    "name": "Household",
+    "level": 3,
+    "urlKey": "household"
+  },
+  {
+    "categoryId": 60390,
+    "name": "Others",
+    "level": 3,
+    "urlKey": "others"
+  },
+  {
+    "categoryId": 60629,
+    "name": "Grocery Selection",
+    "level": 3,
+    "urlKey": "grocery-bulk-selection"
+  },
+  {
+    "categoryId": 60632,
+    "name": "Beverages Selection",
+    "level": 3,
+    "urlKey": "bulk-drinks-selection"
+  },
+  {
+    "categoryId": 60635,
+    "name": "Confectionery Selection",
+    "level": 3,
+    "urlKey": "confectionery-bulk-selection"
+  },
+  {
+    "categoryId": 61014,
+    "name": "Fridge & Washer",
+    "level": 3,
+    "urlKey": "fridge-washer"
+  },
+  {
+    "categoryId": 61032,
+    "name": "Others",
+    "level": 3,
+    "urlKey": "others"
+  },
+  {
+    "categoryId": 61038,
+    "name": "Fresh Selection",
+    "level": 3,
+    "urlKey": "fresh-selection"
+  },
+  {
+    "categoryId": 61044,
+    "name": "Fresh Section",
+    "level": 3,
+    "urlKey": "fresh-section"
+  },
+  {
+    "categoryId": 61047,
+    "name": "Grocery Section",
+    "level": 3,
+    "urlKey": "grocery-section"
+  },
+  {
+    "categoryId": 61050,
+    "name": "Household, Office Section",
+    "level": 3,
+    "urlKey": "household-section"
+  },
+  {
+    "categoryId": 61119,
+    "name": "Grocery",
+    "level": 3,
+    "urlKey": "grocery"
+  },
+  {
+    "categoryId": 61122,
+    "name": "Hampers",
+    "level": 3,
+    "urlKey": "hampers"
+  },
+  {
+    "categoryId": 61125,
+    "name": "Cookies",
+    "level": 3,
+    "urlKey": "cookies"
+  },
+  {
+    "categoryId": 61128,
+    "name": "Drinks",
+    "level": 3,
+    "urlKey": "drinks"
+  },
+  {
+    "categoryId": 61131,
+    "name": "Fresh",
+    "level": 3,
+    "urlKey": "fresh"
+  },
+  {
+    "categoryId": 61134,
+    "name": "Household",
+    "level": 3,
+    "urlKey": "household"
+  },
+  {
+    "categoryId": 2736,
+    "name": "Baking Accessories",
+    "level": 4,
+    "urlKey": "baking-accessories"
+  },
+  {
+    "categoryId": 2739,
+    "name": "Cake Mix",
+    "level": 4,
+    "urlKey": "cake-mix"
+  },
+  {
+    "categoryId": 2742,
+    "name": "Crystalised Fruits & Nuts",
+    "level": 4,
+    "urlKey": "crystalised-fruits-nuts"
+  },
+  {
+    "categoryId": 2745,
+    "name": "Flavouring & Colouring",
+    "level": 4,
+    "urlKey": "flavouring-colouring"
+  },
+  {
+    "categoryId": 2748,
+    "name": "Sprinkles, Syrup & Other Ingredients",
+    "level": 4,
+    "urlKey": "sprinkles-syrup-other-ingredients"
+  },
+  {
+    "categoryId": 2754,
+    "name": "Cakes & Pies",
+    "level": 4,
+    "urlKey": "cakes-pies"
+  },
+  {
+    "categoryId": 2757,
+    "name": "Healthy Biscuits",
+    "level": 4,
+    "urlKey": "healthy-biscuits"
+  },
+  {
+    "categoryId": 2760,
+    "name": "Savoury Crackers",
+    "level": 4,
+    "urlKey": "savoury-crackers"
+  },
+  {
+    "categoryId": 2763,
+    "name": "Sweet Biscuits & Wafer",
+    "level": 4,
+    "urlKey": "sweet-biscuits-wafer"
+  },
+  {
+    "categoryId": 2769,
+    "name": "Canned Fish & Seafood",
+    "level": 4,
+    "urlKey": "canned-fish-seafood"
+  },
+  {
+    "categoryId": 2772,
+    "name": "Canned Fruits",
+    "level": 4,
+    "urlKey": "canned-fruits"
+  },
+  {
+    "categoryId": 2775,
+    "name": "Canned Meat",
+    "level": 4,
+    "urlKey": "canned-meat"
+  },
+  {
+    "categoryId": 2778,
+    "name": "Canned Vegetables",
+    "level": 4,
+    "urlKey": "canned-vegetables"
+  },
+  {
+    "categoryId": 2781,
+    "name": "Pickles & Relish",
+    "level": 4,
+    "urlKey": "pickles-relish"
+  },
+  {
+    "categoryId": 2787,
+    "name": "Cereals",
+    "level": 4,
+    "urlKey": "cereals"
+  },
+  {
+    "categoryId": 2796,
+    "name": "Chocolates",
+    "level": 4,
+    "urlKey": "chocolates"
+  },
+  {
+    "categoryId": 2799,
+    "name": "Jelly & Pudding",
+    "level": 4,
+    "urlKey": "jelly-pudding"
+  },
+  {
+    "categoryId": 2802,
+    "name": "Other Desserts",
+    "level": 4,
+    "urlKey": "other-desserts"
+  },
+  {
+    "categoryId": 2805,
+    "name": "Sweets",
+    "level": 4,
+    "urlKey": "sweets"
+  },
+  {
+    "categoryId": 2811,
+    "name": "Flour",
+    "level": 4,
+    "urlKey": "flour"
+  },
+  {
+    "categoryId": 2814,
+    "name": "Oil",
+    "level": 4,
+    "urlKey": "oil"
+  },
+  {
+    "categoryId": 2817,
+    "name": "Rice",
+    "level": 4,
+    "urlKey": "rice"
+  },
+  {
+    "categoryId": 2820,
+    "name": "Sugar",
+    "level": 4,
+    "urlKey": "sugar"
+  },
+  {
+    "categoryId": 2826,
+    "name": "Honey",
+    "level": 4,
+    "urlKey": "honey"
+  },
+  {
+    "categoryId": 2829,
+    "name": "Jam & Kaya",
+    "level": 4,
+    "urlKey": "jam-kaya"
+  },
+  {
+    "categoryId": 2832,
+    "name": "Margarine & Ghee",
+    "level": 4,
+    "urlKey": "margarine-ghee"
+  },
+  {
+    "categoryId": 2835,
+    "name": "Peanut Butter & Spreads",
+    "level": 4,
+    "urlKey": "peanut-butter-spreads"
+  },
+  {
+    "categoryId": 2841,
+    "name": "Conditioner",
+    "level": 4,
+    "urlKey": "conditioner"
+  },
+  {
+    "categoryId": 2844,
+    "name": "Hair & Scalp Treatment",
+    "level": 4,
+    "urlKey": "hair-scalp-treatment"
+  },
+  {
+    "categoryId": 2847,
+    "name": "Hair Accessories",
+    "level": 4,
+    "urlKey": "hair-accessories"
+  },
+  {
+    "categoryId": 2853,
+    "name": "Shampoo",
+    "level": 4,
+    "urlKey": "shampoo"
+  },
+  {
+    "categoryId": 2856,
+    "name": "Styling",
+    "level": 4,
+    "urlKey": "styling"
+  },
+  {
+    "categoryId": 2865,
+    "name": "Eye Care",
+    "level": 4,
+    "urlKey": "eye-care"
+  },
+  {
+    "categoryId": 2868,
+    "name": "Family Planning",
+    "level": 4,
+    "urlKey": "family-planning"
+  },
+  {
+    "categoryId": 2871,
+    "name": "Foot Care",
+    "level": 4,
+    "urlKey": "foot-care"
+  },
+  {
+    "categoryId": 2874,
+    "name": "Medicine",
+    "level": 4,
+    "urlKey": "medicine"
+  },
+  {
+    "categoryId": 2877,
+    "name": "Sprays, Repellent & Other Aids",
+    "level": 4,
+    "urlKey": "sprays-repellent-other-aids"
+  },
+  {
+    "categoryId": 2880,
+    "name": "Supplement",
+    "level": 4,
+    "urlKey": "supplement"
+  },
+  {
+    "categoryId": 2886,
+    "name": "Skin Care",
+    "level": 4,
+    "urlKey": "skin-care"
+  },
+  {
+    "categoryId": 2892,
+    "name": "Mouth Rinse",
+    "level": 4,
+    "urlKey": "mouth-rinse"
+  },
+  {
+    "categoryId": 2895,
+    "name": "Toothbrush & Accessories",
+    "level": 4,
+    "urlKey": "toothbrush-accessories"
+  },
+  {
+    "categoryId": 2898,
+    "name": "Toothpaste",
+    "level": 4,
+    "urlKey": "toothpaste"
+  },
+  {
+    "categoryId": 2904,
+    "name": "Adult Diapers",
+    "level": 4,
+    "urlKey": "adult-diapers"
+  },
+  {
+    "categoryId": 2907,
+    "name": "Cotton Bud",
+    "level": 4,
+    "urlKey": "cotton-bud"
+  },
+  {
+    "categoryId": 2910,
+    "name": "Cotton Wool",
+    "level": 4,
+    "urlKey": "cotton-wool"
+  },
+  {
+    "categoryId": 2913,
+    "name": "Facial Cotton",
+    "level": 4,
+    "urlKey": "facial-cotton"
+  },
+  {
+    "categoryId": 2916,
+    "name": "Night Pants",
+    "level": 4,
+    "urlKey": "night-pants"
+  },
+  {
+    "categoryId": 2922,
+    "name": "Wipes & Sanitiser",
+    "level": 4,
+    "urlKey": "wipes-sanitiser"
+  },
+  {
+    "categoryId": 3183,
+    "name": "Bar Soap",
+    "level": 4,
+    "urlKey": "bar-soap"
+  },
+  {
+    "categoryId": 3186,
+    "name": "Liquid Body Wash",
+    "level": 4,
+    "urlKey": "liquid-body-wash"
+  },
+  {
+    "categoryId": 3192,
+    "name": "Liquid Handwash",
+    "level": 4,
+    "urlKey": "liquid-handwash"
+  },
+  {
+    "categoryId": 3195,
+    "name": "Medicated Soap",
+    "level": 4,
+    "urlKey": "medicated-soap"
+  },
+  {
+    "categoryId": 3201,
+    "name": "Beauty Accessories",
+    "level": 4,
+    "urlKey": "beauty-accessories"
+  },
+  {
+    "categoryId": 3204,
+    "name": "Body & Hand Lotion",
+    "level": 4,
+    "urlKey": "body-hand-lotion"
+  },
+  {
+    "categoryId": 3207,
+    "name": "Facial Wipes & Paper",
+    "level": 4,
+    "urlKey": "facial-wipes-paper"
+  },
+  {
+    "categoryId": 3312,
+    "name": "Lip Care",
+    "level": 4,
+    "urlKey": "lip-care"
+  },
+  {
+    "categoryId": 3345,
+    "name": "Makeup",
+    "level": 4,
+    "urlKey": "makeup"
+  },
+  {
+    "categoryId": 3348,
+    "name": "Mask, Suncare & Others",
+    "level": 4,
+    "urlKey": "mask-suncare-others"
+  },
+  {
+    "categoryId": 3351,
+    "name": "Skin Care",
+    "level": 4,
+    "urlKey": "skin-care"
+  },
+  {
+    "categoryId": 3405,
+    "name": "Fish",
+    "level": 4,
+    "urlKey": "fish"
+  },
+  {
+    "categoryId": 3774,
+    "name": "Tofu & Beancurd",
+    "level": 4,
+    "urlKey": "tofu-beancurd"
+  },
+  {
+    "categoryId": 3780,
+    "name": "Desserts",
+    "level": 4,
+    "urlKey": "desserts"
+  },
+  {
+    "categoryId": 3786,
+    "name": "Tropical Fruits",
+    "level": 4,
+    "urlKey": "tropical-fruits"
+  },
+  {
+    "categoryId": 3801,
+    "name": "Chicken Eggs",
+    "level": 4,
+    "urlKey": "chicken-eggs"
+  },
+  {
+    "categoryId": 3804,
+    "name": "Premium Eggs",
+    "level": 4,
+    "urlKey": "premium-eggs"
+  },
+  {
+    "categoryId": 3807,
+    "name": "Preserved & Quail Eggs",
+    "level": 4,
+    "urlKey": "preserved-quail-eggs"
+  },
+  {
+    "categoryId": 3813,
+    "name": "Salted & Duck Eggs",
+    "level": 4,
+    "urlKey": "salted-duck-eggs"
+  },
+  {
+    "categoryId": 3819,
+    "name": "Crab",
+    "level": 4,
+    "urlKey": "crab"
+  },
+  {
+    "categoryId": 3822,
+    "name": "Noodles & Tofu",
+    "level": 4,
+    "urlKey": "noodles-tofu"
+  },
+  {
+    "categoryId": 3825,
+    "name": "Vegetables",
+    "level": 4,
+    "urlKey": "organic-vegetables"
+  },
+  {
+    "categoryId": 3828,
+    "name": "Prawns",
+    "level": 4,
+    "urlKey": "prawns"
+  },
+  {
+    "categoryId": 3834,
+    "name": "Processed Seafood",
+    "level": 4,
+    "urlKey": "processed-seafood"
+  },
+  {
+    "categoryId": 3837,
+    "name": "Seasonal Seafood",
+    "level": 4,
+    "urlKey": "seasonal-seafood"
+  },
+  {
+    "categoryId": 3843,
+    "name": "Shellfish",
+    "level": 4,
+    "urlKey": "shellfish"
+  },
+  {
+    "categoryId": 3846,
+    "name": "Ready To Cook",
+    "level": 4,
+    "urlKey": "ready-to-cook"
+  },
+  {
+    "categoryId": 3849,
+    "name": "Squid",
+    "level": 4,
+    "urlKey": "squid"
+  },
+  {
+    "categoryId": 3861,
+    "name": "Apples",
+    "level": 4,
+    "urlKey": "apples"
+  },
+  {
+    "categoryId": 3864,
+    "name": "Beans, Legumes & Seeds",
+    "level": 4,
+    "urlKey": "beans-legumes-seeds"
+  },
+  {
+    "categoryId": 3867,
+    "name": "Bananas",
+    "level": 4,
+    "urlKey": "bananas"
+  },
+  {
+    "categoryId": 3963,
+    "name": "Bulbs",
+    "level": 4,
+    "urlKey": "bulbs"
+  },
+  {
+    "categoryId": 4029,
+    "name": "Flower & Fruit",
+    "level": 4,
+    "urlKey": "flower-fruit"
+  },
+  {
+    "categoryId": 4065,
+    "name": "Leafy Green & Stems",
+    "level": 4,
+    "urlKey": "leafy-green-stems"
+  },
+  {
+    "categoryId": 4068,
+    "name": "Mushrooms",
+    "level": 4,
+    "urlKey": "vagetables-mushrooms"
+  },
+  {
+    "categoryId": 4071,
+    "name": "Preserved Vegetables",
+    "level": 4,
+    "urlKey": "preserved-vegetables"
+  },
+  {
+    "categoryId": 4074,
+    "name": "Salad\u00a0",
+    "level": 4,
+    "urlKey": "salad"
+  },
+  {
+    "categoryId": 4077,
+    "name": "Shoots & Roots",
+    "level": 4,
+    "urlKey": "shoots-roots"
+  },
+  {
+    "categoryId": 4233,
+    "name": "Berries & Grapes",
+    "level": 4,
+    "urlKey": "berries-grapes"
+  },
+  {
+    "categoryId": 4236,
+    "name": "Citrus & Oranges",
+    "level": 4,
+    "urlKey": "citrus-oranges"
+  },
+  {
+    "categoryId": 4239,
+    "name": "Mango & Melons",
+    "level": 4,
+    "urlKey": "mango-melons"
+  },
+  {
+    "categoryId": 4242,
+    "name": "Pears",
+    "level": 4,
+    "urlKey": "pear"
+  },
+  {
+    "categoryId": 4245,
+    "name": "Stone Fruits",
+    "level": 4,
+    "urlKey": "stone-fruits"
+  },
+  {
+    "categoryId": 4251,
+    "name": "Condiments",
+    "level": 4,
+    "urlKey": "condiments"
+  },
+  {
+    "categoryId": 4254,
+    "name": "Noodles",
+    "level": 4,
+    "urlKey": "noodles"
+  },
+  {
+    "categoryId": 5310,
+    "name": "Parts & Weighted",
+    "level": 4,
+    "urlKey": "parts-weighted"
+  },
+  {
+    "categoryId": 5313,
+    "name": "Pre-Packed",
+    "level": 4,
+    "urlKey": "pre-packed"
+  },
+  {
+    "categoryId": 5319,
+    "name": "Offals",
+    "level": 4,
+    "urlKey": "offals"
+  },
+  {
+    "categoryId": 5322,
+    "name": "Parts & Weighted",
+    "level": 4,
+    "urlKey": "parts-weighted"
+  },
+  {
+    "categoryId": 5325,
+    "name": "Pre-Packed",
+    "level": 4,
+    "urlKey": "pre-packed"
+  },
+  {
+    "categoryId": 5331,
+    "name": "Marinated",
+    "level": 4,
+    "urlKey": "marinated"
+  },
+  {
+    "categoryId": 5334,
+    "name": "Parts & Weighted",
+    "level": 4,
+    "urlKey": "parts-weighted"
+  },
+  {
+    "categoryId": 5337,
+    "name": "Pre-Packed",
+    "level": 4,
+    "urlKey": "pre-packed"
+  },
+  {
+    "categoryId": 5340,
+    "name": "Whole",
+    "level": 4,
+    "urlKey": "whole"
+  },
+  {
+    "categoryId": 5352,
+    "name": "Pre-Packed",
+    "level": 4,
+    "urlKey": "pre-packed"
+  },
+  {
+    "categoryId": 5376,
+    "name": "Art Set, Craft Kits & Accessories",
+    "level": 4,
+    "urlKey": "art-set-craft-kits-accessories"
+  },
+  {
+    "categoryId": 5379,
+    "name": "Calligraphy",
+    "level": 4,
+    "urlKey": "calligraphy"
+  },
+  {
+    "categoryId": 5388,
+    "name": "Colour Pencils",
+    "level": 4,
+    "urlKey": "colour-pencils"
+  },
+  {
+    "categoryId": 5391,
+    "name": "Crayon & Oil Pastels",
+    "level": 4,
+    "urlKey": "crayon-oil-pastels"
+  },
+  {
+    "categoryId": 5397,
+    "name": "Markers",
+    "level": 4,
+    "urlKey": "markers"
+  },
+  {
+    "categoryId": 5403,
+    "name": "Modelling Clay",
+    "level": 4,
+    "urlKey": "modelling-clay"
+  },
+  {
+    "categoryId": 5406,
+    "name": "Painting ",
+    "level": 4,
+    "urlKey": "painting"
+  },
+  {
+    "categoryId": 5412,
+    "name": "Paper Products",
+    "level": 4,
+    "urlKey": "paper-products"
+  },
+  {
+    "categoryId": 5421,
+    "name": "Backpack",
+    "level": 4,
+    "urlKey": "backpack"
+  },
+  {
+    "categoryId": 5427,
+    "name": "Luggage & Travel Accessories",
+    "level": 4,
+    "urlKey": "luggage-travel-accessories"
+  },
+  {
+    "categoryId": 5436,
+    "name": "Adhesives",
+    "level": 4,
+    "urlKey": "adhesives"
+  },
+  {
+    "categoryId": 5442,
+    "name": "Art & Fancy Stationery",
+    "level": 4,
+    "urlKey": "art-fancy-stationery"
+  },
+  {
+    "categoryId": 5448,
+    "name": "Boards",
+    "level": 4,
+    "urlKey": "boards"
+  },
+  {
+    "categoryId": 5451,
+    "name": "Desk Stationery",
+    "level": 4,
+    "urlKey": "desk-stationery"
+  },
+  {
+    "categoryId": 5457,
+    "name": "Files",
+    "level": 4,
+    "urlKey": "files"
+  },
+  {
+    "categoryId": 5460,
+    "name": "Paper, Book & Envelope",
+    "level": 4,
+    "urlKey": "paper-book-envelope"
+  },
+  {
+    "categoryId": 5466,
+    "name": "Writing Instruments",
+    "level": 4,
+    "urlKey": "writing-instruments"
+  },
+  {
+    "categoryId": 5481,
+    "name": "Cats",
+    "level": 4,
+    "urlKey": "cats"
+  },
+  {
+    "categoryId": 5484,
+    "name": "Dogs",
+    "level": 4,
+    "urlKey": "dogs"
+  },
+  {
+    "categoryId": 5490,
+    "name": "Cats",
+    "level": 4,
+    "urlKey": "cats"
+  },
+  {
+    "categoryId": 5493,
+    "name": "Dogs",
+    "level": 4,
+    "urlKey": "dogs"
+  },
+  {
+    "categoryId": 5496,
+    "name": "Bedlinen",
+    "level": 4,
+    "urlKey": "bedroom"
+  },
+  {
+    "categoryId": 5508,
+    "name": "BBQ\t\t\t\t\t\t",
+    "level": 4,
+    "urlKey": "bbq"
+  },
+  {
+    "categoryId": 5514,
+    "name": "Board Game & Accessories",
+    "level": 4,
+    "urlKey": "board-game-accessories"
+  },
+  {
+    "categoryId": 5517,
+    "name": "Camping",
+    "level": 4,
+    "urlKey": "camping"
+  },
+  {
+    "categoryId": 5520,
+    "name": "Cushion",
+    "level": 4,
+    "urlKey": "cushions-chair-pads"
+  },
+  {
+    "categoryId": 5526,
+    "name": "Ball Sports & Badminton",
+    "level": 4,
+    "urlKey": "ball-sports-badminton"
+  },
+  {
+    "categoryId": 5529,
+    "name": "Floor Covering",
+    "level": 4,
+    "urlKey": "mats-rugs"
+  },
+  {
+    "categoryId": 5532,
+    "name": "Cycling ",
+    "level": 4,
+    "urlKey": "cycling"
+  },
+  {
+    "categoryId": 5538,
+    "name": "Fitness",
+    "level": 4,
+    "urlKey": "fitness"
+  },
+  {
+    "categoryId": 5541,
+    "name": "Swimming",
+    "level": 4,
+    "urlKey": "swimming"
+  },
+  {
+    "categoryId": 5574,
+    "name": "Bath Towel",
+    "level": 4,
+    "urlKey": "towel"
+  },
+  {
+    "categoryId": 5589,
+    "name": "Hooks, Nails & Other Accessories",
+    "level": 4,
+    "urlKey": "hooks-nails-other-accessories"
+  },
+  {
+    "categoryId": 5595,
+    "name": "Locks & Chain",
+    "level": 4,
+    "urlKey": "locks-chain"
+  },
+  {
+    "categoryId": 5619,
+    "name": "Foils & Wraps",
+    "level": 4,
+    "urlKey": "foils-wraps"
+  },
+  {
+    "categoryId": 5622,
+    "name": "Food Bags",
+    "level": 4,
+    "urlKey": "food-bags"
+  },
+  {
+    "categoryId": 5628,
+    "name": "Bedroom",
+    "level": 4,
+    "urlKey": "bedroom"
+  },
+  {
+    "categoryId": 5631,
+    "name": "Cabinet & Shelves",
+    "level": 4,
+    "urlKey": "cabinet-shelves"
+  },
+  {
+    "categoryId": 5634,
+    "name": "Kids Furniture",
+    "level": 4,
+    "urlKey": "kids-furniture"
+  },
+  {
+    "categoryId": 5640,
+    "name": "Living Room",
+    "level": 4,
+    "urlKey": "living-room"
+  },
+  {
+    "categoryId": 5643,
+    "name": "Tables & Chairs",
+    "level": 4,
+    "urlKey": "tables-chairs"
+  },
+  {
+    "categoryId": 5649,
+    "name": "Hose",
+    "level": 4,
+    "urlKey": "hose"
+  },
+  {
+    "categoryId": 5655,
+    "name": "Soil",
+    "level": 4,
+    "urlKey": "soil"
+  },
+  {
+    "categoryId": 5682,
+    "name": "Baking ",
+    "level": 4,
+    "urlKey": "baking"
+  },
+  {
+    "categoryId": 5685,
+    "name": "Cookware & Cooking Utensils",
+    "level": 4,
+    "urlKey": "cookware-cooking-utensils"
+  },
+  {
+    "categoryId": 5688,
+    "name": "Drinking Container",
+    "level": 4,
+    "urlKey": "drinking-container"
+  },
+  {
+    "categoryId": 5691,
+    "name": "Flask, Mug & Stainless Steel",
+    "level": 4,
+    "urlKey": "flask-mug-stainless-steel"
+  },
+  {
+    "categoryId": 5694,
+    "name": "Food Container & Glass",
+    "level": 4,
+    "urlKey": "food-container-glass"
+  },
+  {
+    "categoryId": 5697,
+    "name": "Kitchenware",
+    "level": 4,
+    "urlKey": "kitchenware"
+  },
+  {
+    "categoryId": 5700,
+    "name": "Organiser, Trolley & Dispenser",
+    "level": 4,
+    "urlKey": "organiser-trolley-dispenser"
+  },
+  {
+    "categoryId": 5703,
+    "name": "Party Disposables",
+    "level": 4,
+    "urlKey": "party-disposables"
+  },
+  {
+    "categoryId": 5706,
+    "name": "Tableware",
+    "level": 4,
+    "urlKey": "tableware"
+  },
+  {
+    "categoryId": 5718,
+    "name": "Battery",
+    "level": 4,
+    "urlKey": "battery"
+  },
+  {
+    "categoryId": 5721,
+    "name": "Electrical Accessories",
+    "level": 4,
+    "urlKey": "electrical-accessories"
+  },
+  {
+    "categoryId": 5724,
+    "name": "Lighting",
+    "level": 4,
+    "urlKey": "lighting"
+  },
+  {
+    "categoryId": 5730,
+    "name": "Kitchen Towel & Serviettes",
+    "level": 4,
+    "urlKey": "kitchen-towel-serviettes"
+  },
+  {
+    "categoryId": 5733,
+    "name": "Tissue",
+    "level": 4,
+    "urlKey": "tissue"
+  },
+  {
+    "categoryId": 5736,
+    "name": "Toilet Roll",
+    "level": 4,
+    "urlKey": "toilet-roll"
+  },
+  {
+    "categoryId": 5742,
+    "name": "Storage Box",
+    "level": 4,
+    "urlKey": "storage-box"
+  },
+  {
+    "categoryId": 5877,
+    "name": "Fan",
+    "level": 4,
+    "urlKey": "fan"
+  },
+  {
+    "categoryId": 5883,
+    "name": "Coffee Maker",
+    "level": 4,
+    "urlKey": "coffee-maker"
+  },
+  {
+    "categoryId": 5886,
+    "name": "Cookers & Stoves",
+    "level": 4,
+    "urlKey": "cookers-stoves"
+  },
+  {
+    "categoryId": 5889,
+    "name": "Cooking Accessories",
+    "level": 4,
+    "urlKey": "cooking-accessories"
+  },
+  {
+    "categoryId": 5892,
+    "name": "Juicer, Blender & Grinders",
+    "level": 4,
+    "urlKey": "juicer-blender-grinders"
+  },
+  {
+    "categoryId": 5895,
+    "name": "Kettle & Thermos Boiler Pot ",
+    "level": 4,
+    "urlKey": "kettle-thermos-boiler-pot"
+  },
+  {
+    "categoryId": 5898,
+    "name": "Mixers",
+    "level": 4,
+    "urlKey": "mixers"
+  },
+  {
+    "categoryId": 5901,
+    "name": "Oven, Microwave & Toaster",
+    "level": 4,
+    "urlKey": "oven-microwave-toaster"
+  },
+  {
+    "categoryId": 5904,
+    "name": "Water Dispenser & Purifier",
+    "level": 4,
+    "urlKey": "water-dispenser-purifier"
+  },
+  {
+    "categoryId": 5910,
+    "name": "Irons",
+    "level": 4,
+    "urlKey": "irons"
+  },
+  {
+    "categoryId": 5916,
+    "name": "Hair Dryer & Stylers",
+    "level": 4,
+    "urlKey": "hair-dryer-stylers"
+  },
+  {
+    "categoryId": 5919,
+    "name": "Personal Grooming Accessories",
+    "level": 4,
+    "urlKey": "personal-grooming-accessories"
+  },
+  {
+    "categoryId": 5922,
+    "name": "Shavers",
+    "level": 4,
+    "urlKey": "shavers"
+  },
+  {
+    "categoryId": 5928,
+    "name": "Vacuum Cleaner Accessories",
+    "level": 4,
+    "urlKey": "vacuum-cleaner-accessories"
+  },
+  {
+    "categoryId": 5931,
+    "name": "Vacuum Cleaners",
+    "level": 4,
+    "urlKey": "vacuum-cleaners"
+  },
+  {
+    "categoryId": 5937,
+    "name": "Catridge",
+    "level": 4,
+    "urlKey": "catridge"
+  },
+  {
+    "categoryId": 5940,
+    "name": "Filters",
+    "level": 4,
+    "urlKey": "filters"
+  },
+  {
+    "categoryId": 5982,
+    "name": "DVD Players",
+    "level": 4,
+    "urlKey": "dvd-players"
+  },
+  {
+    "categoryId": 5985,
+    "name": "Home Audio",
+    "level": 4,
+    "urlKey": "home-audio"
+  },
+  {
+    "categoryId": 5991,
+    "name": "Television",
+    "level": 4,
+    "urlKey": "television"
+  },
+  {
+    "categoryId": 6009,
+    "name": "Accessories & Nursing",
+    "level": 4,
+    "urlKey": "accessories-nursing"
+  },
+  {
+    "categoryId": 6015,
+    "name": "Bottles, Teats & Cups",
+    "level": 4,
+    "urlKey": "bottles-teats-cups"
+  },
+  {
+    "categoryId": 6021,
+    "name": "Biscuits",
+    "level": 4,
+    "urlKey": "biscuits"
+  },
+  {
+    "categoryId": 6024,
+    "name": "Cereals",
+    "level": 4,
+    "urlKey": "baby-cereals"
+  },
+  {
+    "categoryId": 6027,
+    "name": "Others",
+    "level": 4,
+    "urlKey": "others"
+  },
+  {
+    "categoryId": 6033,
+    "name": "Bath & Lotion",
+    "level": 4,
+    "urlKey": "bath-lotion"
+  },
+  {
+    "categoryId": 6036,
+    "name": "Gift Pack",
+    "level": 4,
+    "urlKey": "gift-pack"
+  },
+  {
+    "categoryId": 6039,
+    "name": "Shampoo",
+    "level": 4,
+    "urlKey": "shampoo"
+  },
+  {
+    "categoryId": 6042,
+    "name": "Talcum & Cologne",
+    "level": 4,
+    "urlKey": "talcum-cologne"
+  },
+  {
+    "categoryId": 6045,
+    "name": "Wipes",
+    "level": 4,
+    "urlKey": "wipes"
+  },
+  {
+    "categoryId": 6051,
+    "name": "Pants Diapers",
+    "level": 4,
+    "urlKey": "pants-diapers"
+  },
+  {
+    "categoryId": 6054,
+    "name": "Tape Diapers",
+    "level": 4,
+    "urlKey": "tape-diapers"
+  },
+  {
+    "categoryId": 6060,
+    "name": "Growing Up Milk",
+    "level": 4,
+    "urlKey": "growing-up-milk"
+  },
+  {
+    "categoryId": 6063,
+    "name": "Infant Formula",
+    "level": 4,
+    "urlKey": "infant-formula"
+  },
+  {
+    "categoryId": 6066,
+    "name": "Maternal Milk Formula",
+    "level": 4,
+    "urlKey": "maternal-milk-formula"
+  },
+  {
+    "categoryId": 6069,
+    "name": "Specialty Milk Formula",
+    "level": 4,
+    "urlKey": "specialty-milk-formula"
+  },
+  {
+    "categoryId": 6075,
+    "name": "Changing ",
+    "level": 4,
+    "urlKey": "changing"
+  },
+  {
+    "categoryId": 6078,
+    "name": "Travel Care",
+    "level": 4,
+    "urlKey": "travel-care"
+  },
+  {
+    "categoryId": 6777,
+    "name": "Flat Bread",
+    "level": 4,
+    "urlKey": "flat-bread"
+  },
+  {
+    "categoryId": 6999,
+    "name": "Loaves & Rolls Bread",
+    "level": 4,
+    "urlKey": "loaves-rolls-bread"
+  },
+  {
+    "categoryId": 7395,
+    "name": "Pastry",
+    "level": 4,
+    "urlKey": "pastry"
+  },
+  {
+    "categoryId": 7398,
+    "name": "Specialty, Healthy Loaves & Rolls",
+    "level": 4,
+    "urlKey": "specialty-healthy-loaves-rolls"
+  },
+  {
+    "categoryId": 7404,
+    "name": "Savoury Buns",
+    "level": 4,
+    "urlKey": "savoury-buns"
+  },
+  {
+    "categoryId": 7500,
+    "name": "Sweet Buns",
+    "level": 4,
+    "urlKey": "sweet-buns"
+  },
+  {
+    "categoryId": 7899,
+    "name": "Cakes",
+    "level": 4,
+    "urlKey": "cakes"
+  },
+  {
+    "categoryId": 8160,
+    "name": "Donuts",
+    "level": 4,
+    "urlKey": "donuts"
+  },
+  {
+    "categoryId": 9780,
+    "name": "Bottle Drinks",
+    "level": 4,
+    "urlKey": "bottle-drinks"
+  },
+  {
+    "categoryId": 13143,
+    "name": "Can Drinks",
+    "level": 4,
+    "urlKey": "can-drinks"
+  },
+  {
+    "categoryId": 13542,
+    "name": "Packet Drinks",
+    "level": 4,
+    "urlKey": "packet-drinks"
+  },
+  {
+    "categoryId": 14076,
+    "name": "Cola",
+    "level": 4,
+    "urlKey": "cola"
+  },
+  {
+    "categoryId": 14325,
+    "name": "Fruity & Others",
+    "level": 4,
+    "urlKey": "fruity-others"
+  },
+  {
+    "categoryId": 14535,
+    "name": "Mixers & Soda",
+    "level": 4,
+    "urlKey": "mixers-soda"
+  },
+  {
+    "categoryId": 14541,
+    "name": "Coffee Beans & Accessories",
+    "level": 4,
+    "urlKey": "coffee-beans-accessories"
+  },
+  {
+    "categoryId": 14544,
+    "name": "Instant Coffee",
+    "level": 4,
+    "urlKey": "instant-coffee"
+  },
+  {
+    "categoryId": 14640,
+    "name": "Local Coffee",
+    "level": 4,
+    "urlKey": "local-coffee"
+  },
+  {
+    "categoryId": 14877,
+    "name": "Ready To Drink Coffee",
+    "level": 4,
+    "urlKey": "ready-to-drink-coffee"
+  },
+  {
+    "categoryId": 15099,
+    "name": "Ready To Drink Tea",
+    "level": 4,
+    "urlKey": "ready-to-drink-tea"
+  },
+  {
+    "categoryId": 15354,
+    "name": "Tea",
+    "level": 4,
+    "urlKey": "tea"
+  },
+  {
+    "categoryId": 15756,
+    "name": "Fruit Flavours",
+    "level": 4,
+    "urlKey": "fruit-flavours"
+  },
+  {
+    "categoryId": 15948,
+    "name": "Other Flavours",
+    "level": 4,
+    "urlKey": "other-flavours"
+  },
+  {
+    "categoryId": 16398,
+    "name": "Creamers & Condensed Milk",
+    "level": 4,
+    "urlKey": "creamers-condensed-milk"
+  },
+  {
+    "categoryId": 16737,
+    "name": "Evaporated Milk",
+    "level": 4,
+    "urlKey": "evaporated-milk"
+  },
+  {
+    "categoryId": 17361,
+    "name": "Energy Drinks",
+    "level": 4,
+    "urlKey": "energy-drinks"
+  },
+  {
+    "categoryId": 17580,
+    "name": "Sports Drinks",
+    "level": 4,
+    "urlKey": "sports-drinks"
+  },
+  {
+    "categoryId": 18024,
+    "name": "Brewed Drink",
+    "level": 4,
+    "urlKey": "brewed-drink"
+  },
+  {
+    "categoryId": 18234,
+    "name": "Chocolate Based",
+    "level": 4,
+    "urlKey": "chocolate-based"
+  },
+  {
+    "categoryId": 18465,
+    "name": "Malt Based",
+    "level": 4,
+    "urlKey": "malt-based"
+  },
+  {
+    "categoryId": 18681,
+    "name": "Soy Based & Others",
+    "level": 4,
+    "urlKey": "soy-based-others"
+  },
+  {
+    "categoryId": 19107,
+    "name": "Fruit Juice",
+    "level": 4,
+    "urlKey": "fruit-juice"
+  },
+  {
+    "categoryId": 19320,
+    "name": "Vegetable Juice",
+    "level": 4,
+    "urlKey": "vegetable-juice"
+  },
+  {
+    "categoryId": 19767,
+    "name": "Adult Milk ",
+    "level": 4,
+    "urlKey": "adult-milk"
+  },
+  {
+    "categoryId": 20118,
+    "name": "Flavoured UHT Milk",
+    "level": 4,
+    "urlKey": "flavoured-uht-milk"
+  },
+  {
+    "categoryId": 20385,
+    "name": "UHT Milk ",
+    "level": 4,
+    "urlKey": "uht-milk"
+  },
+  {
+    "categoryId": 20748,
+    "name": "Mineral & Drinking Water",
+    "level": 4,
+    "urlKey": "mineral-drinking-water"
+  },
+  {
+    "categoryId": 21213,
+    "name": "Sparkling Water",
+    "level": 4,
+    "urlKey": "sparkling-water"
+  },
+  {
+    "categoryId": 24264,
+    "name": "Butter & Margarine",
+    "level": 4,
+    "urlKey": "butter-margarine"
+  },
+  {
+    "categoryId": 24513,
+    "name": "Cheese",
+    "level": 4,
+    "urlKey": "cheese"
+  },
+  {
+    "categoryId": 24729,
+    "name": "Cream",
+    "level": 4,
+    "urlKey": "cream"
+  },
+  {
+    "categoryId": 24942,
+    "name": "Milk",
+    "level": 4,
+    "urlKey": "milk"
+  },
+  {
+    "categoryId": 25173,
+    "name": "Yoghurt",
+    "level": 4,
+    "urlKey": "yoghurt"
+  },
+  {
+    "categoryId": 25524,
+    "name": "Chilled Desserts",
+    "level": 4,
+    "urlKey": "chilled-desserts"
+  },
+  {
+    "categoryId": 26307,
+    "name": "Bread & Pastry",
+    "level": 4,
+    "urlKey": "bread-pastry"
+  },
+  {
+    "categoryId": 26553,
+    "name": "Burgers & Frankfurters ",
+    "level": 4,
+    "urlKey": "burgers-frankfurters"
+  },
+  {
+    "categoryId": 27177,
+    "name": "Fish & Seafood",
+    "level": 4,
+    "urlKey": "forzen-fish-seafood"
+  },
+  {
+    "categoryId": 27501,
+    "name": "Fried Chicken",
+    "level": 4,
+    "urlKey": "fried-chicken"
+  },
+  {
+    "categoryId": 27834,
+    "name": "Meat & Poultry",
+    "level": 4,
+    "urlKey": "frozen-meat-poultry"
+  },
+  {
+    "categoryId": 28560,
+    "name": "Nuggets & Meatballs",
+    "level": 4,
+    "urlKey": "nuggets-meatballs"
+  },
+  {
+    "categoryId": 28917,
+    "name": "Vege & Potato",
+    "level": 4,
+    "urlKey": "vege-potato"
+  },
+  {
+    "categoryId": 29136,
+    "name": "Vegetarian",
+    "level": 4,
+    "urlKey": "vegetarian"
+  },
+  {
+    "categoryId": 29865,
+    "name": "Lollies & Ice Cream Bars",
+    "level": 4,
+    "urlKey": "lollies-ice-cream-bars"
+  },
+  {
+    "categoryId": 30396,
+    "name": "Tub",
+    "level": 4,
+    "urlKey": "tub"
+  },
+  {
+    "categoryId": 30849,
+    "name": "Orange",
+    "level": 4,
+    "urlKey": "orange"
+  },
+  {
+    "categoryId": 31086,
+    "name": "Other Fruit Juices",
+    "level": 4,
+    "urlKey": "other-fruit-juices"
+  },
+  {
+    "categoryId": 31326,
+    "name": "Soy",
+    "level": 4,
+    "urlKey": "soy"
+  },
+  {
+    "categoryId": 49059,
+    "name": "Confectionary",
+    "level": 4,
+    "urlKey": "confectionary"
+  },
+  {
+    "categoryId": 49062,
+    "name": "Drinks",
+    "level": 4,
+    "urlKey": "drinks"
+  },
+  {
+    "categoryId": 49065,
+    "name": "Pasta & Instant Food",
+    "level": 4,
+    "urlKey": "pasta-instant-food"
+  },
+  {
+    "categoryId": 49068,
+    "name": "Rice & Agriculture",
+    "level": 4,
+    "urlKey": "rice-agriculture"
+  },
+  {
+    "categoryId": 49071,
+    "name": "Sauce & Spices",
+    "level": 4,
+    "urlKey": "sauce-spices"
+  },
+  {
+    "categoryId": 49074,
+    "name": "Spreads & Baking ",
+    "level": 4,
+    "urlKey": "spreads-baking"
+  },
+  {
+    "categoryId": 49077,
+    "name": "Sugar, Flour & Oil",
+    "level": 4,
+    "urlKey": "sugar-flour-oil"
+  },
+  {
+    "categoryId": 49083,
+    "name": "Instant Porridge & Rice",
+    "level": 4,
+    "urlKey": "instant-porridge-rice"
+  },
+  {
+    "categoryId": 49086,
+    "name": "Instant Soup",
+    "level": 4,
+    "urlKey": "instant-soup"
+  },
+  {
+    "categoryId": 49089,
+    "name": "Packet & Cup Noodles",
+    "level": 4,
+    "urlKey": "packet-cup-noodles"
+  },
+  {
+    "categoryId": 49092,
+    "name": "Pasta",
+    "level": 4,
+    "urlKey": "pasta"
+  },
+  {
+    "categoryId": 49098,
+    "name": "Sauce & Dressing",
+    "level": 4,
+    "urlKey": "sauce-dressing"
+  },
+  {
+    "categoryId": 49101,
+    "name": "Spice & Seasoning",
+    "level": 4,
+    "urlKey": "spice-seasoning"
+  },
+  {
+    "categoryId": 49104,
+    "name": "Stock",
+    "level": 4,
+    "urlKey": "stock"
+  },
+  {
+    "categoryId": 49110,
+    "name": "Canister Snacks",
+    "level": 4,
+    "urlKey": "canister-snacks"
+  },
+  {
+    "categoryId": 49113,
+    "name": "Crisps & Chips",
+    "level": 4,
+    "urlKey": "crisps-chips"
+  },
+  {
+    "categoryId": 49116,
+    "name": "Fruits, Seeds & Nuts",
+    "level": 4,
+    "urlKey": "fruits-seeds-nuts"
+  },
+  {
+    "categoryId": 49119,
+    "name": "Local Snacks",
+    "level": 4,
+    "urlKey": "local-snacks"
+  },
+  {
+    "categoryId": 49122,
+    "name": "Other Snacks",
+    "level": 4,
+    "urlKey": "other-snacks"
+  },
+  {
+    "categoryId": 49125,
+    "name": "Ring & Twisted Snacks",
+    "level": 4,
+    "urlKey": "ring-twisted-snacks"
+  },
+  {
+    "categoryId": 49128,
+    "name": "Seaweed",
+    "level": 4,
+    "urlKey": "seaweed"
+  },
+  {
+    "categoryId": 49134,
+    "name": "Chinese Soups & Herbs",
+    "level": 4,
+    "urlKey": "chinese-soups-herbs"
+  },
+  {
+    "categoryId": 49137,
+    "name": "Fruits, Beans, Nuts & Seeds",
+    "level": 4,
+    "urlKey": "fruits-beans-nuts-seeds"
+  },
+  {
+    "categoryId": 49140,
+    "name": "Mushrooms",
+    "level": 4,
+    "urlKey": "mushrooms"
+  },
+  {
+    "categoryId": 49143,
+    "name": "Other Sundry",
+    "level": 4,
+    "urlKey": "other-sundry"
+  },
+  {
+    "categoryId": 49152,
+    "name": "Aerosol",
+    "level": 4,
+    "urlKey": "aerosol"
+  },
+  {
+    "categoryId": 49155,
+    "name": "Block & Others",
+    "level": 4,
+    "urlKey": "block-others"
+  },
+  {
+    "categoryId": 49158,
+    "name": "Gel & Liquid",
+    "level": 4,
+    "urlKey": "gel-liquid"
+  },
+  {
+    "categoryId": 49161,
+    "name": "Toilet Deodorant ",
+    "level": 4,
+    "urlKey": "toilet-deodorant"
+  },
+  {
+    "categoryId": 49167,
+    "name": "Cleanser",
+    "level": 4,
+    "urlKey": "cleanser"
+  },
+  {
+    "categoryId": 49170,
+    "name": "Laundry Detergent",
+    "level": 4,
+    "urlKey": "laundry-detergent"
+  },
+  {
+    "categoryId": 49201,
+    "name": "Bathroom Toilet Cleaners",
+    "level": 4,
+    "urlKey": "bathroom-toilet-cleaners"
+  },
+  {
+    "categoryId": 49204,
+    "name": "Drain Clog Remover",
+    "level": 4,
+    "urlKey": "drain-clog-remover"
+  },
+  {
+    "categoryId": 49207,
+    "name": "Flush",
+    "level": 4,
+    "urlKey": "flush"
+  },
+  {
+    "categoryId": 49210,
+    "name": "Toilet Cleaner",
+    "level": 4,
+    "urlKey": "toilet-cleaner"
+  },
+  {
+    "categoryId": 49216,
+    "name": "Brooms & Dust Scoop",
+    "level": 4,
+    "urlKey": "brooms-dust-scoop"
+  },
+  {
+    "categoryId": 49219,
+    "name": "Brushes",
+    "level": 4,
+    "urlKey": "brushes"
+  },
+  {
+    "categoryId": 49222,
+    "name": "Duster & Cleaning Cloth",
+    "level": 4,
+    "urlKey": "duster-cleaning-cloth"
+  },
+  {
+    "categoryId": 49225,
+    "name": "Gloves",
+    "level": 4,
+    "urlKey": "gloves"
+  },
+  {
+    "categoryId": 49231,
+    "name": "Mops",
+    "level": 4,
+    "urlKey": "mops"
+  },
+  {
+    "categoryId": 49234,
+    "name": "Pail & Water Dipper",
+    "level": 4,
+    "urlKey": "pail-water-dipper"
+  },
+  {
+    "categoryId": 49237,
+    "name": "Sponge & Scourer",
+    "level": 4,
+    "urlKey": "sponge-scourer"
+  },
+  {
+    "categoryId": 49240,
+    "name": "Floor Detergent",
+    "level": 4,
+    "urlKey": "floor-detergent"
+  },
+  {
+    "categoryId": 49243,
+    "name": "Mosaic, Marble & Terazzo",
+    "level": 4,
+    "urlKey": "mosaic-marble-terazzo"
+  },
+  {
+    "categoryId": 49246,
+    "name": "Furniture Polish",
+    "level": 4,
+    "urlKey": "furniture-polish"
+  },
+  {
+    "categoryId": 49249,
+    "name": "Glass Cleaner",
+    "level": 4,
+    "urlKey": "glass-cleaner"
+  },
+  {
+    "categoryId": 49252,
+    "name": "Kitchen Cleaner",
+    "level": 4,
+    "urlKey": "kitchen-cleaner"
+  },
+  {
+    "categoryId": 49255,
+    "name": "Scouring & Other Cleaners",
+    "level": 4,
+    "urlKey": "scouring-other-cleaners"
+  },
+  {
+    "categoryId": 49258,
+    "name": "Aerosol",
+    "level": 4,
+    "urlKey": "aerosol"
+  },
+  {
+    "categoryId": 49261,
+    "name": "Liquid",
+    "level": 4,
+    "urlKey": "liquid"
+  },
+  {
+    "categoryId": 49264,
+    "name": "Mat & Coil",
+    "level": 4,
+    "urlKey": "mat-coil"
+  },
+  {
+    "categoryId": 49267,
+    "name": "Moth Ball",
+    "level": 4,
+    "urlKey": "moth-ball"
+  },
+  {
+    "categoryId": 49270,
+    "name": "Others",
+    "level": 4,
+    "urlKey": "others"
+  },
+  {
+    "categoryId": 49273,
+    "name": "Dishwash",
+    "level": 4,
+    "urlKey": "dishwash"
+  },
+  {
+    "categoryId": 49276,
+    "name": "Bleach",
+    "level": 4,
+    "urlKey": "bleach"
+  },
+  {
+    "categoryId": 49279,
+    "name": "Detergent",
+    "level": 4,
+    "urlKey": "detergent"
+  },
+  {
+    "categoryId": 49282,
+    "name": "Laundry Accessories",
+    "level": 4,
+    "urlKey": "laundry-accessories"
+  },
+  {
+    "categoryId": 49285,
+    "name": "Softener & Other Washing Aids",
+    "level": 4,
+    "urlKey": "softener-other-washing-aids"
+  },
+  {
+    "categoryId": 49288,
+    "name": "Whitener & Polish",
+    "level": 4,
+    "urlKey": "whitener-polish"
+  },
+  {
+    "categoryId": 49303,
+    "name": "Bath Accessories",
+    "level": 4,
+    "urlKey": "bath-accessories"
+  },
+  {
+    "categoryId": 61017,
+    "name": "Fridges",
+    "level": 4,
+    "urlKey": "fridges"
+  },
+  {
+    "categoryId": 61020,
+    "name": "Washers",
+    "level": 4,
+    "urlKey": "washers"
+  },
+  {
+    "categoryId": 61101,
+    "name": "Blanket",
+    "level": 4,
+    "urlKey": "blanket"
+  },
+  {
+    "categoryId": 61104,
+    "name": "Pillow & Bolster",
+    "level": 4,
+    "urlKey": "pillow-bolster"
+  },
+  {
+    "categoryId": 61107,
+    "name": "Mattress",
+    "level": 4,
+    "urlKey": "mattress"
+  },
+  {
+    "categoryId": 61110,
+    "name": "Kitchen Towel",
+    "level": 4,
+    "urlKey": "kitchen-towel"
+  }
+]

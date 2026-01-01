@@ -19,14 +19,6 @@ public interface IFeedbackService
         CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Report an issue with OCR processing.
-    /// </summary>
-    Task<Guid> ReportIssueAsync(
-        string userId,
-        ReportIssueRequest request,
-        CancellationToken cancellationToken = default);
-    
-    /// <summary>
     /// Enable debug mode for a specific user.
     /// </summary>
     Task EnableDebugModeAsync(

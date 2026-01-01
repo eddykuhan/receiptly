@@ -114,8 +114,8 @@ class AmazonStyleMatcher:
         for candidate in candidates:
             # Constraint 1: Size must match within 5% tolerance
             if query_attrs.get('size_normalized') and candidate.get('size_normalized'):
-                query_size = query_attrs['size_normalized']
-                candidate_size = candidate['size_normalized']
+                query_size = float(query_attrs['size_normalized'])
+                candidate_size = float(candidate['size_normalized'])
                 
                 # Different units → reject
                 if query_attrs.get('size_unit') != candidate.get('size_unit'):
@@ -227,6 +227,10 @@ class AmazonStyleMatcher:
         """Score size match (0.0 to 1.0)."""
         if query_size is None or candidate_size is None:
             return 0.5  # Neutral score if missing
+        
+        # Convert to float to handle Decimal from database
+        query_size = float(query_size)
+        candidate_size = float(candidate_size)
         
         # Exact match
         if query_size == candidate_size:

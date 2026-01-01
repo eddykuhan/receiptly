@@ -20,7 +20,7 @@ DB_CONFIG = {
 from scrapers.jaya_grocer import JayaGrocerScraper
 from scrapers.mydin import MydinScraper
 from scrapers.lotus import LotusScraper
-from scrapers.aeon import AeonScraper
+# from scrapers.aeon import AeonScraper
 
 # Scraper configurations
 SCRAPERS = [
@@ -36,11 +36,13 @@ SCRAPERS = [
         'pricing_zone_id': 'MYDIN_NATIONAL',
         'target_categories': [1222, 1513]
     },
-    # { 
-    #     'scraper_class': LotusScraper,
-    #     'store_url': 'https://www.lotuss.com.my/en/browse/all-products',
-    #     'max_pages': 5
-    # },
+    {
+        'scraper_class': LotusScraper,
+        'store_url': 'https://api-o2o.lotuss.com.my/lotuss-mobile-bff',
+        'max_pages': 100,
+        'pricing_zone_id': 'LOTUS_NATIONAL',
+        # Lotus scraper uses GROCERY_CATEGORIES defined in scraper class (25 categories)
+    },
     # {
     #     'scraper_class': AeonScraper,
     #     'store_url': 'https://myaeon.com.my/view-all-products',

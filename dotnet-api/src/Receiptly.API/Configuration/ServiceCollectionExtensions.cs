@@ -249,7 +249,6 @@ public static class ServiceCollectionExtensions
 
         // Feedback repositories
         services.AddScoped<IUserCorrectionRepository, UserCorrectionRepository>();
-        services.AddScoped<IIssueReportRepository, IssueReportRepository>();
         services.AddScoped<IUserDebugSessionRepository, UserDebugSessionRepository>();
 
         // Business services

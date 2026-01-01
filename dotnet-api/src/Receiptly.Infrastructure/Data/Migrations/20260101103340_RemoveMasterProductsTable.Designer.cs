@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Receiptly.Infrastructure.Data;
 namespace Receiptly.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260101103340_RemoveMasterProductsTable")]
+    partial class RemoveMasterProductsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,6 +201,52 @@ namespace Receiptly.Infrastructure.Data.Migrations
                     b.HasKey("CanonicalItemId");
 
                     b.ToTable("canonical_item_embeddings", (string)null);
+                });
+
+            modelBuilder.Entity("Receiptly.Domain.Models.IssueReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("IssueType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("ReceiptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IssueType");
+
+                    b.HasIndex("ReceiptId");
+
+                    b.HasIndex("Severity");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("issue_reports", (string)null);
                 });
 
             modelBuilder.Entity("Receiptly.Domain.Models.Item", b =>
@@ -1023,6 +1072,17 @@ namespace Receiptly.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("CanonicalItem");
+                });
+
+            modelBuilder.Entity("Receiptly.Domain.Models.IssueReport", b =>
+                {
+                    b.HasOne("Receiptly.Domain.Models.Receipt", "Receipt")
+                        .WithMany()
+                        .HasForeignKey("ReceiptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Receipt");
                 });
 
             modelBuilder.Entity("Receiptly.Domain.Models.Item", b =>

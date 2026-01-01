@@ -14,7 +14,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<UserCorrection> UserCorrections { get; set; }
-    public DbSet<IssueReport> IssueReports { get; set; }
     public DbSet<UserDebugSession> UserDebugSessions { get; set; }
     
     // Points and Rewards System
@@ -28,7 +27,6 @@ public class ApplicationDbContext : DbContext
     
     // Analytics Gold Layer
     public DbSet<PurchaseAnalyticsGold> PurchaseAnalyticsGold { get; set; }
-    public DbSet<MasterProduct> MasterProducts { get; set; }
     
     // Canonical Items System
     public DbSet<CanonicalItem> CanonicalItems { get; set; }
@@ -241,46 +239,6 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => new { e.ReceiptId, e.FieldName });
         });
 
-        // Configure IssueReport entity
-        modelBuilder.Entity<IssueReport>(entity =>
-        {
-            entity.ToTable("issue_reports");
-            
-            entity.HasKey(e => e.Id);
-            
-            entity.Property(e => e.UserId)
-                .IsRequired()
-                .HasMaxLength(450);
-            
-            entity.Property(e => e.ReceiptId)
-                .IsRequired();
-            
-            entity.Property(e => e.IssueType)
-                .IsRequired()
-                .HasMaxLength(50);
-            
-            entity.Property(e => e.Severity)
-                .IsRequired()
-                .HasMaxLength(20);
-            
-            entity.Property(e => e.Description)
-                .HasMaxLength(2000);
-            
-            entity.Property(e => e.CreatedAt)
-                .IsRequired()
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-            
-            entity.HasOne(e => e.Receipt)
-                .WithMany()
-                .HasForeignKey(e => e.ReceiptId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
-            entity.HasIndex(e => e.UserId);
-            entity.HasIndex(e => e.ReceiptId);
-            entity.HasIndex(e => e.IssueType);
-            entity.HasIndex(e => e.Severity);
-        });
-
         // Configure UserDebugSession entity
         modelBuilder.Entity<UserDebugSession>(entity =>
         {
@@ -414,15 +372,6 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.CanonicalItemId)
                 .OnDelete(DeleteBehavior.SetNull);
-        });
-
-        // Configure MasterProduct entity
-        modelBuilder.Entity<MasterProduct>(entity =>
-        {
-            entity.ToTable("master_products");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired();
-            entity.HasIndex(e => e.Name).IsUnique().HasDatabaseName("idx_master_products_name");
         });
 
         // Configure CanonicalItem entity

@@ -70,53 +70,6 @@ public class UserCorrectionRepository : IUserCorrectionRepository
 }
 
 /// <summary>
-/// Repository for issue reports using Entity Framework Core.
-/// </summary>
-public class IssueReportRepository : IIssueReportRepository
-{
-    private readonly ApplicationDbContext _context;
-
-    public IssueReportRepository(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<Guid> CreateAsync(IssueReport issue, CancellationToken cancellationToken = default)
-    {
-        await _context.IssueReports.AddAsync(issue, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-        
-        return issue.Id;
-    }
-
-    public async Task<IssueReport?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _context.IssueReports
-            .AsNoTracking()
-            .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
-    }
-
-    public async Task<List<IssueReport>> GetByReceiptIdAsync(Guid receiptId, CancellationToken cancellationToken = default)
-    {
-        return await _context.IssueReports
-            .AsNoTracking()
-            .Where(i => i.ReceiptId == receiptId)
-            .OrderByDescending(i => i.CreatedAt)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<List<IssueReport>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        return await _context.IssueReports
-            .AsNoTracking()
-            .Where(i => i.UserId == userId)
-            .OrderByDescending(i => i.CreatedAt)
-            .Take(100)
-            .ToListAsync(cancellationToken);
-    }
-}
-
-/// <summary>
 /// Repository for user debug sessions using Entity Framework Core.
 /// </summary>
 public class UserDebugSessionRepository : IUserDebugSessionRepository

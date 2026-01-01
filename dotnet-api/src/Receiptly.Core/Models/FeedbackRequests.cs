@@ -37,29 +37,3 @@ public class SubmitCorrectionRequest
     /// </summary>
     public double? Longitude { get; set; }
 }
-
-/// <summary>
-/// Request model for reporting an issue with OCR processing.
-/// </summary>
-public class ReportIssueRequest
-{
-    /// <summary>
-    /// Receipt ID with the issue.
-    /// </summary>
-    public Guid ReceiptId { get; set; }
-    
-    /// <summary>
-    /// Type of issue (e.g., "MissingData", "IncorrectExtraction", "ImageQuality").
-    /// </summary>
-    public string IssueType { get; set; } = string.Empty;
-    
-    /// <summary>
-    /// Severity level (e.g., "Low", "Medium", "High", "Critical").
-    /// </summary>
-    public string Severity { get; set; } = "Medium";
-    
-    /// <summary>
-    /// Detailed description of the issue.
-    /// </summary>
-    public string? Description { get; set; }
-}

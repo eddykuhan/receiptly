@@ -13,18 +13,15 @@ namespace Receiptly.Core.Services;
 public class FeedbackService : IFeedbackService
 {
     private readonly IUserCorrectionRepository _correctionRepo;
-    private readonly IIssueReportRepository _issueRepo;
     private readonly IUserDebugSessionRepository _debugSessionRepo;
     private readonly IReceiptRepository _receiptRepo;
     
     public FeedbackService(
         IUserCorrectionRepository correctionRepo,
-        IIssueReportRepository issueRepo,
         IUserDebugSessionRepository debugSessionRepo,
         IReceiptRepository receiptRepo)
     {
         _correctionRepo = correctionRepo;
-        _issueRepo = issueRepo;
         _debugSessionRepo = debugSessionRepo;
         _receiptRepo = receiptRepo;
     }
@@ -150,40 +147,6 @@ public class FeedbackService : IFeedbackService
         // Update the receipt in the database
         receipt.UpdatedAt = DateTime.UtcNow;
         await _receiptRepo.UpdateAsync(receipt, cancellationToken);
-    }
-    
-    public async Task<Guid> ReportIssueAsync(
-        string userId,
-        ReportIssueRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var issue = new IssueReport
-        {
-            Id = Guid.NewGuid(),
-            ReceiptId = request.ReceiptId,
-            UserId = userId,
-            IssueType = request.IssueType,
-            Description = request.Description,
-            Severity = request.Severity,
-            CreatedAt = DateTime.UtcNow
-        };
-        
-        var issueId = await _issueRepo.CreateAsync(issue, cancellationToken);
-        
-        // Enable debug mode for medium/high severity issues
-        if (request.Severity.Equals("Medium", StringComparison.OrdinalIgnoreCase) || 
-            request.Severity.Equals("High", StringComparison.OrdinalIgnoreCase) ||
-            request.Severity.Equals("Critical", StringComparison.OrdinalIgnoreCase))
-        {
-            await EnableDebugModeAsync(
-                userId,
-                requestCount: 5,
-                reason: $"Issue reported: {request.IssueType}",
-                cancellationToken
-            );
-        }
-        
-        return issueId;
     }
     
     public async Task EnableDebugModeAsync(

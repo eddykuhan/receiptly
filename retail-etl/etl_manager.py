@@ -146,7 +146,7 @@ class ETLManager:
             Loading statistics
         """
         try:
-            result = self.loader.upsert_gold_price(records)
+            result = self.loader.upsert_gold_price(records,10000)
             self.stats['loaded'] = result['inserted']
             logger.info(f"Loaded {result['inserted']} new records, skipped {result['skipped']} unchanged")
             return result
