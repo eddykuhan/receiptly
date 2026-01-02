@@ -7,6 +7,7 @@ from services.cleaner import clean_receipt
 from services.location_selector import select_best_location
 from services.receipt_extractor import extract_merchant_from_image
 from services.receipt_enhancer import enhance_receipt_data
+from services.chat_service import answer_price_question, extract_item_keywords
 import json
 
 app = FastAPI(
@@ -169,3 +170,69 @@ async def api_enhance_receipt(
             "requires_review": True,
             "error": str(e)
         }
+
+@app.post("/chat/ask")
+async def api_chat_ask(body: dict):
+    """
+    Answer price comparison questions using GPT-4o-mini
+    
+    Request body:
+    {
+        "question": "Where's the cheapest milk?",
+        "price_data": [
+            {"item_name": "Dutch Lady Milk 1L", "store_name": "Mydin", "price": 5.90, "purchase_date": "2025-12-15"},
+            {"item_name": "Dutch Lady Milk 1L", "store_name": "Tesco", "price": 6.50, "purchase_date": "2025-12-20"}
+        ]
+    }
+    """
+    question = body.get("question", "")
+    price_data = body.get("price_data", [])
+    
+    answer = await answer_price_question(question, price_data)
+    return {"answer": answer}
+
+@app.post("/chat/extract_items")
+async def api_extract_items(body: dict):
+    """
+    Extract item keywords from a natural language question
+    
+    Request body:
+    {
+        "question": "Where can I buy cheap milk and bread?"
+    }
+    
+    Response:
+    {
+        "items": ["milk", "bread"]
+    }
+    """
+    question = body.get("question", "")
+    items = await extract_item_keywords(question)
+    return {"items": items}
+
+@app.post("/embeddings/generate")
+async def api_generate_embedding(body: dict):
+    """
+    Generate embedding vector for a text query
+    
+    Request body:
+    {
+        "text": "nescafe gold refill pack"
+    }
+    
+    Response:
+    {
+        "embedding": [0.123, -0.456, ...]  // 384-dimensional vector
+    }
+    """
+    from sentence_transformers import SentenceTransformer
+    
+    text = body.get("text", "")
+    if not text:
+        raise HTTPException(status_code=400, detail="Text is required")
+    
+    # Use the same model as canonicalizer
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    embedding = model.encode(text).tolist()
+    
+    return {"embedding": embedding}

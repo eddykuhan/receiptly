@@ -68,6 +68,46 @@ public class LlmServiceClient
             return items.Select(i => new CanonicalizationResult { CanonicalName = i }).ToList();
         }
     }
+
+    public async Task<float[]?> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("[GenerateEmbeddingAsync] Requesting embedding for text: '{Text}' (length: {Length})", text, text.Length);
+            
+            var content = new StringContent(
+                JsonSerializer.Serialize(new { text }),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.PostAsync("/embeddings/generate", content, cancellationToken);
+            _logger.LogDebug("[GenerateEmbeddingAsync] Response status: {Status}", response.StatusCode);
+
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogDebug("[GenerateEmbeddingAsync] Response body length: {Length} chars", responseBody.Length);
+            
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = JsonSerializer.Deserialize<EmbeddingResponse>(responseBody, options);
+
+            if (result?.Embedding != null)
+            {
+                _logger.LogDebug("[GenerateEmbeddingAsync] Successfully generated embedding with {Dimension} dimensions", result.Embedding.Length);
+            }
+            else
+            {
+                _logger.LogWarning("[GenerateEmbeddingAsync] Embedding response was null or empty");
+            }
+
+            return result?.Embedding;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[GenerateEmbeddingAsync] Error generating embedding for text: '{Text}'", text);
+            return null;
+        }
+    }
 }
 
 public class CanonicalizationResult
@@ -76,5 +116,10 @@ public class CanonicalizationResult
     public string CanonicalName { get; set; } = string.Empty;
     [JsonPropertyName("canonical_item_id")]
     public Guid? CanonicalItemId { get; set; }
+}
+
+public class EmbeddingResponse
+{
+    public float[] Embedding { get; set; } = Array.Empty<float>();
 }
 

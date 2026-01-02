@@ -39,6 +39,8 @@ try
             // Prevent circular reference errors when serializing Receipt <-> Items
             options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
             options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+            // Use camelCase for JSON property names to match JavaScript conventions
+            options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         });
 
     // Configure Database (with AWS Secrets Manager)
