@@ -108,6 +108,74 @@ public class LlmServiceClient
             return null;
         }
     }
+
+    public async Task<List<string>> ExtractItemKeywordsAsync(string question, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Calling LLM service to extract items from: {Question}", question);
+            
+            var content = new StringContent(
+                JsonSerializer.Serialize(new { question }),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.PostAsync("/chat/extract_items", content, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogInformation("LLM extract_items response: {Response}", responseBody);
+            
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = JsonSerializer.Deserialize<ExtractItemsResponse>(responseBody, options);
+            _logger.LogInformation("Deserialized {ItemCount} items from response", result?.Items?.Count ?? 0);
+
+            return result?.Items ?? new List<string>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting item keywords from question: {Question}", question);
+            return new List<string>();
+        }
+    }
+
+    public async Task<string> AskChatQuestionAsync(
+        string question, 
+        Dictionary<string, object> priceData, 
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogDebug("Sending question to LLM with {ItemCount} items of price data", priceData.Count);
+            
+            var requestBody = new
+            {
+                question,
+                price_data = priceData
+            };
+
+            var requestJson = JsonSerializer.Serialize(requestBody);
+            _logger.LogDebug("LLM request payload size: {Size} bytes", requestJson.Length);
+            
+            var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("/chat/ask", content, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogDebug("LLM chat/ask response: {Response}", responseBody);
+            
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = JsonSerializer.Deserialize<ChatResponse>(responseBody, options);
+
+            return result?.Answer ?? "I couldn't generate an answer. Please try again.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting LLM answer");
+            return "I'm having trouble connecting to my knowledge base. Please try again later.";
+        }
+    }
 }
 
 public class CanonicalizationResult
@@ -121,5 +189,15 @@ public class CanonicalizationResult
 public class EmbeddingResponse
 {
     public float[] Embedding { get; set; } = Array.Empty<float>();
+}
+
+public class ExtractItemsResponse
+{
+    public List<string> Items { get; set; } = new();
+}
+
+public class ChatResponse
+{
+    public string Answer { get; set; } = string.Empty;
 }
 
