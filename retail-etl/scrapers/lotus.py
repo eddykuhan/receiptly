@@ -21,7 +21,7 @@ class LotusScraper(BaseScraper):
     
     BASE_URL = 'https://api-o2o.lotuss.com.my/lotuss-mobile-bff'
     
-    def __init__(self, store_url: str = None, max_products: int = None, pricing_zone_id: str = "LOTUS_NATIONAL"):
+    def __init__(self, store_url: str = None, max_products: int = None, pricing_zone_id: str = "LOTUSS_NATIONAL"):
         """
         Initialize Lotus scraper.
         
