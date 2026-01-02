@@ -1,6 +1,7 @@
-import { Component, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewChecked, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ChatService } from '../../core/services/chat.service';
 
 interface Message {
   text: string;
@@ -20,6 +21,9 @@ interface Message {
 })
 export class AskAiComponent implements AfterViewChecked {
   @ViewChild('chatContainer') private chatContainer?: ElementRef;
+
+  private readonly chatService = inject(ChatService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   messages: Message[] = [];
   userInput = '';
@@ -48,16 +52,40 @@ export class AskAiComponent implements AfterViewChecked {
     this.isTyping = true;
     this.shouldScroll = true;
 
-    // Simulate AI response (replace with actual AI service call)
-    setTimeout(() => {
-      this.messages.push({
-        text: this.getAiResponse(userQuestion),
-        isUser: false,
-        timestamp: new Date()
-      });
-      this.isTyping = false;
-      this.shouldScroll = true;
-    }, 1000);
+    // Call real AI service
+    this.chatService.askQuestion(userQuestion).subscribe({
+      next: (response) => {
+        console.log('Received response:', response);
+        console.log('Messages before push:', this.messages.length);
+        console.log('isTyping before:', this.isTyping);
+        
+        this.messages.push({
+          text: response.answer,
+          isUser: false,
+          timestamp: new Date(response.timestamp)
+        });
+        this.isTyping = false;
+        this.shouldScroll = true;
+        
+        console.log('Messages after push:', this.messages.length);
+        console.log('isTyping after:', this.isTyping);
+        console.log('Last message:', this.messages[this.messages.length - 1]);
+        
+        // Force change detection
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Chat error:', error);
+        this.messages.push({
+          text: error.message || 'Sorry, I encountered an error. Please try again.',
+          isUser: false,
+          timestamp: new Date()
+        });
+        this.isTyping = false;
+        this.shouldScroll = true;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   clearChat() {
@@ -85,24 +113,5 @@ export class AskAiComponent implements AfterViewChecked {
   quickQuestion(question: string) {
     this.userInput = question;
     this.sendMessage();
-  }
-
-  private getAiResponse(question: string): string {
-    // Mock AI responses based on keywords
-    const q = question.toLowerCase();
-
-    if (q.includes('spend') || q.includes('spent')) {
-      return "Based on your receipts, you've spent RM 1,245.50 this month across 23 transactions. Your top categories are groceries (RM 680), dining (RM 320), and household items (RM 245).";
-    } else if (q.includes('cheapest') || q.includes('price')) {
-      return "Looking at your receipt history, Mydin USJ typically has the lowest prices for groceries. For milk specifically, they're about 15% cheaper than other stores in your area.";
-    } else if (q.includes('recent') || q.includes('last')) {
-      return "Your 5 most recent receipts are: 1) Tesco Ampang (RM 85.20, today), 2) Giant Wangsa Maju (RM 42.50, yesterday), 3) Aeon Mid Valley (RM 156.80, 2 days ago), 4) Mydin USJ (RM 38.90, 3 days ago), 5) Lotus Cheras (RM 67.30, 4 days ago).";
-    } else if (q.includes('save') || q.includes('saving')) {
-      return "Great question! By using the Price Map feature, you could save approximately RM 120/month by shopping at the cheapest stores for your regular items. I recommend buying milk and bread at Mydin, and fresh produce at Giant.";
-    } else if (q.includes('receipt') && q.includes('how many')) {
-      return "You've uploaded 125 receipts so far! You're doing great - just 25 more to unlock your Touch 'n Go voucher reward. Keep it up! 🎉";
-    } else {
-      return "I understand you're asking about: '" + question + "'. While I'm a demo AI, in production I would analyze your receipt data to provide personalized insights. Try asking about your spending, price comparisons, or recent purchases!";
-    }
   }
 }

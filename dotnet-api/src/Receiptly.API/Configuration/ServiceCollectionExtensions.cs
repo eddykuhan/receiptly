@@ -265,9 +265,11 @@ public static class ServiceCollectionExtensions
 
         // Gold layer service (append-only analytics)
         services.AddScoped<IGoldLayerService, GoldLayerService>();
+        services.AddScoped<IGoldLayerQueryService, GoldLayerQueryService>();
 
         // LLM Services - configuration added via AddLlmService method
         services.AddScoped<CanonicalizationService>();
+        services.AddScoped<IChatService, ChatService>();
 
         // AutoMapper
         services.AddAutoMapper(typeof(Program).Assembly);

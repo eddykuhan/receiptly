@@ -1,14 +1,14 @@
 """
 AEON myAEON2go scraper for the unified ETL pipeline.
 
-Uses AEON's web-slug-configs API to scrape grocery products.
+Uses AEON's web-slug-configs API to scrape grocery products via Playwright.
 """
 import json
 import time
 from typing import List, Dict, Optional
-import requests
 from datetime import datetime
 import logging
+from playwright.sync_api import sync_playwright, Page, Browser
 
 from scrapers.base_scraper import BaseScraper
 
@@ -46,16 +46,10 @@ class AeonScraper(BaseScraper):
             longitude=None
         )
         self.max_products = max_products
-        self.headers = {
-            'accept': 'application/json, text/plain, */*',
-            'accept-language': 'en-US,en;q=0.9',
-            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            'referer': 'https://myaeon2go.com/',
-            'origin': 'https://myaeon2go.com'
-        }
-        self.session = requests.Session()
-        self.session.headers.update(self.headers)
         self.discovered_categories = []
+        self.playwright = None
+        self.browser = None
+        self.page = None
 
     def _discover_all_categories(self) -> List[int]:
         """
@@ -71,6 +65,44 @@ class AeonScraper(BaseScraper):
         logger.info(f"Using {len(categories)} known AEON categories")
         return categories
 
+    def _init_browser(self):
+        """Initialize Playwright browser."""
+        if not self.playwright:
+            logger.info("Initializing Playwright browser...")
+            self.playwright = sync_playwright().start()
+            self.browser = self.playwright.chromium.launch(headless=True)
+            
+            # Create context with extra headers
+            context = self.browser.new_context(
+                user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                viewport={'width': 1920, 'height': 1080},
+                extra_http_headers={
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'Referer': 'https://myaeon2go.com/',
+                    'Origin': 'https://myaeon2go.com',
+                }
+            )
+            
+            self.page = context.new_page()
+            
+            # Navigate to homepage to establish session
+            logger.info("Loading AEON homepage to establish session...")
+            self.page.goto('https://myaeon2go.com/', wait_until='networkidle', timeout=30000)
+            time.sleep(3)  # Wait for any JS to execute and cookies to be set
+            logger.info("Browser session established")
+
+    def _close_browser(self):
+        """Close Playwright browser."""
+        if self.page:
+            self.page.close()
+        if self.browser:
+            self.browser.close()
+        if self.playwright:
+            self.playwright.stop()
+        logger.info("Browser closed")
+
     def scrape(self) -> List[Dict]:
         """
         Scrape all products from AEON myAEON2go (all categories).
@@ -78,35 +110,43 @@ class AeonScraper(BaseScraper):
         Returns:
             List of product dictionaries conforming to BaseScraper schema
         """
-        # Discover categories
-        if not self.discovered_categories:
-            self.discovered_categories = self._discover_all_categories()
-        
-        if not self.discovered_categories:
-            logger.error("No categories found, unable to scrape")
-            return []
-        
-        all_products = []
-        total_scraped = 0
-        
-        logger.info(f"Starting AEON scrape for {len(self.discovered_categories)} categories")
-        
-        for idx, category_id in enumerate(self.discovered_categories, 1):
-            if self.max_products and total_scraped >= self.max_products:
-                logger.info(f"Reached max products limit: {self.max_products}")
-                break
+        try:
+            # Initialize browser
+            self._init_browser()
             
-            logger.info(f"Scraping category {idx}/{len(self.discovered_categories)} (ID: {category_id})")
-            category_products = self._scrape_category(category_id)
+            # Discover categories
+            if not self.discovered_categories:
+                self.discovered_categories = self._discover_all_categories()
             
-            all_products.extend(category_products)
-            total_scraped += len(category_products)
+            if not self.discovered_categories:
+                logger.error("No categories found, unable to scrape")
+                return []
             
-            logger.info(f"Scraped {len(category_products)} products (total so far: {total_scraped})")
-            time.sleep(1.0)  # Rate limiting between categories
+            all_products = []
+            total_scraped = 0
+            
+            logger.info(f"Starting AEON scrape for {len(self.discovered_categories)} categories")
+            
+            for idx, category_id in enumerate(self.discovered_categories, 1):
+                if self.max_products and total_scraped >= self.max_products:
+                    logger.info(f"Reached max products limit: {self.max_products}")
+                    break
+                
+                logger.info(f"Scraping category {idx}/{len(self.discovered_categories)} (ID: {category_id})")
+                category_products = self._scrape_category(category_id)
+                
+                all_products.extend(category_products)
+                total_scraped += len(category_products)
+                
+                logger.info(f"Scraped {len(category_products)} products (total so far: {total_scraped})")
+                time.sleep(1.0)  # Rate limiting between categories
+            
+            logger.info(f"Total products scraped: {len(all_products)}")
+            return all_products
         
-        logger.info(f"Total products scraped: {len(all_products)}")
-        return all_products
+        finally:
+            # Always close browser
+            self._close_browser()
 
     def _scrape_category(self, category_id: int) -> List[Dict]:
         """
@@ -123,24 +163,26 @@ class AeonScraper(BaseScraper):
         limit = 100  # Items per page
         
         while True:
-            # Build query parameters
-            params = {
-                'limit': limit,
-                'sort': 'listPosition',
-                'soft_category_gid': category_id,
-                'moduleType': 'productListEntities'
-            }
-            
+            # Build API URL with query parameters
+            params = f'limit={limit}&sort=listPosition&soft_category_gid={category_id}&moduleType=productListEntities'
             if cursor:
-                params['cursor'] = cursor
+                params += f'&cursor={cursor}'
             
-            # Make API request
-            url = f'{self.BASE_URL}/web-slug-configs/data'
+            url = f'{self.BASE_URL}/web-slug-configs/data?{params}'
             
             try:
-                response = self.session.get(url, params=params, timeout=30)
-                response.raise_for_status()
-                data = response.json()
+                # Use Playwright to fetch the API endpoint
+                response = self.page.goto(url, wait_until='networkidle', timeout=30000)
+                
+                if response.status != 200:
+                    logger.error(f"HTTP {response.status} error scraping category {category_id}")
+                    break
+                
+                # Parse JSON response
+                content = self.page.content()
+                # Extract JSON from the page (it's displayed as text in browser)
+                json_text = self.page.evaluate('() => document.body.innerText')
+                data = json.loads(json_text)
                 
                 # Extract products from response
                 product_entities = data.get('data', {}).get('productListEntities', [])
@@ -162,13 +204,10 @@ class AeonScraper(BaseScraper):
                     break
                 
                 logger.debug(f"Fetched {len(product_entities)} products, cursor: {cursor}")
-                time.sleep(0.3)  # Rate limiting between pages
+                time.sleep(0.5)  # Rate limiting between pages
                 
-            except requests.exceptions.HTTPError as e:
-                logger.error(f"HTTP error scraping category {category_id}: {e}")
-                break
-            except requests.exceptions.RequestException as e:
-                logger.error(f"Request error scraping category {category_id}: {e}")
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON decode error scraping category {category_id}: {e}")
                 break
             except Exception as e:
                 logger.error(f"Unexpected error scraping category {category_id}: {e}", exc_info=True)

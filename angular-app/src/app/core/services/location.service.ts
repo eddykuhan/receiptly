@@ -111,7 +111,67 @@ export class LocationService {
     }
 
     /**
+     * Watch for location changes (continuous updates)
+     * Returns a function to stop watching
+     */
+    watchLocation(callback: (location: UserLocation) => void): () => void {
+        if (!navigator.geolocation) {
+            console.error('Geolocation not supported');
+            return () => {};
+        }
+
+        const watchId = navigator.geolocation.watchPosition(
+            (position) => {
+                const location: UserLocation = {
+                    lat: position.coords.latitude,
+                    lon: position.coords.longitude
+                };
+                this.userLocation.set(location);
+                callback(location);
+            },
+            (error) => {
+                console.error('Location watch error:', error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 30000 // Accept cached location up to 30 seconds old
+            }
+        );
+
+        // Return cleanup function
+        return () => navigator.geolocation.clearWatch(watchId);
+    }
+
+    /**
+     * Check if geolocation permission is granted
+     */
+    async checkPermission(): Promise<boolean> {
+        if (!navigator.permissions) return false;
+
+        try {
+            const result = await navigator.permissions.query({ name: 'geolocation' });
+            return result.state === 'granted';
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Get fresh location if permission is already granted
+     */
+    async getFreshLocation(): Promise<UserLocation | null> {
+        const hasPermission = await this.checkPermission();
+        if (!hasPermission) {
+            return null; // Don't request if no permission
+        }
+
+        return this.requestLocation();
+    }
+
+    /**
      * Retry getting location (useful when user denies first time)
+     * Alias for requestLocation for backward compatibility
      */
     async retryLocation(): Promise<UserLocation | null> {
         return this.requestLocation();

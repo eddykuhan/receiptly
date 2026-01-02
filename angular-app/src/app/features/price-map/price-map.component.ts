@@ -290,14 +290,32 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         const mostExpensive = allPrices[allPrices.length - 1] ?? cheapest;
         const priceRange = mostExpensive - cheapest;
 
-        // Create one marker per store
-        storeMap.forEach(({ store, items }) => {
-            // Use store's cheapest item price for color coding
-            const storePrices = items.map(i => i.price).sort((a, b) => a - b);
-            const storePrice = storePrices[0] ?? 0;
+        // Sort stores by their cheapest item price for ranking
+        const storesByPrice = Array.from(storeMap.entries())
+            .map(([storeId, { store, items }]) => ({
+                storeId,
+                store,
+                items,
+                price: Math.min(...items.map(i => i.price))
+            }))
+            .sort((a, b) => a.price - b.price);
 
-            // For now, make all markers green
-            const iconColor = 'green';
+        // Find unique price tiers
+        const uniquePrices = [...new Set(storesByPrice.map(s => s.price))].sort((a, b) => a - b);
+        const cheapestPrice = uniquePrices[0];
+        const secondCheapestPrice = uniquePrices[1];
+
+        // Create one marker per store
+        storesByPrice.forEach(({ storeId, store, items, price }) => {
+            // Assign color based on price tier (handle ties)
+            let iconColor: string;
+            if (price === cheapestPrice) {
+                iconColor = 'green';  // Cheapest (all stores with lowest price)
+            } else if (secondCheapestPrice !== undefined && price === secondCheapestPrice) {
+                iconColor = 'yellow'; // Second cheapest (all stores with 2nd lowest price)
+            } else {
+                iconColor = 'red';    // Higher prices
+            }
 
             const storeInitial = (store.name && store.name.trim().length > 0) ? store.name.trim().charAt(0).toUpperCase() : 'S';
             const html = `<div class="store-marker marker-${iconColor}"><span class="store-icon material-icons">store</span><span class="store-initial">${storeInitial}</span></div>`;
@@ -523,6 +541,24 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
         if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
         return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
+    }
+
+    public getPriceTier(price: number): 'green' | 'yellow' | 'red' {
+        const results = this.searchResults();
+        if (results.length === 0) return 'red';
+
+        // Get unique prices and sort them
+        const uniquePrices = [...new Set(results.map(r => r.price))].sort((a, b) => a - b);
+        const cheapestPrice = uniquePrices[0];
+        const secondCheapestPrice = uniquePrices[1];
+
+        if (price === cheapestPrice) {
+            return 'green';
+        } else if (secondCheapestPrice !== undefined && price === secondCheapestPrice) {
+            return 'yellow';
+        } else {
+            return 'red';
+        }
     }
 
     private loadProductSuggestions() {

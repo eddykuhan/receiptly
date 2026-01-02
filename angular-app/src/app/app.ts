@@ -64,8 +64,7 @@ export class App {
   }
 
   onAskAIClick() {
-    this.toastService.info('Coming Soon');
-    // this.router.navigate(['/ask-ai']);
+    this.router.navigate(['/ask-ai']);
   }
 
   onPriceMapClick() {
