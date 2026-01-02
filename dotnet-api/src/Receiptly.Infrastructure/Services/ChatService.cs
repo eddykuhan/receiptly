@@ -1,8 +1,3 @@
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Receiptly.Core.Interfaces;
 
@@ -11,20 +6,17 @@ namespace Receiptly.Infrastructure.Services;
 public class ChatService : IChatService
 {
     private readonly IGoldLayerQueryService _goldLayerService;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly LlmServiceClient _llmClient;
     private readonly ILogger<ChatService> _logger;
-    private readonly string _llmServiceUrl;
 
     public ChatService(
         IGoldLayerQueryService goldLayerService,
-        IHttpClientFactory httpClientFactory,
-        ILogger<ChatService> logger,
-        IConfiguration configuration)
+        LlmServiceClient llmClient,
+        ILogger<ChatService> logger)
     {
         _goldLayerService = goldLayerService;
-        _httpClientFactory = httpClientFactory;
+        _llmClient = llmClient;
         _logger = logger;
-        _llmServiceUrl = configuration["LlmService:Url"] ?? "http://localhost:8500";
     }
 
     public async Task<string> AskQuestionAsync(
@@ -70,40 +62,7 @@ public class ChatService : IChatService
         string question, 
         CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogDebug("Calling LLM service to extract items from: {Question}", question);
-            var httpClient = _httpClientFactory.CreateClient();
-            var requestBody = new { question };
-            var content = new StringContent(
-                JsonSerializer.Serialize(requestBody),
-                Encoding.UTF8,
-                "application/json");
-
-            var response = await httpClient.PostAsync(
-                $"{_llmServiceUrl}/chat/extract_items",
-                content,
-                cancellationToken);
-
-            response.EnsureSuccessStatusCode();
-
-            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogInformation("LLM extract_items response: {Response}", responseBody);
-            
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            var result = JsonSerializer.Deserialize<ExtractItemsResponse>(responseBody, options);
-            _logger.LogInformation("Deserialized {ItemCount} items from response", result?.Items?.Count ?? 0);
-
-            return result?.Items ?? new List<string>();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error extracting item keywords from question: {Question}", question);
-            return new List<string>();
-        }
+        return await _llmClient.ExtractItemKeywordsAsync(question, cancellationToken);
     }
 
     private async Task<Dictionary<string, object>> GatherPriceDataAsync(
@@ -158,56 +117,6 @@ public class ChatService : IChatService
         Dictionary<string, object> priceData, 
         CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogDebug("Sending question to LLM with {ItemCount} items of price data", priceData.Count);
-            var httpClient = _httpClientFactory.CreateClient();
-            var requestBody = new
-            {
-                question,
-                price_data = priceData
-            };
-
-            var requestJson = JsonSerializer.Serialize(requestBody);
-            _logger.LogDebug("LLM request payload size: {Size} bytes", requestJson.Length);
-            
-            var content = new StringContent(
-                requestJson,
-                Encoding.UTF8,
-                "application/json");
-
-            var response = await httpClient.PostAsync(
-                $"{_llmServiceUrl}/chat/ask",
-                content,
-                cancellationToken);
-
-            response.EnsureSuccessStatusCode();
-
-            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogDebug("LLM chat/ask response: {Response}", responseBody);
-            
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            var result = JsonSerializer.Deserialize<ChatResponse>(responseBody, options);
-
-            return result?.Answer ?? "I couldn't generate an answer. Please try again.";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting LLM answer");
-            return "I'm having trouble connecting to my knowledge base. Please try again later.";
-        }
-    }
-
-    private class ExtractItemsResponse
-    {
-        public List<string> Items { get; set; } = new();
-    }
-
-    private class ChatResponse
-    {
-        public string Answer { get; set; } = string.Empty;
+        return await _llmClient.AskChatQuestionAsync(question, priceData, cancellationToken);
     }
 }
