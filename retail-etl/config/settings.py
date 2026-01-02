@@ -62,8 +62,13 @@ RAW_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 
 USE_LOCAL_CACHE = os.getenv('USE_LOCAL_CACHE', 'false').lower() == 'true'
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
 LOG_FILE = os.path.join(LOG_DIR, 'etl.log')
+
+# Checkpoint storage for resume capability
+CHECKPOINT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'checkpoints')
+CHECKPOINT_FILE = os.path.join(CHECKPOINT_DIR, 'etl_checkpoint.json')
+
 # Ensure directories exist
-for d in [LOG_DIR, RAW_DATA_DIR]:
+for d in [LOG_DIR, RAW_DATA_DIR, CHECKPOINT_DIR]:
     if not os.path.exists(d):
         try:
             os.makedirs(d, exist_ok=True)

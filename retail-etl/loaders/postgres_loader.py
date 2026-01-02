@@ -7,7 +7,7 @@ import uuid
 from typing import List, Dict
 import logging
 import psycopg2
-from psycopg2.extras import DictCursor
+from psycopg2.extras import DictCursor, execute_values
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -40,8 +40,15 @@ class PostgresLoader:
                 except Exception:
                     pass
             try:
-                self.conn = psycopg2.connect(**self.db_config)
-                logger.info("Connected to database")
+                # Add connection timeout settings
+                db_config_with_timeout = {
+                    **self.db_config,
+                    'connect_timeout': 30,  # 30 second connection timeout
+                    'options': '-c statement_timeout=300000'  # 5 minute query timeout
+                }
+                self.conn = psycopg2.connect(**db_config_with_timeout)
+                self.conn.set_session(autocommit=False)  # Explicit transaction control
+                logger.info("Connected to database with timeout settings")
             except Exception as e:
                 logger.error(f"Database connection failed: {e}")
                 raise
@@ -75,6 +82,62 @@ class PostgresLoader:
             stats['with_location'] = cur.fetchone()['count']
             
         return stats
+    
+    def get_existing_items(self, records: List[Dict]) -> Dict[str, str]:
+        """
+        Check which items already exist in gold_price table and return their canonical IDs.
+        Uses item_name + store_name as unique key.
+        
+        Args:
+            records: List of dicts with 'item_name' and 'store_name'
+            
+        Returns:
+            Dict mapping "item_name|store_name" to canonical_item_id
+        """
+        if not records:
+            return {}
+        
+        if not self.conn or self.conn.closed:
+            self.connect()
+        
+        # Build unique keys for lookup
+        lookup_keys = []
+        for record in records:
+            item_name = record.get('item_name', '').strip()
+            store_name = record.get('store_name', '').strip()
+            if item_name and store_name:
+                lookup_keys.append((item_name, store_name))
+        
+        if not lookup_keys:
+            return {}
+        
+        existing_map = {}
+        
+        try:
+            with self.conn.cursor(cursor_factory=DictCursor) as cur:
+                # Query for existing items in batches
+                query = '''
+                    SELECT DISTINCT ON ("ItemName", "StoreName")
+                        "ItemName", "StoreName", "CanonicalItemId"
+                    FROM purchase_analytics_gold
+                    WHERE ("ItemName", "StoreName") IN %s
+                    AND "CanonicalItemId" IS NOT NULL
+                '''
+                
+                execute_values(cur, query, lookup_keys, template='(%s, %s)', page_size=1000)
+                results = cur.fetchall()
+                
+                for row in results:
+                    key = f"{row['ItemName']}|{row['StoreName']}"
+                    existing_map[key] = row['CanonicalItemId']
+                
+                logger.info(f"Found {len(existing_map)} items already in database")
+                
+        except Exception as e:
+            logger.error(f"Error checking existing items: {e}")
+            self.conn.rollback()
+        
+        return existing_map
 
     def _get_store_details(self, store_name: str) -> Dict:
         """Get store address and coordinates from the stores table."""
@@ -209,17 +272,25 @@ class PostgresLoader:
                             WHERE "Id" = ANY(%s::uuid[])
                         ''', (datetime.now(), id_list))
                     
-                    # Step 4: Bulk insert new records
+                    # Step 4: Bulk insert new records using execute_values (MUCH faster)
                     if records_to_insert:
-                        for record in records_to_insert:
-                            self._insert_record(cur, record)
+                        self._bulk_insert_records(cur, records_to_insert)
                     
                     self.conn.commit()
+                    
+                    # Keep connection alive during processing
+                    if i % 5000 == 0:  # Every 5 batches, refresh connection
+                        self.connect()
+                        cur = self.conn.cursor(cursor_factory=DictCursor)
+                    
                     logger.info(f"Batch Progress: {min(i + batch_size, total)}/{total} processed (inserted: {inserted}, updated: {skipped})...")
                     
             except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
                 logger.error(f"Database connection lost during batch: {e}. Reconnecting...")
+                self.conn.rollback()
                 self.conn = None # Force reconnect on next iteration
+                self.connect()
+                cur = self.conn.cursor(cursor_factory=DictCursor)
                 continue
             except Exception as e:
                 logger.error(f"Fatal error in batch load: {e}")
@@ -228,6 +299,55 @@ class PostgresLoader:
                 raise
 
         return {'inserted': inserted, 'skipped': skipped, 'total': total}
+
+    def _bulk_insert_records(self, cur, records: List[Dict]):
+        """Bulk insert records using execute_values for 10-100x speed improvement."""
+        if not records:
+            return
+        
+        # Prepare data tuples
+        values = []
+        for record in records:
+            # Get store address
+            store_address = record.get('store_address')
+            if not store_address or store_address in ['Malaysia', 'Unknown']:
+                store_name = record.get('store_name')
+                if store_name and store_name not in self.store_cache:
+                    self.store_cache[store_name] = self._get_store_details(store_name)
+                store_info = self.store_cache.get(store_name, {})
+                store_address = store_info.get('address') or record.get('store_address')
+            
+            values.append((
+                str(uuid.uuid4()),                        # Id
+                str(uuid.uuid4()),                        # ItemId
+                record.get('source', 'ETL'),              # Source
+                record.get('item_name'),                  # ItemName
+                record.get('canonical_item_id'),          # CanonicalItemId
+                record.get('unit_price'),                 # UnitPrice
+                record.get('unit_price'),                 # TotalPrice
+                1,                                        # Quantity
+                record.get('category'),                   # Category
+                datetime.now(),                           # PurchaseDate
+                record.get('store_name'),                 # StoreName
+                store_address or record.get('store_name'), # StoreAddress
+                record.get('latitude'),                   # Latitude
+                record.get('longitude'),                  # Longitude
+                1.0,                                      # LocationConfidence
+                record.get('pricing_zone_id'),            # PricingZoneId
+                datetime.now()                            # CreatedAt
+            ))
+        
+        # Bulk insert with execute_values (10-100x faster than individual inserts)
+        insert_query = '''
+            INSERT INTO purchase_analytics_gold (
+                "Id", "ItemId", "Source", "ItemName", "CanonicalItemId",
+                "UnitPrice", "TotalPrice", "Quantity", "Category", "PurchaseDate",
+                "StoreName", "StoreAddress", "Latitude", "Longitude", "LocationConfidence",
+                "PricingZoneId", "CreatedAt"
+            ) VALUES %s
+        '''
+        
+        execute_values(cur, insert_query, values, page_size=500)
 
     def _insert_record(self, cur, record: Dict):
         """Insert a single record into purchase_analytics_gold."""

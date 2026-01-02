@@ -102,6 +102,7 @@ class AmazonStyleMatcher:
         1. Size mismatch >5% → REJECT
         2. Brand conflict (different brands) → REJECT
         3. Category mismatch (if available) → REJECT
+        4. Pack count mismatch → REJECT (multi-pack vs single pack are different products)
         
         Args:
             query_attrs: Query attributes
@@ -113,7 +114,16 @@ class AmazonStyleMatcher:
         viable = []
         
         for candidate in candidates:
-            # Constraint 1: Size must match within 5% tolerance
+            # Constraint 1: Pack count must match (multi-packs are different products)
+            if query_attrs.get('pack_count') and candidate.get('pack_count'):
+                query_pack = int(query_attrs['pack_count'])
+                candidate_pack = int(candidate['pack_count'])
+                
+                # Different pack counts → reject (e.g., 6-pack vs single)
+                if query_pack != candidate_pack:
+                    continue
+            
+            # Constraint 2: Size must match within 5% tolerance
             if query_attrs.get('size_normalized') and candidate.get('size_normalized'):
                 query_size = float(query_attrs['size_normalized'])
                 candidate_size = float(candidate['size_normalized'])
@@ -127,7 +137,7 @@ class AmazonStyleMatcher:
                 if size_diff > 0.05:
                     continue
             
-            # Constraint 2: Brand must match (if both present)
+            # Constraint 3: Brand must match (if both present)
             if query_attrs.get('brand') and candidate.get('brand'):
                 query_brand = query_attrs['brand'].lower()
                 candidate_brand = candidate['brand'].lower()
@@ -136,13 +146,18 @@ class AmazonStyleMatcher:
                 if query_brand != candidate_brand:
                     continue
             
-            # Constraint 3: Category must match (if both present)
-            if query_attrs.get('category') and candidate.get('category'):
-                query_category = query_attrs['category'].lower()
-                candidate_category = candidate['category'].lower()
-                
-                if query_category != candidate_category:
-                    continue
+            # Constraint 4: Category must match (if both present and not unknown)
+            # DISABLED: Categories vary too much across stores (e.g., "Beverages" vs "Instant Coffee")
+            # Brand + Size + Pack Count are sufficient hard constraints
+            # Category will still contribute to scoring
+            # if query_attrs.get('category') and candidate.get('category'):
+            #     query_category = query_attrs['category'].lower()
+            #     candidate_category = candidate['category'].lower()
+            #     
+            #     # Skip check if query category is generic/unknown
+            #     if query_category not in ['unknown', 'all products', 'general']:
+            #         if query_category != candidate_category:
+            #             continue
             
             # Passed all constraints
             viable.append(candidate)

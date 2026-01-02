@@ -84,9 +84,16 @@ class Canonicalizer:
                     pass
             self.conn = psycopg2.connect(**self.db_config)
             
-            # Initialize candidate generator with connection
-            if not self.candidate_generator:
+            # Update candidate generator and matcher with new connection
+            if self.candidate_generator:
+                self.candidate_generator.conn = self.conn
+            else:
                 self.candidate_generator = CandidateGenerator(self.conn)
+            
+            if self.matcher:
+                self.matcher.conn = self.conn
+            else:
+                self.matcher = AmazonStyleMatcher(self.conn, self.embedder)
     
     def close(self):
         """Close database connection."""
@@ -332,6 +339,9 @@ class Canonicalizer:
         Uses candidate generation + Amazon-style matching to find existing
         canonical items across all stores before creating new masters.
         
+        CRITICAL: Processes items in mini-batches of 100 and commits incrementally
+        so that later items can match against earlier items in the same batch.
+        
         Args:
             items: List of dicts with keys: item_name, category, store_name
             
@@ -341,122 +351,178 @@ class Canonicalizer:
         if not items:
             return []
         
+        # Refresh connection to avoid timeout
         self.connect()
         canonical_ids = []
-        items_to_insert = []
-        normalized_names = []
         
-        # Phase 1: Extract attributes and do cross-store matching for all items
-        for item in items:
-            # Extract attributes
-            attributes = self.attribute_extractor.extract_all_attributes(item['item_name'])
-            normalized = self.normalize_text(item['item_name'])
+        # Process in mini-batches to allow cross-item matching within the same batch
+        MINI_BATCH_SIZE = 100
+        total = len(items)
+        
+        for mini_batch_start in range(0, total, MINI_BATCH_SIZE):
+            mini_batch_end = min(mini_batch_start + MINI_BATCH_SIZE, total)
+            mini_batch = items[mini_batch_start:mini_batch_end]
             
-            # Try to find existing canonical item across ALL stores
-            candidates = self.candidate_generator.generate_candidates(
-                brand=attributes['brand'],
-                size_normalized=attributes['size_normalized'],
-                size_unit=attributes['size_unit'],
-                category=item.get('category', 'Unknown'),
-                name_tokens=attributes['name_tokens'],
-                max_candidates=20  # Reduced from 50 for speed
-            )
+            items_to_insert = []
+            normalized_names = []
+            mini_canonical_ids = []
             
-            # Use Amazon-style matcher to find best match
-            best_match, score, breakdown = self.matcher.find_best_match(
-                query_attributes={
-                    'item_name': item['item_name'],  # Add item_name for text similarity
+            # Verify connection health once per mini-batch
+            try:
+                with self.conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                connection_ok = True
+            except (psycopg2.InterfaceError, psycopg2.OperationalError):
+                connection_ok = False
+                # If connection is dead, all items in this batch become new masters
+                for item in mini_batch:
+                    canonical_id = str(uuid.uuid4())
+                    mini_canonical_ids.append(canonical_id)
+                    attributes = self.attribute_extractor.extract_all_attributes(item['item_name'])
+                    normalized = self.normalize_text(item['item_name'])
+                    items_to_insert.append({
+                        'id': canonical_id,
+                        'name': item['item_name'],
+                        'normalized': normalized,
+                        'category': item.get('category', 'Unknown'),
+                        'store_source': item.get('store_name', 'scraped'),
+                        'attributes': attributes
+                    })
+                # Skip to insert phase
+                continue
+            
+            # Phase 1: Extract attributes and do cross-store matching for mini-batch
+            # Phase 1a: Extract attributes for all items in mini-batch
+            batch_items_data = []
+            for item in mini_batch:
+                attributes = self.attribute_extractor.extract_all_attributes(item['item_name'])
+                normalized = self.normalize_text(item['item_name'])
+                
+                batch_items_data.append({
+                    'item': item,
+                    'attributes': attributes,
+                    'normalized': normalized,
                     'brand': attributes['brand'],
-                    'size': attributes['size'],
                     'size_normalized': attributes['size_normalized'],
                     'size_unit': attributes['size_unit'],
                     'category': item.get('category', 'Unknown'),
                     'name_tokens': attributes['name_tokens']
-                },
-                candidates=candidates,
-                threshold=0.75
-            )
-            
-            if best_match and score >= 0.75:
-                # Match found - reuse existing canonical ID
-                canonical_id = best_match['id']
-                canonical_ids.append(canonical_id)
-                normalized_names.append(normalized)
-            else:
-                # No match - create new master
-                canonical_id = str(uuid.uuid4())
-                normalized_names.append(normalized)
-                canonical_ids.append(canonical_id)
-                
-                items_to_insert.append({
-                    'id': canonical_id,
-                    'name': item['item_name'],
-                    'normalized': normalized,
-                    'category': item.get('category', 'Unknown'),
-                    'store_source': item.get('store_name', 'scraped'),
-                    'attributes': attributes
                 })
-        
-        # Phase 2: Bulk insert only new masters
-        if items_to_insert:
-            insert_data = []
-            for item_data in items_to_insert:
-                attrs = item_data['attributes']
-                insert_data.append((
-                    item_data['id'],
-                    item_data['name'],
-                    item_data['category'],
-                    attrs['brand'],
-                    attrs['size'],
-                    attrs['size_normalized'],
-                    attrs['size_unit'],
-                    attrs['pack_count'],
-                    attrs['variant'],
-                    attrs['name_tokens'],
-                    True,  # IsMaster
-                    item_data['store_source'],
-                    1.0  # High confidence
-                ))
             
-            insert_query = '''
-                INSERT INTO canonical_items (
-                    "Id", "Name", "Category",
-                    "Brand", "Size", "SizeNormalized", "SizeUnit",
-                    "PackCount", "Variant", "NameTokens",
-                    "IsMaster", "SourceType", "Confidence",
-                    "CreatedAt", "UpdatedAt"
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
-            '''
-            with self.conn.cursor() as cur:
-                from psycopg2.extras import execute_batch
-                execute_batch(cur, insert_query, insert_data)
-                self.conn.commit()
-        
-        # Phase 3: Generate embeddings for new items only
-        if items_to_insert:
-            new_item_embeddings = self.model.encode(
-                [item['normalized'] for item in items_to_insert],
-                show_progress_bar=False
+            # Phase 1b: Batch query for candidates (100x faster than individual queries)
+            all_candidates = self.candidate_generator.generate_candidates_batch(
+                batch_items_data,
+                max_candidates=20
             )
             
-            # Insert embeddings for new canonical items
-            embedding_query = '''
-                INSERT INTO canonical_item_embeddings ("CanonicalItemId", "Embedding", "CreatedAt")
-                VALUES (%s, %s::vector, NOW())
-                ON CONFLICT ("CanonicalItemId") 
-                DO UPDATE SET "Embedding" = EXCLUDED."Embedding"
-            '''
+            # Phase 1c: Match each item using pre-fetched candidates
+            for idx, item_data in enumerate(batch_items_data):
+                item = item_data['item']
+                attributes = item_data['attributes']
+                normalized = item_data['normalized']
+                
+                # Get candidates for this specific item
+                candidates = all_candidates.get(idx, [])
+                
+                # Use Amazon-style matcher to find best match
+                best_match, score, breakdown = self.matcher.find_best_match(
+                    query_attributes={
+                        'item_name': item['item_name'],
+                        'brand': attributes['brand'],
+                        'size': attributes['size'],
+                        'size_normalized': attributes['size_normalized'],
+                        'size_unit': attributes['size_unit'],
+                        'pack_count': attributes['pack_count'],
+                        'category': item.get('category', 'Unknown'),
+                        'name_tokens': attributes['name_tokens']
+                    },
+                    candidates=candidates,
+                    threshold=0.65
+                )
+                
+                if best_match and score >= 0.65:
+                    # Match found - reuse existing canonical ID
+                    canonical_id = best_match['id']
+                    mini_canonical_ids.append(canonical_id)
+                    normalized_names.append(normalized)
+                else:
+                    # No match - create new master
+                    canonical_id = str(uuid.uuid4())
+                    normalized_names.append(normalized)
+                    mini_canonical_ids.append(canonical_id)
+                    
+                    items_to_insert.append({
+                        'id': canonical_id,
+                        'name': item['item_name'],
+                        'normalized': normalized,
+                        'category': item.get('category', 'Unknown'),
+                        'store_source': item.get('store_name', 'scraped'),
+                        'attributes': attributes
+                    })
             
-            embedding_data = [
-                (item['id'], emb.tolist())
-                for item, emb in zip(items_to_insert, new_item_embeddings)
-            ]
+            # Phase 2: Bulk insert new masters from this mini-batch
+            if items_to_insert:
+                insert_data = []
+                for item_data in items_to_insert:
+                    attrs = item_data['attributes']
+                    insert_data.append((
+                        item_data['id'],
+                        item_data['name'],
+                        item_data['category'],
+                        attrs['brand'],
+                        attrs['size'],
+                        attrs['size_normalized'],
+                        attrs['size_unit'],
+                        attrs['pack_count'],
+                        attrs['variant'],
+                        attrs['name_tokens'],
+                        True,  # IsMaster
+                        item_data['store_source'],
+                        1.0  # High confidence
+                    ))
+                
+                insert_query = '''
+                    INSERT INTO canonical_items (
+                        "Id", "Name", "Category",
+                        "Brand", "Size", "SizeNormalized", "SizeUnit",
+                        "PackCount", "Variant", "NameTokens",
+                        "IsMaster", "SourceType", "Confidence",
+                        "CreatedAt", "UpdatedAt"
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                '''
+                with self.conn.cursor() as cur:
+                    from psycopg2.extras import execute_batch
+                    execute_batch(cur, insert_query, insert_data)
+                    self.conn.commit()
             
-            with self.conn.cursor() as cur:
-                from psycopg2.extras import execute_batch
-                execute_batch(cur, embedding_query, embedding_data, page_size=100)
-                self.conn.commit()
+            # Phase 3: Generate embeddings for new items from this mini-batch
+            if items_to_insert:
+                new_item_embeddings = self.model.encode(
+                    [item['normalized'] for item in items_to_insert],
+                    show_progress_bar=False
+                )
+                
+                # Insert embeddings for new canonical items
+                embedding_query = '''
+                    INSERT INTO canonical_item_embeddings ("CanonicalItemId", "Embedding", "CreatedAt")
+                    VALUES (%s, %s::vector, NOW())
+                    ON CONFLICT ("CanonicalItemId") 
+                    DO UPDATE SET "Embedding" = EXCLUDED."Embedding"
+                '''
+                
+                embedding_data = [
+                    (item['id'], emb.tolist())
+                    for item, emb in zip(items_to_insert, new_item_embeddings)
+                ]
+                
+                with self.conn.cursor() as cur:
+                    from psycopg2.extras import execute_batch
+                    execute_batch(cur, embedding_query, embedding_data, page_size=100)
+                    self.conn.commit()
+            
+            # Add mini-batch results to overall results
+            canonical_ids.extend(mini_canonical_ids)
         
         return canonical_ids
     
@@ -544,7 +610,7 @@ class Canonicalizer:
         best_match, confidence, score_breakdown = self.matcher.find_best_match(
             query_attributes=attributes,
             candidates=candidates,
-            threshold=0.75
+            threshold=0.65
         )
         
         if best_match:
