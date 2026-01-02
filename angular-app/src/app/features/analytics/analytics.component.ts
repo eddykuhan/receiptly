@@ -26,7 +26,7 @@ export class AnalyticsComponent implements OnInit {
     // State
     receipts = signal<Receipt[]>([]);
     isLoading = signal(true);
-    selectedCategoryMonth = signal<string>(this.getCurrentMonth()); // 'all' or 'YYYY-MM' format
+    selectedCategoryMonth = signal<string>('all'); // 'all' or 'YYYY-MM' format
     private receiptService = inject(ReceiptService);
     private analyticsService = inject(AnalyticsService);
 
