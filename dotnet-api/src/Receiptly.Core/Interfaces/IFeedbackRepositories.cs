@@ -20,17 +20,6 @@ public interface IUserCorrectionRepository
 }
 
 /// <summary>
-/// Repository for issue reports.
-/// </summary>
-public interface IIssueReportRepository
-{
-    Task<Guid> CreateAsync(IssueReport issue, CancellationToken cancellationToken = default);
-    Task<IssueReport?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<List<IssueReport>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default);
-    Task<List<IssueReport>> GetByReceiptIdAsync(Guid receiptId, CancellationToken cancellationToken = default);
-}
-
-/// <summary>
 /// Repository for user debug sessions.
 /// </summary>
 public interface IUserDebugSessionRepository

@@ -9,6 +9,8 @@ from config.settings import DB_CONFIG
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JG_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'jaya_grocer_locations.json')
 MYDIN_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'mydin_locations.json')
+LOTUSS_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'lotuss_malaysia_locations.json')
+AEON_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'aeon_official_stores.json')
 
 def get_db_connection():
     return psycopg2.connect(**DB_CONFIG)
@@ -80,8 +82,40 @@ def seed_stores():
                  ))
         else:
             print(f"Warning: File not found: {MYDIN_FILE}")
+
+        # 4. Process Lotus's
+        if os.path.exists(LOTUSS_FILE):
+             print(f"Processing Lotus's data from {LOTUSS_FILE}...")
+             lotuss_locations = load_json(LOTUSS_FILE)
+             for loc in lotuss_locations:
+                 stores_data.append((
+                    loc.get('branch_name', loc.get('store_name')), # Name
+                    "Lotus's",   # RetailChain
+                    'LOTUSS_NATIONAL', # PricingZoneId (National Pricing)
+                    loc.get('address'), # Address
+                    loc.get('latitude'), # Latitude
+                    loc.get('longitude') # Longitude
+                 ))
+        else:
+            print(f"Warning: File not found: {LOTUSS_FILE}")
+
+        # 5. Process AEON
+        if os.path.exists(AEON_FILE):
+             print(f"Processing AEON data from {AEON_FILE}...")
+             aeon_locations = load_json(AEON_FILE)
+             for loc in aeon_locations:
+                 stores_data.append((
+                    loc.get('branch_name', loc.get('store_name')), # Name
+                    "AEON",   # RetailChain
+                    'AEON_NATIONAL', # PricingZoneId (National Pricing)
+                    loc.get('address'), # Address
+                    loc.get('latitude'), # Latitude
+                    loc.get('longitude') # Longitude
+                 ))
+        else:
+            print(f"Warning: File not found: {AEON_FILE}")
             
-        # 4. Bulk Insert
+        # 5. Bulk Insert
         if stores_data:
             print(f"Inserting {len(stores_data)} stores...")
             insert_query = """

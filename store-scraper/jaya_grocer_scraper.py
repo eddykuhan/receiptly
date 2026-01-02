@@ -90,9 +90,12 @@ class JayaGrocerScraper:
             available = variant.get('available', False)
             
             # Combine product title with variant title if not "Default Title"
+            # Skip meaningless variant titles like "1 UNIT"
             full_name = product_title
             if variant_title and variant_title != "Default Title":
-                full_name = f"{product_title} - {variant_title}"
+                # Clean up variant title - skip if it's just "1 UNIT" or similar
+                if variant_title.upper() not in ["1 UNIT", "1 UNITS", "UNIT", "UNITS"]:
+                    full_name = f"{product_title} - {variant_title}"
             
             record = {
                 # Item details

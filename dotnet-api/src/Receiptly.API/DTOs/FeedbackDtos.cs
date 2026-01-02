@@ -28,26 +28,6 @@ public class SubmitCorrectionDto
 }
 
 /// <summary>
-/// Request to report an issue with OCR processing.
-/// </summary>
-public class ReportIssueDto
-{
-    [Required]
-    public Guid ReceiptId { get; set; }
-    
-    [Required]
-    [StringLength(50)]
-    public string IssueType { get; set; } = string.Empty;  // wrong_merchant, wrong_total, wrong_items, image_quality, other
-    
-    [Required]
-    [StringLength(20)]
-    public string Severity { get; set; } = "Medium";  // Low, Medium, High, Critical
-    
-    [StringLength(2000)]
-    public string? Description { get; set; }
-}
-
-/// <summary>
 /// Response from feedback submission.
 /// </summary>
 public class FeedbackResponseDto

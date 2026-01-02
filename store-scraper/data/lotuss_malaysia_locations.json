@@ -1,421 +1,760 @@
 [
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Stores (Malaysia) Sdn Bhd",
-    "address": "Level 3, No. 3, Jalan 7A/62A, Bandar Menjalara, 52200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.1929402,
-    "longitude": 101.632965,
-    "phone": "03-6287 6000",
-    "rating": 3.3,
-    "total_ratings": 33,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Cheras",
-    "address": "No.2, Jalan Midah 2, Taman Midah, 56000 Cheras, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.0994431,
-    "longitude": 101.73471889999999,
-    "phone": "012-621 5120",
-    "rating": 3.9,
-    "total_ratings": 8210,
-    "region_searched": "Kuala Lumpur"
+    "branch_name": "Lotus's Aman Central",
+    "address": "LOT LG-01, No. 1 Aman Central, Lebuhraya Darul Aman, 05100 Alor Setar, Kedah Darul Aman.",
+    "latitude": 6.124969699999999,
+    "longitude": 100.3664572,
+    "phone": "012-2009765",
+    "rating": 3.7,
+    "total_ratings": 74,
+    "region_searched": "Kedah",
+    "state_code": 11,
+    "facilities": []
   },
   {
     "store_name": "Lotus's Malaysia",
     "branch_name": "Lotus's Ampang",
-    "address": "PT 8880, Jalan Pandan Prima, Dataran Pandan Prima, 55100 Kuala Lumpur, Selangor, Malaysia",
+    "address": "PT 8880, Jalan Pandan Prima, Dataran Pandan Indah, 55100 Kuala Lumpur",
     "latitude": 3.1439057,
     "longitude": 101.741801,
-    "phone": "03-9285 9412",
+    "phone": "012-392 5131",
     "rating": 4.1,
     "total_ratings": 12266,
-    "region_searched": "Kuala Lumpur"
+    "region_searched": "Kuala Lumpur",
+    "state_code": 14,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Mutiara Damansara",
-    "address": "8, Jalan PJU 7/4, Mutiara Damansara, 47800 Petaling Jaya, Selangor, Malaysia",
-    "latitude": 3.1593906,
-    "longitude": 101.6131896,
-    "phone": "012-356 6109",
-    "rating": 4.1,
-    "total_ratings": 4174,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Selayang",
-    "address": "No. 1081, Jalan Ipoh, Mukim, Sri Utara Business Park, 51200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.2222071,
-    "longitude": 101.6708931,
-    "phone": "03-6257 4053",
-    "rating": 3.9,
-    "total_ratings": 4773,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Paradigm",
-    "address": "Lot LG01, The Paradigm Mall, No. 1, Jalan SS 7/26a, Ss 7, 47301 Petaling Jaya, Selangor, Malaysia",
-    "latitude": 3.104939,
-    "longitude": 101.596187,
-    "phone": "03-7491 9223",
-    "rating": 4,
-    "total_ratings": 2984,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Kepong",
-    "address": "3, Jalan 7A/62A, Bandar Menjalara, 52200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.1926747,
-    "longitude": 101.63279519999999,
-    "phone": "012-251 3813",
-    "rating": 4,
-    "total_ratings": 8534,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's | Ara Damansara",
-    "address": "2, Jalan PJU 1a/3, Ara Damansara, 47301 Petaling Jaya, Selangor, Malaysia",
+    "branch_name": "Lotus's Ara Damansara",
+    "address": "No. 2, Jalan PJU1A/3A, Ara Damansara PJU 1A, 47301 Petaling Jaya, Selangor",
     "latitude": 3.1184919000000004,
     "longitude": 101.5762519,
     "phone": "012-211 3952",
     "rating": 3.9,
     "total_ratings": 3612,
-    "region_searched": "Kuala Lumpur"
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's @ Wangsa Walk Mall",
-    "address": "Unit No G-41, Ground Floor Wangsa Walk Mall, Wangsa Avenue, No 9, Jalan Wangsa Perdana 1, Bandar Wangsa Maju, 53300 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.1994363999999997,
-    "longitude": 101.74294479999999,
-    "phone": "03-8213 0921",
-    "rating": 4.1,
-    "total_ratings": 1287,
-    "region_searched": "Kuala Lumpur"
+    "branch_name": "Lotus's Bagan Ajam",
+    "address": "PMT 7528, Jalan Bagan Ajam, 13000 Butterworth, Pulau Pinang",
+    "latitude": 5.4392349,
+    "longitude": 100.3792872,
+    "phone": "012-299 3720",
+    "rating": null,
+    "total_ratings": null,
+    "region_searched": "Pulau Pinang",
+    "state_code": 4,
+    "facilities": []
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's IOI City Mall",
-    "address": "Lot AT-1, Lower Ground Floor IOI City Mall Ioi Resort City, Ioi Resort, 62502 Putrajaya, Selangor, Malaysia",
-    "latitude": 2.9702862999999997,
-    "longitude": 101.71426799999999,
-    "phone": "017-879 1475",
-    "rating": 4.2,
-    "total_ratings": 5219,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Shah Alam",
-    "address": "3, Jalan Aerobik 13/43, Seksyen 13, 40100 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.0717830000000004,
-    "longitude": 101.5387217,
-    "phone": "012-383 1860",
-    "rating": 4,
-    "total_ratings": 7129,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Cars Kuala Lumpur",
-    "address": "24, Jalan Juruhebah U1/50, Kawasan Perindustrian Temasya, 40150 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.085609,
-    "longitude": 101.57813399999999,
-    "phone": "016-611 2388",
-    "rating": 4.5,
-    "total_ratings": 32,
-    "region_searched": "Kuala Lumpur"
+    "branch_name": "Lotus's Bahau",
+    "address": "PT 4109, Sebahagian Lot 12676, Geran 215917, Lot Lame Lot 177, GM75418, Mukim Rompin, Daerah Jempol, 72100 Bahau, Negeri Sembilan",
+    "latitude": 2.8143389,
+    "longitude": 102.41458039999999,
+    "phone": "012-249 0710",
+    "rating": 3.9,
+    "total_ratings": 1774,
+    "region_searched": "Negeri Sembilan",
+    "state_code": 7,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
     "branch_name": "Lotus's Bandar Bukit Puchong",
-    "address": "1, Jln BP 7/1, Bandar Bukit, 47120 Puchong, Selangor, Malaysia",
+    "address": "No. 1, Jalan BP 7/1, Bandar Bukit Puchong, 47120 Puchong, Selangor",
     "latitude": 2.9824015,
     "longitude": 101.61745769999999,
     "phone": "012-209 6197",
     "rating": 4,
     "total_ratings": 5981,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Cars Pavilion Damansara Heights",
-    "address": "Level 2, Lot 2.59.00, Pavilion Damansara Height, Jalan Damanlela, Damansara Town Centre, 50490 Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia",
-    "latitude": 3.1458068999999997,
-    "longitude": 101.6630629,
-    "phone": "016-611 2388",
-    "rating": 4.8,
-    "total_ratings": 32,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Puchong",
-    "address": "No. 148-149, Pusat Bandar Puchong Jalan Bandar 3, 148, Off, Jln Puchong, Pusat Bandar Puchong, 47100 Puchong, Selangor, Malaysia",
-    "latitude": 3.0348458999999997,
-    "longitude": 101.6158748,
-    "phone": "012-942 9115",
-    "rating": 3.9,
-    "total_ratings": 7939,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Putra Nilai",
-    "address": "1, Jalan BBN 1/3, Putra Point, 71800 Nilai, Negeri Sembilan, Malaysia",
-    "latitude": 2.815903,
-    "longitude": 101.7900547,
-    "phone": "012-671 5384",
-    "rating": 4.1,
-    "total_ratings": 5740,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Kuala Selangor",
-    "address": "No. 2 Jalan Tiara, 1, Jalan Medan Niaga 2, Kampung Baharu, 45000 Kuala Selangor, Selangor, Malaysia",
-    "latitude": 3.3195101,
-    "longitude": 101.2706316,
-    "phone": "012-325 8696",
-    "rating": 4,
-    "total_ratings": 4253,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's - Bandar Bukit Tinggi",
-    "address": "KS 6, 3, Jalan Batu Nilam 6, Bandar Bukit Tinggi 1, 41200 Klang, Selangor, Malaysia",
-    "latitude": 3.0059120999999998,
-    "longitude": 101.44088529999999,
-    "phone": "03-3323 1100",
-    "rating": 3.9,
-    "total_ratings": 5370,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons @ Lotus’s Mutiara Damansara",
-    "address": "Lot F9, First Floor, Lotus's Mutiara Damansara, 6, Jalan PJU 7/4, Mutiara Damansara, 47800 Petaling Jaya, Selangor, Malaysia",
-    "latitude": 3.1592118,
-    "longitude": 101.6129358,
-    "phone": "03-7722 4702",
-    "rating": 4,
-    "total_ratings": 2598,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Setia Alam",
-    "address": "2, Jalan Setia Prima U13, 3, Seksyen U13, Setia Alam, 40170 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.1070577,
-    "longitude": 101.44457,
-    "phone": "03-3345 3200",
-    "rating": 4,
-    "total_ratings": 6960,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Rawang",
-    "address": "1, Jalan Rawang, 48000 Rawang, Selangor, Malaysia",
-    "latitude": 3.3021982,
-    "longitude": 101.5980159,
-    "phone": "03-6091 3296",
-    "rating": 4,
-    "total_ratings": 3788,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Bukit Beruntung",
-    "address": "Seksyen BS, 1, Jalan Orkid 1, Bukit Sentosa, 48300 Rawang, Selangor, Malaysia",
-    "latitude": 3.4025828999999996,
-    "longitude": 101.56034919999999,
-    "phone": "012-308 5101",
-    "rating": 3.9,
-    "total_ratings": 3683,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Puncak Alam",
-    "address": "1, Jalan Niaga Bestari 9, Puncak Bestari, 42300 Puncak Alam, Selangor, Malaysia",
-    "latitude": 3.2364577999999997,
-    "longitude": 101.4278817,
-    "phone": "03-3392 0036",
-    "rating": 4,
-    "total_ratings": 4082,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Kajang",
-    "address": "Lot PT 37820 & 11196, Persiaran Saujana Impian, Saujana Impian, 43000 Kajang, Selangor, Malaysia",
-    "latitude": 3.0044568,
-    "longitude": 101.786188,
-    "phone": "012-275 4051",
-    "rating": 4,
-    "total_ratings": 7193,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Tanjung Pinang",
-    "address": "1, Jalan Seri Tg Pinang, Seri Tanjung Pinang, 10470 Tanjung Tokong, Pulau Pinang, Malaysia",
-    "latitude": 5.458937199999999,
-    "longitude": 100.3087485,
-    "phone": "04-890 3699",
-    "rating": 4.1,
-    "total_ratings": 7160,
-    "region_searched": "Kuala Lumpur"
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
     "branch_name": "Lotus's Bandar Puteri Bangi",
-    "address": "No. 2 Jalan Laman Puteri 2, Bangi, Bandar Bukit Mahkota, 43000 Kajang, Selangor, Malaysia",
+    "address": "No. 2, Laman Puteri 2, Bandar Puteri Bangi, 43000 Kajang, Selangor Darul Ehsan",
     "latitude": 2.8815785,
     "longitude": 101.79109170000001,
     "phone": "012-316 2748",
     "rating": 4.1,
     "total_ratings": 2272,
-    "region_searched": "Kuala Lumpur"
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Semenyih",
-    "address": "jalan TPS, 1 1, 1, Taman Pelangi Semenyih, 43500 Semenyih, Selangor, Malaysia",
-    "latitude": 2.9305499999999998,
-    "longitude": 101.8568372,
-    "phone": "012-325 8443",
-    "rating": 4,
-    "total_ratings": 5945,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Bukit Mertajam",
-    "address": "No. 2323, Jalan Rozhan, Pusat Perniagaan Seri Impian, 14000 Bukit Mertajam, Pulau Pinang, Malaysia",
-    "latitude": 5.3160232999999995,
-    "longitude": 100.47597909999999,
-    "phone": "04-530 3722",
-    "rating": 4,
-    "total_ratings": 4524,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Jenjarom",
-    "address": "1, Jalan 1/1, Taman Seri Jaromas, 42600 Jenjarom, Selangor, Malaysia",
-    "latitude": 2.8739825999999997,
-    "longitude": 101.5018058,
-    "phone": "03-3191 1027",
-    "rating": 4,
-    "total_ratings": 3419,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Seberang Jaya",
-    "address": "2762, Persiaran Sembilang, 13700 Seberang Jaya, Pulau Pinang, Malaysia",
-    "latitude": 5.4056162,
-    "longitude": 100.4050369,
-    "phone": "012-374 0520",
-    "rating": 4,
-    "total_ratings": 7011,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's @Seremban Jaya",
-    "address": "12264, Jalan Seremban Jaya, Taman Seremban Jaya, 70450 Seremban, Negeri Sembilan, Malaysia",
-    "latitude": 2.6843703,
-    "longitude": 101.9709753,
-    "phone": "06-679 2177",
-    "rating": 3.9,
-    "total_ratings": 4126,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Seremban 2",
-    "address": "No. 1, Jln Haruan 2, Taman Bukit Kepayang, 70300 Seremban, Negeri Sembilan, Malaysia",
-    "latitude": 2.7119966,
-    "longitude": 101.91455850000001,
-    "phone": "012-207 9712",
-    "rating": 3.8,
-    "total_ratings": 3683,
-    "region_searched": "Kuala Lumpur"
+    "branch_name": "Lotus's Bandar Puteri Jaya",
+    "address": "Jalan Kuala Ketil Bandar Puteri Jaya 08000 Sungai Petani Kedah",
+    "latitude": 5.6217209,
+    "longitude": 100.5356879,
+    "phone": "012-213 5926",
+    "rating": 4.2,
+    "total_ratings": 658,
+    "region_searched": "Kedah",
+    "state_code": 11,
+    "facilities": []
   },
   {
     "store_name": "Lotus's Malaysia",
     "branch_name": "Lotus's Bertam Perdana",
-    "address": "No. 2258, 1, Persiaran Dagangan, Pusat Bandar Bertam Perdana, 13200 Kepala Batas, Pulau Pinang, Malaysia",
+    "address": "No. 2258, Persiaran Dagangan 1,Pusat Bandar Bertam Perdana,Kepala Batas, Seberang Perai Utara 13200, Pulau Pinang",
     "latitude": 5.5169461,
     "longitude": 100.4430541,
     "phone": "017-245 7690",
     "rating": 4,
     "total_ratings": 3422,
-    "region_searched": "Kuala Lumpur"
+    "region_searched": "Pulau Pinang",
+    "state_code": 4,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Bukit Beruntung",
+    "address": "No. 1, Jalan Orkid 1, Seksyen BS 1, Bandar Bukit Sentosa, 48300 Rawang, Selangor",
+    "latitude": 3.4025828999999996,
+    "longitude": 101.56034919999999,
+    "phone": "012-308 5101",
+    "rating": 3.9,
+    "total_ratings": 3683,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Bukit Indah",
+    "address": "No. 1, Jalan Indah 15, Bukit Indah, 81200 Johor Bharu",
+    "latitude": 1.4822100000000002,
+    "longitude": 103.66288,
+    "phone": "017-256 8251",
+    "rating": 3.8,
+    "total_ratings": 4251,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Bukit Mertajam",
+    "address": "No. 2323, Jalan Rozhan, Pusat Perniagaan Seri Impian, Bukit Mertajam, 14000 Pulau Pinang",
+    "latitude": 5.3160232999999995,
+    "longitude": 100.47597909999999,
+    "phone": "012-276 4613",
+    "rating": 4,
+    "total_ratings": 4524,
+    "region_searched": "Pulau Pinang",
+    "state_code": 4,
+    "facilities": [
+      "Money Changer",
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Cheras",
+    "address": "No. 2, Jalan Midah 2, Taman Midah, 56000 Cheras, Kuala Lumpur",
+    "latitude": 3.0994431,
+    "longitude": 101.73471889999999,
+    "phone": "012-621 5120",
+    "rating": 3.9,
+    "total_ratings": 8210,
+    "region_searched": "Kuala Lumpur",
+    "state_code": 14,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Desa Tebrau",
+    "address": "No. 1, Persiaran Desa Tebrau, Taman Desa Tebrau, 81100 Johor Bharu",
+    "latitude": 1.5477741999999999,
+    "longitude": 103.79355489999999,
+    "phone": "012-238 9551",
+    "rating": 4,
+    "total_ratings": 5962,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": [
+      "Money Changer"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Eco Tropics",
+    "address": "PTD 117754, Jalan Eko Perniagaan 7,Taman Kota Masai 81700 Pasir Gudang Johor Bahru",
+    "latitude": 1.4852256,
+    "longitude": 103.9358317,
+    "phone": "012-2353571",
+    "rating": 4.1,
+    "total_ratings": 2325,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's IOI City Mall",
+    "address": "Lot AT-1, Lower Ground Floor IOI City Mall, IOI Resort City Putrajaya, 62502 Wilayah Persekutuan.",
+    "latitude": 2.9702862999999997,
+    "longitude": 101.71426799999999,
+    "phone": "017-879 1475",
+    "rating": 4.2,
+    "total_ratings": 5219,
+    "region_searched": "Kuala Lumpur",
+    "state_code": 14,
+    "facilities": [
+      "Money Changer",
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Indera Mahkota",
+    "address": "Lorong IM 8/3, Bandar Indera Mahkota, 25200 Kuantan, Pahang",
+    "latitude": 3.8268169999999992,
+    "longitude": 103.30440379999999,
+    "phone": "012-200 6314",
+    "rating": 4.1,
+    "total_ratings": 669,
+    "region_searched": "Pahang",
+    "state_code": 6,
+    "facilities": [
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Ipoh Bercham",
+    "address": "No. 2, Laluan Tasek Timur 6, Taman Tasek Indra, Off Jalan Kg Bercham, 34100 Ipoh, Perak",
+    "latitude": 4.628386,
+    "longitude": 101.116961,
+    "phone": "012-316 2530",
+    "rating": null,
+    "total_ratings": null,
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Ipoh Garden",
+    "address": "No. 2, Jalan Jambu, Taman Teh Teng Seng, 31400 Ipoh, Perak",
+    "latitude": 4.6167001,
+    "longitude": 101.1186218,
+    "phone": "017-664 7340",
+    "rating": 4,
+    "total_ratings": 5538,
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Ipoh Station 18",
+    "address": "No. 1, Medan Stesen 19/9, Station 18 Pengkalan, 31650 Ipoh, Perak",
+    "latitude": 4.5449516999999995,
+    "longitude": 101.06863299999999,
+    "phone": "012-235 7224",
+    "rating": 4,
+    "total_ratings": 4279,
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Jenjarom",
+    "address": "No 1, Jalal 1/1, Taman Seri Jaromas, 42600 Jenjarom, Selangor",
+    "latitude": 2.8739825999999997,
+    "longitude": 101.5018058,
+    "phone": "012-3027600",
+    "rating": 4,
+    "total_ratings": 3419,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Jitra",
+    "address": "Pt 1068, Kompleks Perniagaan Aman, 06000 Jitra, Kedah",
+    "latitude": 6.2605539,
+    "longitude": 100.41651900000001,
+    "phone": "012-636 2057",
+    "rating": 4,
+    "total_ratings": 3349,
+    "region_searched": "Kedah",
+    "state_code": 11,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's KSL City",
+    "address": "LG-26, KSL City No. 33, Jalan Seladang, Taman Century, 80250 Johor Bahru",
+    "latitude": 1.4844815,
+    "longitude": 103.76260189999999,
+    "phone": "011-12216171",
+    "rating": 3.9,
+    "total_ratings": 2298,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Kajang",
+    "address": "Lot PT 37820 & 11196, Mukim Kajang, Saujana Impian, 43000 Kajang, Selangor",
+    "latitude": 3.0044568,
+    "longitude": 101.786188,
+    "phone": "012-275 4051",
+    "rating": 4,
+    "total_ratings": 7193,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Kampar",
+    "address": "Jalan Kampar, Taman Kampar Perdana, 31900 Kampar, Perak",
+    "latitude": 4.3354520999999995,
+    "longitude": 101.15392159999999,
+    "phone": "012-358 2529",
+    "rating": 3.9,
+    "total_ratings": 2912,
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Kepong (HQ)",
+    "address": "No. 3, Jalan 7A/62A, Bandar Manjalara, 52200 Kuala Lumpur",
+    "latitude": 3.1926747,
+    "longitude": 101.63279519999999,
+    "phone": "012-251 3813",
+    "rating": 4,
+    "total_ratings": 8534,
+    "region_searched": "Kuala Lumpur",
+    "state_code": 14,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Klang",
+    "address": "No. 3, Jln Batu Nilam 6/KS6, Bandar Bukit Tinggi, 41200 Klang, Selangor",
+    "latitude": 2.993092,
+    "longitude": 101.446055,
+    "phone": "012-942 9215",
+    "rating": null,
+    "total_ratings": null,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Kluang",
+    "address": "PTD 108366, Jalan Persiaran Utama, Bandar Newpark Kluang, 86600 Kluang, Johor Darul Takzim",
+    "latitude": 2.0188493,
+    "longitude": 103.2900628,
+    "phone": "012-200 5638",
+    "rating": 4.2,
+    "total_ratings": 236,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Kota Bharu",
+    "address": "Lot 1828, Seksyen 17, Bandar Kota Bharu, 15050 Kota Bharu, Kelantan",
+    "latitude": 6.114364699999999,
+    "longitude": 102.232261,
+    "phone": "014-297 7568",
+    "rating": 4.3,
+    "total_ratings": 3946,
+    "region_searched": "Kelantan",
+    "state_code": 9,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Kuala Selangor",
+    "address": "No. 2, Jalan Tiara 1, Medan Niaga Kuala Selangor, 45000 Kuala Selangor, Selangor",
+    "latitude": 3.3195101,
+    "longitude": 101.2706316,
+    "phone": "012-325 8696",
+    "rating": 4,
+    "total_ratings": 4253,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Kulai",
+    "address": "No. 52, Taman Desamas, Batu 22 1/2, Jalan Kulai-Air Hitam, Kulai Jaya, 81000 Kulai, Johor",
+    "latitude": 1.6681905,
+    "longitude": 103.5759157,
+    "phone": "012-318 6591",
+    "rating": 3.9,
+    "total_ratings": 2732,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
     "branch_name": "Lotus's Kulim",
-    "address": "386, Lebuh Lembah Impiana, Lembah Impiana, 09000 Kulim, Kedah, Malaysia",
+    "address": "No. 386, Jalan Lembah Impiana 9, Lembah Impiana 3, 09000 Kulim Kedah",
     "latitude": 5.3623223,
     "longitude": 100.5269836,
     "phone": "011-1221 6170",
     "rating": 4,
     "total_ratings": 4555,
-    "region_searched": "Kuala Lumpur"
+    "region_searched": "Kedah",
+    "state_code": 11,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus’s Bagan Ajam",
-    "address": "PMT 7528, Jalan Bagan Ajam, 13000 Butterworth, Pulau Pinang, Malaysia",
-    "latitude": 5.4392349,
-    "longitude": 100.38186209999999,
-    "phone": "1-300-13-1313",
-    "rating": 4,
-    "total_ratings": 2968,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Bahau",
-    "address": "PT 4109, Sebahagian Lot 12676 Geran 215917, Lot Lame Lot 177, GM75418 Mukim Rompin, Kampung China, 72100 Bahau, Negeri Sembilan, Malaysia",
-    "latitude": 2.8143389,
-    "longitude": 102.41458039999999,
-    "phone": "06-455 2905",
+    "branch_name": "Lotus's Lukut",
+    "address": "No.35, Jalan Prima 1, Lukut Prima, 71010 Port Dickson, Negeri Sembilan",
+    "latitude": 2.5606117,
+    "longitude": 101.810621,
+    "phone": "012-480 8015",
     "rating": 3.9,
-    "total_ratings": 1774,
-    "region_searched": "Kuala Lumpur"
+    "total_ratings": 2839,
+    "region_searched": "Negeri Sembilan",
+    "state_code": 7,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Kepong",
-    "address": "Lot No. SB2, SB3, SB4 & SB5 Lower Ground Floor Lotus's Kepong, No. 3, Jalan 7A/62A, Bandar Menjalara, 52200 Kuala Lumpur, Federal Territory of Kuala Lumpur, Malaysia",
-    "latitude": 3.1931105,
-    "longitude": 101.6331991,
-    "phone": "03-6273 4502",
-    "rating": 3.9,
-    "total_ratings": 444,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Jitra",
-    "address": "Pt 1068, Kompleks Perniagaan Aman, Pekan Jitra, 06000 Jitra, Kedah, Malaysia",
-    "latitude": 6.2605539,
-    "longitude": 100.41651900000001,
-    "phone": "04-917 2689",
+    "branch_name": "Lotus's Manjung",
+    "address": "No. 103, Jalan Lumut, 32000 Lumut, Perak",
+    "latitude": 4.2081656,
+    "longitude": 100.67220429999999,
+    "phone": "017-305 4942",
     "rating": 4,
-    "total_ratings": 3349,
-    "region_searched": "Kuala Lumpur"
+    "total_ratings": 2124,
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Mart Duyong",
+    "address": "Jalan Taman Iks Duyong, Taman Desa Duyong, 75460 Ayer Molek, Melaka",
+    "latitude": 2.207321,
+    "longitude": 102.315987,
+    "phone": "012-9246857",
+    "rating": null,
+    "total_ratings": null,
+    "region_searched": "Melaka",
+    "state_code": 3,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Melaka",
+    "address": "No. 1, Jalan Tun Razak, 75400 Peringgit, Melaka",
+    "latitude": 2.218304,
+    "longitude": 102.24715259999999,
+    "phone": "012-230 8944",
+    "rating": 4.1,
+    "total_ratings": 8124,
+    "region_searched": "Melaka",
+    "state_code": 3,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Melaka Cheng",
+    "address": "No 1, Jalan Inang 3, Taman Paya Rumput Utama, 75460 Melaka",
+    "latitude": 2.2813285999999997,
+    "longitude": 102.2162528,
+    "phone": "012-611 6931",
+    "rating": 4,
+    "total_ratings": 5135,
+    "region_searched": "Melaka",
+    "state_code": 3,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Mergong",
+    "address": "No. 1, Lebuhraya Sultanah Bahiyah, 05150 Alor Setar, Kedah",
+    "latitude": 6.123191,
+    "longitude": 100.368396,
+    "phone": "012-266 5295",
+    "rating": null,
+    "total_ratings": null,
+    "region_searched": "Kedah",
+    "state_code": 11,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Muar",
+    "address": "No 99, Jalan Gemilang Bakri 1, Pusat Komersial Gemilang Bakri, 84200 Muar, Johor Darul Takzim.",
+    "latitude": 2.0497346,
+    "longitude": 102.60155569999999,
+    "phone": "012-376 8649",
+    "rating": 4,
+    "total_ratings": 336,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Mutiara Damansara",
+    "address": "No. 8, Jalan PJU 7/4, Mutiara Damansara, 47800 Petaling Jaya, Selangor",
+    "latitude": 3.1593906,
+    "longitude": 101.6131896,
+    "phone": "012-356 6109",
+    "rating": 4.1,
+    "total_ratings": 4174,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Mutiara Rini",
+    "address": "No.1, Jalan Persiaran Jasa 1, Taman Mutiara Rini, 81380 Skudai, Johor Bahru",
+    "latitude": 1.522097,
+    "longitude": 103.650883,
+    "phone": "012-289 2064",
+    "rating": null,
+    "total_ratings": null,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Nilai",
+    "address": "No. 1, Jalan BBN 1/3, Putra Nilai, 71800 Nilai, Negeri Sembilan",
+    "latitude": 2.815903,
+    "longitude": 101.7900547,
+    "phone": "012-671 5384",
+    "rating": 4.1,
+    "total_ratings": 5740,
+    "region_searched": "Negeri Sembilan",
+    "state_code": 7,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Paradigm",
+    "address": "Lot LG01, The Paradigm Mall, No. 1, Jalan SS7/26A, Kelana Jaya, 47301 Petaling Jaya, Selangor.",
+    "latitude": 3.104939,
+    "longitude": 101.596187,
+    "phone": "012-210 5698",
+    "rating": 4,
+    "total_ratings": 2984,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Parit Raja",
+    "address": "No.1 Jalan Universiti, Taman Universiti, 66400 Parit Raja, Batu Pahat, Johor",
+    "latitude": 1.8497905999999997,
+    "longitude": 103.0774149,
+    "phone": "017-216 7962",
+    "rating": 4.1,
+    "total_ratings": 3065,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Penang E-Gate",
+    "address": "No.1, Lebuh Tengku Kudin 1, Bandar Jelutong, 11700 Pulau Pinang",
+    "latitude": 5.402516,
+    "longitude": 100.318154,
+    "phone": "017-658 8715",
+    "rating": null,
+    "total_ratings": null,
+    "region_searched": "Pulau Pinang",
+    "state_code": 4,
+    "facilities": [
+      "Money Changer",
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Plentong",
+    "address": "Lot 34, Jalan Masai, Batu 10, Masai, 81750 Johor Bahru",
+    "latitude": 1.5218289,
+    "longitude": 103.81499880000001,
+    "phone": "012-380 9531",
+    "rating": 3.8,
+    "total_ratings": 3105,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Puchong",
+    "address": "No. 148-149, Pusat Bandar Puchong, Jalan Bandar 3, Off Jalan Puchong, 47100 Puchong, Selangor",
+    "latitude": 3.0348458999999997,
+    "longitude": 101.6158748,
+    "phone": "012-942 9115",
+    "rating": 3.9,
+    "total_ratings": 7939,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Pulai Hartamas",
+    "address": "Jalan Pulai Hartamas 3, Medan Pulai Hartamas, 31300 Ipoh, Perak Darul Ridzuan",
+    "latitude": 4.5501651,
+    "longitude": 101.11665870000002,
+    "phone": "012-213 5916",
+    "rating": 4.2,
+    "total_ratings": 246,
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": []
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Puncak Alam",
+    "address": "No. 1, Jalan Niaga Bestari 9, Puncak Bestari, 42300 Bandar Puncak Alam, Selangor",
+    "latitude": 3.2364577999999997,
+    "longitude": 101.4278817,
+    "phone": "012-211 7092",
+    "rating": 4,
+    "total_ratings": 4082,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Playground"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Rawang",
+    "address": "No. 1, Jalan Rawang, 48000 Rawang, Selangor",
+    "latitude": 3.3021982,
+    "longitude": 101.5980159,
+    "phone": "012-347 2656",
+    "rating": 4,
+    "total_ratings": 3788,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
@@ -426,1843 +765,288 @@
     "phone": "012-905 3801",
     "rating": 4.1,
     "total_ratings": 192,
-    "region_searched": "Kuala Lumpur"
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": []
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Lukut",
-    "address": "Jalan Prima 1, Lukut Prima, 71010 Port Dickson, Negeri Sembilan, Malaysia",
-    "latitude": 2.5606117,
-    "longitude": 101.810621,
-    "phone": "012-480 8015",
+    "branch_name": "Lotus's Seberang Jaya",
+    "address": "No. 2762, Persiaran Sembilang Seberang Jaya, Seberang Prai Tengah, 13700 Pulau Pinang",
+    "latitude": 5.4056162,
+    "longitude": 100.4050369,
+    "phone": "012-374 0520",
+    "rating": 4,
+    "total_ratings": 7011,
+    "region_searched": "Pulau Pinang",
+    "state_code": 4,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
+  },
+  {
+    "store_name": "Lotus's Malaysia",
+    "branch_name": "Lotus's Selayang",
+    "address": "No. 1081, Jalan Ipoh, Mukim Batu, 51200 Kuala Lumpur",
+    "latitude": 3.2222071,
+    "longitude": 101.6708931,
+    "phone": "017-259 4214",
     "rating": 3.9,
-    "total_ratings": 2839,
-    "region_searched": "Kuala Lumpur"
+    "total_ratings": 4773,
+    "region_searched": "Kuala Lumpur",
+    "state_code": 14,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "UR by Switch @ Lotus's Ampang",
-    "address": "Lot 23, Ground Floor, Lotus’s Ampang, PT 8880, Jln Pandan Prima Dataran, Pandan Indah, 40000 Kuala Lumpur, Selangor, Malaysia",
-    "latitude": 3.1441762,
-    "longitude": 101.742009,
-    "phone": "03-9201 1107",
-    "rating": 5,
-    "total_ratings": 114,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Hotel Masjid India",
-    "address": "Wisma Safety, 45, Jalan Melayu, City Centre, 50100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.1503693999999998,
-    "longitude": 101.69628469999999,
-    "phone": "03-2692 1881",
+    "branch_name": "Lotus's Semenyih",
+    "address": "No. 1, Jalan TPS 1/1, Taman Pelangi Semenyih, 43500 Semenyih, Selangor",
+    "latitude": 2.9305499999999998,
+    "longitude": 101.8568372,
+    "phone": "012-325 8443",
     "rating": 4,
-    "total_ratings": 524,
-    "region_searched": "Kuala Lumpur"
+    "total_ratings": 5945,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Arts de Vivre Malaysia TRX",
-    "address": "Lot : INT BRAND 5, Seibu Department Store G.DS.01, Persiaran TRX, Tun Razak, Exchange, Imbi, 58100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.1420621,
-    "longitude": 101.7177524,
-    "phone": "03-3051 1998",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Arts de Vivre Malaysia",
-    "address": "261, Jalan Maarof, Bangsar, 59000 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.1426168999999997,
-    "longitude": 101.67029509999999,
-    "phone": "03-2095 2555",
-    "rating": 4,
-    "total_ratings": 1,
-    "region_searched": "Kuala Lumpur"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Distribution Centre",
-    "address": "1, Persiaran Camellia, Bukit Beruntung, 48300 Serendah, Selangor, Malaysia",
-    "latitude": 3.4276401,
-    "longitude": 101.55258889999999,
-    "phone": "03-6021 1905",
-    "rating": 3.6,
-    "total_ratings": 122,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Cars Malaysia",
-    "address": "43, Jln Astaka U8/84A, Bukit Jelutong, 40150 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.1041308,
-    "longitude": 101.5474407,
-    "phone": "016-611 2388",
-    "rating": 4.7,
-    "total_ratings": 22,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Kuala Selangor",
-    "address": "Lot No.2 GF Lotus's Kuala Selangor No.2 Jalan Tiara, 1, Jalan Medan Niaga 2, Kampung Baharu, 45000 Kuala Selangor, Selangor, Malaysia",
-    "latitude": 3.3198149,
-    "longitude": 101.2706324,
-    "phone": "03-3277 0034",
-    "rating": 3.1,
-    "total_ratings": 14,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Supplies Sdn. Bhd.",
-    "address": "No.2, Jalan Perunding U1/17, Hicom-glenmarie Industrial Park, 40000 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.0952333,
-    "longitude": 101.5647079,
-    "phone": "03-5569 4948",
-    "rating": 3,
-    "total_ratings": 2,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Family Restaurant | Gasing",
-    "address": "15, Jalan Gasing, Pjs 6, 46000 Petaling Jaya, Selangor, Malaysia",
-    "latitude": 3.0950097,
-    "longitude": 101.651342,
-    "phone": "03-7782 8795",
-    "rating": 4.1,
-    "total_ratings": 4251,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Entrusol Lotus Setia Alam",
-    "address": "Kiosk P50, level 1, berhadapan hazel , Lotus, Jalan Setia Prima P U13/P, Setia Alam, 40170 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.1069554999999998,
-    "longitude": 101.4446722,
-    "phone": "011-2826 0250",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Teluk Intan",
-    "address": "PT 5017, Rapid Mall Seri Intan, Jalan Changkat Jong, 36000 Teluk Intan, Perak, Malaysia",
-    "latitude": 4.0172807,
-    "longitude": 101.0275336,
-    "phone": "012-262 1077",
-    "rating": 4.2,
-    "total_ratings": 1297,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Outpost Lotus's Klang",
-    "address": "F16, 1st Floor, KS6, Lotus's - Bandar Bukit Tinggi, 3, Jalan Batu Nilam 6, Bandar Bukit Tinggi, 41200 Klang, Selangor, Malaysia",
-    "latitude": 3.0059744,
-    "longitude": 101.4408873,
-    "phone": "016-869 7559",
-    "rating": 4.4,
-    "total_ratings": 33,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Hi BOB @ Lotus's Ampang",
-    "address": "Lotus's Ampang Dataran Pandan Prima, Pandan Indah, 55100 Ampang, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-    "latitude": 3.1429880999999997,
-    "longitude": 101.7420006,
-    "phone": "017-899 3059",
+    "branch_name": "Lotus's Seremban 2",
+    "address": "No. 1, Jln Haruan 2, Bukit Kepayang, 70300 Seremban, Negeri Sembilan",
+    "latitude": 2.7119966,
+    "longitude": 101.91455850000001,
+    "phone": "012-207 9712",
     "rating": 3.8,
-    "total_ratings": 21,
-    "region_searched": "Selangor"
+    "total_ratings": 3683,
+    "region_searched": "Negeri Sembilan",
+    "state_code": 7,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "pets.twentyone @ Lotus's Mutiara Damansara",
-    "address": "G34, G35 & G36, Lotus's Mutiara Damansara, Jalan PJU 7/4, Mutiara Damansara, 47800 Petaling Jaya, Selangor, Malaysia",
-    "latitude": 3.1594102,
-    "longitude": 101.6134292,
-    "phone": "012-316 8721",
-    "rating": 5,
-    "total_ratings": 756,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "FARM FRUITS LOTUS SETIA ALAM",
-    "address": "LOT LG12&13, Lotus's, 2, Jalan Setia Prima A U13/A, Setia Alam, 40170 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.1071138000000005,
-    "longitude": 101.444806,
-    "phone": "017-383 9476",
-    "rating": 5,
-    "total_ratings": 6,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Kedai Gambar Lotus's KKmoment (LOTUS'S KUALA SELANGOR)",
-    "address": "no.9 Bazaar Rakyat Tesco Kuala Selangor No. 2 Jalan Tiara, 1, Jalan Medan Niaga 2, Kampung Baharu, 45000 Kuala Selangor, Selangor, Malaysia",
-    "latitude": 3.3194046999999998,
-    "longitude": 101.27073209999999,
-    "phone": "",
-    "rating": 4.5,
-    "total_ratings": 77,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Letak Kereta Lotus's",
-    "address": "CH35+5V, Bukit Sentosa, 48300 Rawang, Selangor, Malaysia",
-    "latitude": 3.4028343,
-    "longitude": 101.5597713,
-    "phone": "",
+    "branch_name": "Lotus's Seremban Jaya",
+    "address": "No. 12264, Jalan Seremban Jaya, Taman Seremban Jaya, 70400 Seremban, Negeri Sembilan",
+    "latitude": 2.723099,
+    "longitude": 101.94006,
+    "phone": "012-343 9473",
     "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Outpost Lotus's Setia Alam",
-    "address": "F23, First Floor, Lotus's Setia Alam, 2, Jln Setia Prima S U13/S, Bandar Setia Alam, 40170 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.1074769,
-    "longitude": 101.44498449999999,
-    "phone": "016-930 7559",
-    "rating": 4.3,
-    "total_ratings": 32,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus’s Sungai Dua",
-    "address": "675, Jalan Sungai Dua, Sungai Dua, 11700 Gelugor, Pulau Pinang, Malaysia",
-    "latitude": 5.3513584,
-    "longitude": 100.29605,
-    "phone": "04-656 9888",
-    "rating": 4.1,
-    "total_ratings": 6249,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Habibi Dubai Food (Lotus's Bangi)",
-    "address": "Lotus Bandar Puteri Bangi Bangi, Bandar Bukit Mahkota, 43000 Kajang, Selangor, Malaysia",
-    "latitude": 2.8815079999999997,
-    "longitude": 101.79039519999999,
-    "phone": "011-6169 8426",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Luxury Healthcare Lotus’s Rawang",
-    "address": "1, Jalan Rawang, 48000 Rawang, Selangor, Malaysia",
-    "latitude": 3.3065637999999997,
-    "longitude": 101.58825069999999,
-    "phone": "010-951 1132",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "pets.twentyone @ Lotus's Setia Alam",
-    "address": "G5, Lotus's Setia Alam 2, Jalan Setia Prima U13, 3, Seksyen U13, Setia Alam, 40170 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.1074015999999998,
-    "longitude": 101.44510559999999,
-    "phone": "012-590 9921",
-    "rating": 4.9,
-    "total_ratings": 1208,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Puncak Alam",
-    "address": "Lot No. G1, Ground Floor, Lotus's Puncak Alam, 1, Jalan Niaga Bistari 9, Puncak Bestari, 42300 Puncak Alam, Selangor, Malaysia",
-    "latitude": 3.2365375,
-    "longitude": 101.42779639999999,
-    "phone": "",
-    "rating": 4.3,
-    "total_ratings": 82,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Rawang",
-    "address": "Lot F2, First Floor, Lotus's Rawang, Jalan Rawang, 48000 Rawang, Selangor, Malaysia",
-    "latitude": 3.3028682999999996,
-    "longitude": 101.5978485,
-    "phone": "03-6091 2819",
-    "rating": 4,
-    "total_ratings": 70,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "LOTUS VACATION SDN BHD",
-    "address": "3, 2, Jalan 2, Rawang Mutiara, 48000 Rawang, Selangor, Malaysia",
-    "latitude": 3.3265217999999996,
-    "longitude": 101.5809519,
-    "phone": "03-6092 3888",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Samsung Lotus's Setia Alam - Exclusive Store",
-    "address": "Lot F68, First Floor Lotus's, Prima (S) U13, Persiaran Setia Alam, Setia Alam, 40170 Shah Alam, Selangor, Malaysia",
-    "latitude": 3.1069285,
-    "longitude": 101.44466570000002,
-    "phone": "016-379 6888",
-    "rating": 3,
-    "total_ratings": 4,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Entrusol Lotus Kuala Selangor",
-    "address": "Besides Maxis, Lotus Kuala Selangor, Jalan Tiara, 1, Jalan Medan Niaga 2, Kampung Baharu, 45000 Kuala Selangor, Selangor, Malaysia",
-    "latitude": 3.319095,
-    "longitude": 101.2694906,
-    "phone": "018-379 7975",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Selangor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's",
-    "address": "1, Lebuh Tunku Kudin 1, 11700 Jelutong, Pulau Pinang, Malaysia",
-    "latitude": 5.3773789,
-    "longitude": 100.3151841,
-    "phone": "04-659 4942",
-    "rating": 4.1,
-    "total_ratings": 8155,
-    "region_searched": "Penang"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's",
-    "address": "No. 2258, 1, Persiaran Dagangan, Pusat Bandar Bertam Perdana, 13200 Kepala Batas, Pulau Pinang, Malaysia",
-    "latitude": 5.5171448,
-    "longitude": 100.4417583,
-    "phone": "010-464 9797",
-    "rating": 4.1,
-    "total_ratings": 152,
-    "region_searched": "Penang"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus-Stamas Sdn Bhd",
-    "address": "76E, Jln Tan Sri Teh Ewe Lim, Taman Koperasi Jelutong, 11600 Jelutong, Pulau Pinang, Malaysia",
-    "latitude": 5.3918956,
-    "longitude": 100.3105831,
-    "phone": "04-282 5955",
-    "rating": 4.3,
-    "total_ratings": 102,
-    "region_searched": "Penang"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Cars Penang @ The Garage",
-    "address": "2A-01, 02, Jln Penang, George Town, 10000 George Town, Pulau Pinang, Malaysia",
-    "latitude": 5.4230561,
-    "longitude": 100.33544049999999,
-    "phone": "016-764 2388",
-    "rating": 5,
-    "total_ratings": 2,
-    "region_searched": "Penang"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus’s KSL City",
-    "address": "LG-26, KSL City, 33, Jalan Seladang, Taman Century, 80250 Johor Bahru, Johor, Malaysia",
-    "latitude": 1.4844815,
-    "longitude": 103.76260189999999,
-    "phone": "011-1221 6171",
-    "rating": 3.9,
-    "total_ratings": 2298,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Desa Tebrau",
-    "address": "1, Persiaran Desa Tebrau, Taman Desa Tebrau, 81100 Johor Bahru, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.5477741999999999,
-    "longitude": 103.79355489999999,
-    "phone": "012-238 9551",
-    "rating": 4,
-    "total_ratings": 5962,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus’s Bukit Indah",
-    "address": "1, Jalan Indah 15, Taman Bukit Indah, 81200 Johor Bahru, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.4822100000000002,
-    "longitude": 103.66288,
-    "phone": "017-256 8251",
-    "rating": 3.8,
-    "total_ratings": 4251,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Setia Tropika",
-    "address": "18, Jalan Setia Tropika 1/21, Setia Tropika, 81200 Johor Bahru, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.548899,
-    "longitude": 103.7139308,
-    "phone": "012-314 3846",
-    "rating": 4.1,
-    "total_ratings": 2336,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Plentong",
-    "address": "Lot 34, Jalan Masai Lama, Kampung Batu 10, 81750 Masai, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.5218289,
-    "longitude": 103.81499880000001,
-    "phone": "012-380 9531",
-    "rating": 3.8,
-    "total_ratings": 3105,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus’s Mutiara Rini",
-    "address": "1 Jalan, Persiaran Jasa 1, Mutiara Rini, 81380 Skudai, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.5133801,
-    "longitude": 103.6337556,
-    "phone": "07-556 1541",
-    "rating": 4,
-    "total_ratings": 4733,
-    "region_searched": "Johor"
+    "total_ratings": null,
+    "region_searched": "Negeri Sembilan",
+    "state_code": 7,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
     "branch_name": "Lotus's Seri Alam",
-    "address": "111515, Jalan Seri Alam, Bandar Baru Seri Alam, 81750 Johor Bahru, Johor Darul Ta'zim, Malaysia",
+    "address": "PTD 111515, Jalan Rinting, Masai, 81750 Johor Bahru",
     "latitude": 1.4970742,
     "longitude": 103.8691188,
     "phone": "012-312 0749",
     "rating": 4,
     "total_ratings": 5469,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Parit Raja",
-    "address": "1, Jalan Universiti, Taman Universiti, 86400 Parit Raja, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.8497905999999997,
-    "longitude": 103.0774149,
-    "phone": "017-216 7962",
-    "rating": 4.1,
-    "total_ratings": 3065,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Eco Tropics",
-    "address": "PTD 117754, Jalan Eko Perniagaan 7, Taman Kota Masai, 81700 Pasir Gudang, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.4852256,
-    "longitude": 103.9358317,
-    "phone": "012-235 3571",
-    "rating": 4.1,
-    "total_ratings": 2325,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Kluang",
-    "address": "PTD 108366, Jalan Persiaran Utama, Bandar Newpark, 86000 Kluang, Johor Darul Ta'zim, Malaysia",
-    "latitude": 2.0188493,
-    "longitude": 103.2900628,
-    "phone": "012-200 5638",
-    "rating": 4.2,
-    "total_ratings": 236,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Kulai",
-    "address": "No. 52, Taman Desamas Batu 22 1/2, Jalan Kulai, Jalan Air Hitam, Kulai Jaya, 81000 Kulai, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.6681905,
-    "longitude": 103.5759157,
-    "phone": "012-318 6591",
-    "rating": 3.9,
-    "total_ratings": 2732,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Muar",
-    "address": "Lot 20397, No. 99, Jalan Gemilang Bakri 1, Pusat Komersil Gemilang, 84000 Muar, Johor Darul Ta'zim, Malaysia",
-    "latitude": 2.0497346,
-    "longitude": 102.60155569999999,
-    "phone": "012-376 8649",
-    "rating": 4,
-    "total_ratings": 336,
-    "region_searched": "Johor"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Ipoh Garden",
-    "address": "2, Jln Jambu, Taman Ipoh Timur, 31400 Ipoh, Perak, Malaysia",
-    "latitude": 4.6167001,
-    "longitude": 101.1186218,
-    "phone": "017-664 7340",
-    "rating": 4,
-    "total_ratings": 5538,
-    "region_searched": "Perak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Manjung",
-    "address": "No. 103, Jalan Lumut, 32000 Lumut, Perak, Malaysia",
-    "latitude": 4.2081656,
-    "longitude": 100.67220429999999,
-    "phone": "05-691 0876",
-    "rating": 4,
-    "total_ratings": 2124,
-    "region_searched": "Perak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Taiping",
-    "address": "Lot 38, Jalan Istana Larut, 34000 Taiping, Perak, Malaysia",
-    "latitude": 4.8663986999999995,
-    "longitude": 100.7293661,
-    "phone": "017-603 7422",
-    "rating": 4.1,
-    "total_ratings": 4359,
-    "region_searched": "Perak"
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": [
+      "Money Changer",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
     "branch_name": "Lotus's Seri Iskandar",
-    "address": "No. 1, Jalan Susur Utama, 32610 Seri Iskandar, Perak, Malaysia",
+    "address": "No. 1, Jalan Susur Utama, 32610 Seri Iskandar, Perak",
     "latitude": 4.3662725,
     "longitude": 100.9798197,
-    "phone": "05-365 3287",
+    "phone": "012-204 7572",
     "rating": 4,
     "total_ratings": 2627,
-    "region_searched": "Perak"
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Ipoh Station 18",
-    "address": "1, Medan Stesen 19/9, Taman Pengkalan Jaya, 31650 Ipoh, Perak, Malaysia",
-    "latitude": 4.5449516999999995,
-    "longitude": 101.06863299999999,
-    "phone": "012-235 7224",
+    "branch_name": "Lotus's Setia Alam",
+    "address": "No.2, Jalan Setia Prima U13/3, Seksyen U13, Setia Alam, 40170 Shah Alam, Selangor",
+    "latitude": 3.1070577,
+    "longitude": 101.44457,
+    "phone": "012-239 0446",
     "rating": 4,
-    "total_ratings": 4279,
-    "region_searched": "Perak"
+    "total_ratings": 6960,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Kampar",
-    "address": "tesco, 31900 Kampar, Perak, Malaysia",
-    "latitude": 4.3354520999999995,
-    "longitude": 101.15392159999999,
-    "phone": "1-300-13-1313",
-    "rating": 3.9,
-    "total_ratings": 2912,
-    "region_searched": "Perak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Bercham Ipoh Hypermarket",
-    "address": "2, Laluan Tasek Timur 6, Taman Tasek Indra, 31400 Ipoh, Perak, Malaysia",
-    "latitude": 4.6266956,
-    "longitude": 101.1176819,
-    "phone": "05-549 9200",
+    "branch_name": "Lotus's Setia Tropika",
+    "address": "Tesco Setia Tropika, No.18, Jalan Setia Tropika 1/21, Taman Setia Tropika, 81200, Johor Bahru",
+    "latitude": 1.548899,
+    "longitude": 103.7139308,
+    "phone": "012–314 3846",
     "rating": 4.1,
-    "total_ratings": 512,
-    "region_searched": "Perak"
+    "total_ratings": 2336,
+    "region_searched": "Johor",
+    "state_code": 5,
+    "facilities": []
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Pulai Hartamas",
-    "address": "3, Jalan Pulai Hartamas 1, Medan Pulai Hartamas, 31300 Ipoh, Perak, Malaysia",
-    "latitude": 4.5501651,
-    "longitude": 101.11665870000002,
-    "phone": "",
-    "rating": 4.2,
-    "total_ratings": 246,
-    "region_searched": "Perak"
+    "branch_name": "Lotus's Sg Dua",
+    "address": "No. 675, Jalan Sungai Dua, 11700 Sungai Dua, Pulau Pinang",
+    "latitude": 5.444689,
+    "longitude": 100.429357,
+    "phone": "012-308 6049",
+    "rating": null,
+    "total_ratings": null,
+    "region_searched": "Pulau Pinang",
+    "state_code": 4,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Fresh Distribution Center",
-    "address": "Persiaran TESCO, 31600 Gopeng, Perak, Malaysia",
-    "latitude": 4.4922354,
-    "longitude": 101.1560404,
-    "phone": "",
-    "rating": 3,
-    "total_ratings": 4,
-    "region_searched": "Perak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Ipoh Garden (Pharmacy)",
-    "address": "No. 17 & 18 First Floor, Lotus Ipoh, Jln Jambu, Taman Teh Teng Seng, 31400 Ipoh, Perak, Malaysia",
-    "latitude": 4.616175,
-    "longitude": 101.11839270000002,
-    "phone": "05-545 4263",
+    "branch_name": "Lotus's Shah Alam",
+    "address": "No. 3, Jalan Aerobik 13/43, Seksyen 13, 40100 Shah Alam, Selangor",
+    "latitude": 3.0717830000000004,
+    "longitude": 101.5387217,
+    "phone": "012-383 1860",
     "rating": 4,
-    "total_ratings": 2298,
-    "region_searched": "Perak"
+    "total_ratings": 7129,
+    "region_searched": "Selangor",
+    "state_code": 1,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "GINTELL - Lotus's Kampar",
-    "address": "Lot No. G19, Ground Floor, Lotus's Kampar, Jalan Kampar Perdana, Taman Kampar Perdana, 31900 Kampar, Perak, Malaysia",
-    "latitude": 4.3350116,
-    "longitude": 101.1545541,
-    "phone": "05-466 6332",
-    "rating": 4.2,
-    "total_ratings": 130,
-    "region_searched": "Perak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Ninso Ipoh South Gate • Beside Ipoh Lotus",
-    "address": "No. 23-23A, 25-25A, 27-27A, 29-29A & 31-31A, Jalan Pulai Hartamas 1, Medan Pulai Hartamas, 31300 Ipoh, Perak, Malaysia",
-    "latitude": 4.5489578999999996,
-    "longitude": 101.1175391,
-    "phone": "016-830 1798",
-    "rating": 3.9,
-    "total_ratings": 180,
-    "region_searched": "Perak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "CUCKOO @ Lotus's Kampar",
-    "address": "Lotus's Kampar, Jalan Kampar, Jalan Perdana, Taman Kampar Perdana, 31900 Kampar, Perak, Malaysia",
-    "latitude": 4.3348862,
-    "longitude": 101.153729,
-    "phone": "017-228 2896",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Perak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Taiping",
-    "address": "Lot S14, Second Floor, Lotus's Taiping, Jalan Istana Larut, 34000 Taiping, Perak, Malaysia",
-    "latitude": 4.866102700000001,
-    "longitude": 100.72970289999999,
-    "phone": "05-350 1031",
-    "rating": 3.2,
-    "total_ratings": 20,
-    "region_searched": "Perak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Melaka",
-    "address": "1, Jalan Tun Razak, 75400 Peringgit, Melaka, Malaysia",
-    "latitude": 2.218304,
-    "longitude": 102.24715259999999,
-    "phone": "012-230 8944",
-    "rating": 4.1,
-    "total_ratings": 8124,
-    "region_searched": "Melaka"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's @Melaka Cheng",
-    "address": "1, Jalan Inang 3, Taman Paya Rumput, 75460 Melaka, Malaysia",
-    "latitude": 2.2813285999999997,
-    "longitude": 102.2162528,
-    "phone": "012-611 6931",
-    "rating": 4,
-    "total_ratings": 5135,
-    "region_searched": "Melaka"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus’s Mart Duyong",
-    "address": "Jalan Taman Iks Duyong, Taman Desa Duyong, 75460 Ayer Molek, Melaka, Malaysia",
-    "latitude": 2.2044627,
-    "longitude": 102.30116679999999,
-    "phone": "",
-    "rating": 3.7,
-    "total_ratings": 133,
-    "region_searched": "Melaka"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Indera Mahkota",
-    "address": "Lorong IM 8/3, Bandar Indera Mahkota, 25200 Kuantan, Pahang, Malaysia",
-    "latitude": 3.8268169999999992,
-    "longitude": 103.30440379999999,
-    "phone": "012-200 6314",
-    "rating": 4.1,
-    "total_ratings": 669,
-    "region_searched": "Pahang"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Sungai Petani Utara",
-    "address": "300, Jalan Heights, Lagenda Heights, 08000 Sungai Petani, Kedah, Malaysia",
-    "latitude": 5.6613064,
-    "longitude": 100.50210159999999,
-    "phone": "04-422 8000",
-    "rating": 4.1,
-    "total_ratings": 1404,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Sungai Petani Selatan",
-    "address": "Lot F07, 368, Jalan Bakar Arang, Kawasan Perusahaan Ringan Bakar Arang, 08000 Sungai Petani, Kedah, Malaysia",
-    "latitude": 5.6222892,
-    "longitude": 100.47604199999999,
-    "phone": "04-425 6836",
-    "rating": 4,
-    "total_ratings": 5957,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Mergong, Alor Setar",
-    "address": "No. 1, Lebuhraya Sultanah Bahiyah, Bandar Baru Mergong, 05150 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.1279718999999995,
-    "longitude": 100.3422793,
-    "phone": "04-733 6787",
-    "rating": 4.2,
-    "total_ratings": 4438,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Bandar Puteri Jaya",
-    "address": "Jalan Kuala Ketil, Bandar Puteri Jaya, 08000 Sungai Petani, Kedah, Malaysia",
-    "latitude": 5.6217209,
-    "longitude": 100.5356879,
-    "phone": "012-213 5926",
-    "rating": 4.2,
-    "total_ratings": 658,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Stargate, Alor Setar",
-    "address": "1, Susuran Stargate, Bandar Stargate, 05400 Alor Setar, Kedah, Malaysia",
+    "branch_name": "Lotus's Stargate",
+    "address": "No. 1, Susuran Stargate, Lebuhraya Sultanah Bahiyah, 05400 Alor Setar, Kedah",
     "latitude": 6.078875,
     "longitude": 100.3686355,
     "phone": "012-219 5916",
     "rating": 3.9,
     "total_ratings": 3257,
-    "region_searched": "Kedah"
+    "region_searched": "Kedah",
+    "state_code": 11,
+    "facilities": [
+      "Money Changer",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Aman Central",
-    "address": "Lot LG-01, No. 1, Aman Central, Lebuhraya Darul Aman, Kampung Lubok Peringgi, 05100 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.124969699999999,
-    "longitude": 100.3664572,
-    "phone": "019-929 5919",
-    "rating": 3.7,
-    "total_ratings": 74,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Kulim",
-    "address": "NO 386JALAN, LOT F6&F7 FIRST FLOOR, Lotus's Kulim, 9, Jln Lembah Impiana 3, Lembah Impiana, 09000 Kulim, Kedah, Malaysia",
-    "latitude": 5.3622574,
-    "longitude": 100.5273002,
-    "phone": "04-490 2825",
-    "rating": 3,
-    "total_ratings": 17,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Machines Lotus’s Kulim Apple Reseller Store",
-    "address": "Lot G19, Ground Floor, Lotus's Kulim. 386, Jalan Lembah Impiana, 9, Jln Lembah Impiana 3, 09000 Kulim, Kedah, Malaysia",
-    "latitude": 5.3622771,
-    "longitude": 100.526517,
-    "phone": "016-699 9887",
-    "rating": 4.9,
-    "total_ratings": 401,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Bandar Puteri Jaya (Pharmacy)",
-    "address": "Lot G01 & G02, Ground Floor, Lotus's, Lot 67404, Jalan Kuala Ketil, Bandar Puteri Jaya, 08000 Sungai Petani, Kedah, Malaysia",
-    "latitude": 5.6213912,
-    "longitude": 100.53578379999999,
-    "phone": "04-424 7872",
-    "rating": 2.2,
-    "total_ratings": 12,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Fancy Enterprise",
-    "address": "B9, Jalan Sekerat, Taman Sejati, 08000 Sungai Petani, Kedah, Malaysia",
-    "latitude": 5.6455212999999995,
-    "longitude": 100.496208,
-    "phone": "011-6240 4500",
-    "rating": 4.5,
-    "total_ratings": 76,
-    "region_searched": "Kedah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Kota Bharu",
-    "address": "Lot 1828, Seksyen, 17, Lembah Sireh, Bandar Kota Bharu, 15050 Kota Bharu, Kelantan, Malaysia",
-    "latitude": 6.114364699999999,
-    "longitude": 102.232261,
-    "phone": "014-297 7568",
-    "rating": 4.3,
-    "total_ratings": 3946,
-    "region_searched": "Kelantan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Creation Sdn. Bhd.",
-    "address": "20300 Kuala Terengganu, Terengganu, Malaysia",
-    "latitude": 5.3275584,
-    "longitude": 103.1378527,
-    "phone": "09-624 6977",
+    "branch_name": "Lotus's Sungai Petani",
+    "address": "300, Jalan Heights, Lagenda Heights, 08000 Sg Petani, Kedah",
+    "latitude": 5.6613064,
+    "longitude": 100.4972307,
+    "phone": "012-462 1060",
     "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Terengganu"
+    "total_ratings": null,
+    "region_searched": "Kedah",
+    "state_code": 11,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Casa de Lotus",
-    "address": "828, Lorong Nibung Stesen 6, 23000 Kuala Dungun, Terengganu, Malaysia",
-    "latitude": 4.757388,
-    "longitude": 103.4108399,
-    "phone": "",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Terengganu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "莲花楼 Lotus Coffee Shop",
-    "address": "Taman Sinar Baru, 88450 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.9703871,
-    "longitude": 116.09458989999999,
-    "phone": "010-217 6821",
-    "rating": 4.1,
-    "total_ratings": 1177,
-    "region_searched": "Sabah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "LFS Sandakan",
-    "address": "Level 11, Harbour Square Harbour Mall, Pusat Bandar Sandakan, 90000 Sandakan, Sabah, Malaysia",
-    "latitude": 5.8382714,
-    "longitude": 118.11971179999999,
-    "phone": "03-9221 0177",
-    "rating": 4.4,
-    "total_ratings": 1389,
-    "region_searched": "Sabah"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Residence",
-    "address": "C8QF+HC, 93250 Kota Samarahan, Sarawak, Malaysia",
-    "latitude": 1.4389185999999998,
-    "longitude": 110.3235708,
-    "phone": "",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Sarawak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Farm Agritech",
-    "address": "8799, Jalan Kwong Lee Bank, Section 64, 93450 Kuching, Sarawak, Malaysia",
-    "latitude": 1.5534325999999998,
-    "longitude": 110.3801912,
-    "phone": "017-809 5556",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Sarawak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Ta Kiong (Lotus Quantum S/B)",
-    "address": "Lot 4282, Jalan Tun Abdul Razak, 97000 Bintulu, Sarawak, Malaysia",
-    "latitude": 3.1809420999999998,
-    "longitude": 113.03485330000001,
-    "phone": "086-351 734",
-    "rating": 4.2,
-    "total_ratings": 305,
-    "region_searched": "Sarawak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Sarawak Cultural Village Lotus Pond",
-    "address": "Q828+7R, Kampung Budaya Sarawak, 93010 Kuching, Sarawak, Malaysia",
-    "latitude": 1.7502114,
-    "longitude": 110.316941,
-    "phone": "",
-    "rating": 5,
-    "total_ratings": 2,
-    "region_searched": "Sarawak"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Express",
-    "address": "Padangbesa, Sadao District, Songkhla 02100, Thailand",
-    "latitude": 6.6665496,
-    "longitude": 100.3196451,
-    "phone": "062 605 8057",
-    "rating": 4.5,
-    "total_ratings": 22,
-    "region_searched": "Perlis"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Pool",
-    "address": "Lot 101052, Jalan Tengku Budriah, 4, Taman Tengku Budriah, 02600 Arau, Perlis, Malaysia",
-    "latitude": 6.432065499999999,
-    "longitude": 100.2963915,
-    "phone": "",
-    "rating": 3.8,
-    "total_ratings": 4,
-    "region_searched": "Perlis"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "LOTUS MFZ GREEN TECH (M) SDN. BHD.",
-    "address": "NO. 7, TINGKAT 1, TAMAN PERTIWI INDAH, Jalan Kangar - Alor Setar, Kampung Seriap, 01000 Kangar, Perlis, Malaysia",
-    "latitude": 6.415875499999999,
-    "longitude": 100.18280949999999,
-    "phone": "04-979 9970",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Perlis"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus’s Sadao",
-    "address": "45/8 Kanjanavanich Rd, Tambon Sadao, Amphoe Sadao, Chang Wat Songkhla 90120, Thailand",
-    "latitude": 6.6451598999999995,
-    "longitude": 100.4284381,
-    "phone": "074 461 041",
-    "rating": 4.2,
-    "total_ratings": 933,
-    "region_searched": "Perlis"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "C-Mart Arau @ Kompleks Arau",
-    "address": "Lot 3968, Kompleks, Arau, 02600 Arau, Perlis, Malaysia",
-    "latitude": 6.4282537,
-    "longitude": 100.27368229999999,
-    "phone": "04-986 4043",
+    "branch_name": "Lotus's Sungai Petani Selatan",
+    "address": "Lot 368, Jalan Bakar Arang, 08000 Sg Petani, Kedah",
+    "latitude": 5.6222892,
+    "longitude": 100.47604199999999,
+    "phone": "012-674 2596",
     "rating": 4,
-    "total_ratings": 3892,
-    "region_searched": "Perlis"
+    "total_ratings": 5957,
+    "region_searched": "Kedah",
+    "state_code": 11,
+    "facilities": [
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus's Go Fresh",
-    "address": "33, 22 หมู่ 7 Kanjanavanich Rd, ต.สำนักขาม, Amphoe Sadao, Chang Wat Songkhla 90320, Thailand",
-    "latitude": 6.5269559,
-    "longitude": 100.4172178,
-    "phone": "091 045 9553",
-    "rating": 4,
-    "total_ratings": 320,
-    "region_searched": "Perlis"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus’s Satun",
-    "address": "219 ต.ย่านซื่อ Amphoe Khuan Don, Chang Wat Satun 91160, Thailand",
-    "latitude": 6.752705199999999,
-    "longitude": 100.0669874,
-    "phone": "074 751 120",
-    "rating": 4.2,
-    "total_ratings": 621,
-    "region_searched": "Perlis"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Giant Kangar",
-    "address": "PT 4819, Jalan Raja Syed Alwi, Taman Putra Utama, 01000 Kangar, Perlis, Malaysia",
-    "latitude": 6.419380299999999,
-    "longitude": 100.1965503,
-    "phone": "04-970 4628",
+    "branch_name": "Lotus's Taiping",
+    "address": "Lot 38, Jalan Istana Larut, 34000 Taiping, Perak",
+    "latitude": 4.8663986999999995,
+    "longitude": 100.7293661,
+    "phone": "017-603 7422",
     "rating": 4.1,
-    "total_ratings": 3248,
-    "region_searched": "Perlis"
+    "total_ratings": 4359,
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": [
+      "Money Changer",
+      "Playground",
+      "Post Office"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Gold Lotus Saloon",
-    "address": "72, Jalan Tepi Stesen Jejawi Sena, Kampung Bakong, 01000 Kangar, Perlis, Malaysia",
-    "latitude": 6.4323521,
-    "longitude": 100.23225839999999,
-    "phone": "017-417 7203",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Perlis"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "โลตัส โก เฟรช มินิ ซูเปอร์มาร์เก็ต โรงพยาบาลสตูล",
-    "address": "24/5,24/6, 24/7 Soi Hatthakumsuksa, ต.พิมาน, Amphoe Mueang Satun, Chang Wat Satun 91000, Thailand",
-    "latitude": 6.617545499999999,
-    "longitude": 100.0700042,
-    "phone": "062 605 8032",
-    "rating": 4.3,
-    "total_ratings": 72,
-    "region_searched": "Perlis"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "UTC & Labuan Central Market",
-    "address": "Jalan Bunga Tanjung, Bandar Labuan, 87000 Labuan, Wilayah Persekutuan Labuan, Malaysia",
-    "latitude": 5.2820646,
-    "longitude": 115.24056799999998,
-    "phone": "087-408 600",
-    "rating": 4.2,
-    "total_ratings": 2048,
-    "region_searched": "Labuan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Financial Park Complex Labuan",
-    "address": "Jln Merdeka, Financial Park, 87000 Labuan, Wilayah Persekutuan Labuan, Malaysia",
-    "latitude": 5.276430599999999,
-    "longitude": 115.24938800000001,
-    "phone": "087-419 477",
-    "rating": 4.2,
-    "total_ratings": 1475,
-    "region_searched": "Labuan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Remit Subang & Western Union",
-    "address": "Unit B-05, B-06 & B-07, Brothers's Mall Wholesale City, Lot 525, Persiaran Subang Permai, Taman Perindustrian Sungai Penga, 47500 Subang Jaya, Selangor, Malaysia",
-    "latitude": 3.0571433999999997,
-    "longitude": 101.5983717,
-    "phone": "03-8081 2014",
-    "rating": 5,
-    "total_ratings": 2121,
-    "region_searched": "Subang Jaya"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Group",
-    "address": "GF, G 09, Mydin Wholesale Hypermarket Subang Jaya, Lot 675 - 676, Persiaran Subang Permai, USJ 1, 47500 Subang Jaya, Selangor, Subang Light Industrial Park, 47500 Subang Jaya, Selangor, Malaysia",
-    "latitude": 3.0589999999999997,
-    "longitude": 101.59657,
-    "phone": "",
-    "rating": 3,
-    "total_ratings": 2,
-    "region_searched": "Subang Jaya"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "ÆON BiG Subang Jaya",
-    "address": "Jalan Kemajuan Subang, Ss 16, 47500 Subang Jaya, Selangor, Malaysia",
-    "latitude": 3.0827804,
-    "longitude": 101.5875708,
-    "phone": "1-300-80-2366",
-    "rating": 4,
-    "total_ratings": 6705,
-    "region_searched": "Subang Jaya"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Giant USJ",
-    "address": "Kompleks Membeli Belah Giant USJ 1 No.1, 1, Persiaran Subang Permai, Subang Light Industrial Park, 47500 Subang Jaya, Selangor, Malaysia",
-    "latitude": 3.0582553999999997,
-    "longitude": 101.5948647,
-    "phone": "03-8023 2566",
-    "rating": 3.9,
-    "total_ratings": 3237,
-    "region_searched": "Subang Jaya"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Paints Sdn. Bhd",
-    "address": "No. 22 & 24, Jalan Industri USJ 1/5, Taman Perindustrian Usj 1, 47600 Subang Jaya, Selangor, Malaysia",
-    "latitude": 3.0468837,
-    "longitude": 101.6056098,
-    "phone": "03-8023 8532",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Subang Jaya"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Power Corporation (M) Sdn Bhd",
-    "address": "35, Jalan PJS 11/14, Bandar Sunway, 47500 Subang Jaya, Selangor, Malaysia",
-    "latitude": 3.0709996,
-    "longitude": 101.60004819999999,
-    "phone": "03-5635 2518",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Subang Jaya"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Dental Clinic",
-    "address": "8, Jalan SS 15/4d, Ss 15, 47500 Subang Jaya, Selangor, Malaysia",
-    "latitude": 3.0736398,
-    "longitude": 101.5880859,
-    "phone": "016-211 9904",
-    "rating": 4.9,
-    "total_ratings": 542,
-    "region_searched": "Subang Jaya"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Remit Ipoh & Western Union",
-    "address": "79, Jalan Sultan Idris Shah, Taman Jubilee, 30000 Ipoh, Perak, Malaysia",
-    "latitude": 4.5972785,
-    "longitude": 101.08199549999999,
-    "phone": "05-241 0995",
-    "rating": 5,
-    "total_ratings": 1379,
-    "region_searched": "Ipoh"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "SportsDirect Lotus's Ipoh",
-    "address": "Unit F33, 1st Flr, Lotus's Ipoh, Jln Jambu, Bandar Baru Medan Ipoh, 31400 Ipoh, Perak, Malaysia",
-    "latitude": 4.6166553,
-    "longitude": 101.1189114,
-    "phone": "03-5614 9758",
+    "branch_name": "Lotus's Tanjung Pinang",
+    "address": "No. 1, Jalan Seri Tanjung Pinang, Tanjong Tokong, 10470 Pulau Pinang",
+    "latitude": 5.458937199999999,
+    "longitude": 100.3087485,
+    "phone": "011-1221 6178",
     "rating": 4.1,
-    "total_ratings": 140,
-    "region_searched": "Ipoh"
+    "total_ratings": 7160,
+    "region_searched": "Pulau Pinang",
+    "state_code": 4,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Maxis Centre Lotus Ipoh Garden",
-    "address": "Lot G9, Lotus's Ipoh Garden, 2, Jln Jambu, Taman Teh Teik Seng, 31400 Ipoh, Perak, Malaysia",
-    "latitude": 4.6167149,
-    "longitude": 101.1187446,
-    "phone": "017-424 3987",
-    "rating": 4.9,
-    "total_ratings": 187,
-    "region_searched": "Ipoh"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Remit Komtar",
-    "address": "A1-01, Komtar, Komtar, Jln Penang, George Town, 10000 George Town, Pulau Pinang, Malaysia",
-    "latitude": 5.414994999999999,
-    "longitude": 100.32913880000001,
-    "phone": "04-226 6068",
-    "rating": 4.9,
-    "total_ratings": 1067,
-    "region_searched": "George Town"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Georgetown Pharmacy | Lotus's Tanjung Pinang",
-    "address": "Lotus's Tanjung Pinang, First Floor F13B & F13C, Jln Tanjong Tokong, Seri Tanjung Pinang, 10470 Tanjung Tokong, Pulau Pinang, Malaysia",
-    "latitude": 5.458927399999999,
-    "longitude": 100.3087578,
-    "phone": "016-441 1146",
+    "branch_name": "Lotus's Teluk Intan",
+    "address": "PT 5017 Rapid Mall Seri Intan, Jalan Changkat Jong, 36000 Teluk Intan, Perak.",
+    "latitude": 4.0172807,
+    "longitude": 101.0275336,
+    "phone": "012-262 1077",
     "rating": 4.2,
-    "total_ratings": 116,
-    "region_searched": "George Town"
+    "total_ratings": 1297,
+    "region_searched": "Perak",
+    "state_code": 2,
+    "facilities": [
+      "Playground"
+    ]
   },
   {
     "store_name": "Lotus's Malaysia",
-    "branch_name": "Mox and Lotus Malaysia",
-    "address": "1-3-9 BL Business centre, solok thean teik, 11500, ayer hitam ayer hitam, 11500 George Town, Pulau Pinang, Malaysia",
-    "latitude": 5.398166499999999,
-    "longitude": 100.29377439999999,
-    "phone": "012-597 5241",
+    "branch_name": "Lotus's Wangsa Walk",
+    "address": "9, Jalan Wangsa Perdana 1, Wangsa Maju, 53300 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur.",
+    "latitude": 3.1994364,
+    "longitude": 101.7403699,
+    "phone": "012 - 409 0584",
     "rating": null,
-    "total_ratings": 0,
-    "region_searched": "George Town"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Cristtee",
-    "address": "1, Jalan Tunku Kudin, Georgetown, 11700 Jelutong, Pulau Pinang, Malaysia",
-    "latitude": 5.3797478,
-    "longitude": 100.31338129999999,
-    "phone": "",
-    "rating": 4.7,
-    "total_ratings": 6,
-    "region_searched": "George Town"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Gold Lotus Vegetarian Restaurant",
-    "address": "52, Lebuh Presgrave, 10300 George Town, Pulau Pinang, Malaysia",
-    "latitude": 5.4108700999999995,
-    "longitude": 100.33071919999999,
-    "phone": "016-422 1669",
-    "rating": 4,
-    "total_ratings": 130,
-    "region_searched": "George Town"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Tong Hing Supermarket",
-    "address": "1st Floor, 55, Jalan Gaya, Pusat Bandar Kota Kinabalu, 88000 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.986771999999999,
-    "longitude": 116.078629,
-    "phone": "088-230 300",
-    "rating": 4.3,
-    "total_ratings": 922,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "CKS Supermarket Menggatal",
-    "address": "Menggatal Plaza, Jalan Senja, Kampung Darau, 88400 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 6.0209871,
-    "longitude": 116.15002109999998,
-    "phone": "088-495 700",
-    "rating": 4.2,
-    "total_ratings": 3820,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "CKS Supermarket (Millenium)",
-    "address": "Lot 26-44, Plaza Grand Millenium Jalan Penampang Bypass Penampang, 88300 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.9274132,
-    "longitude": 116.0771634,
-    "phone": "088-731 228",
-    "rating": 4.1,
-    "total_ratings": 2278,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Home Lotus",
-    "address": "89500 Donggongon, Sabah, Malaysia",
-    "latitude": 5.9102951,
-    "longitude": 116.0914588,
-    "phone": "",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Golden Lotus Restaurant",
-    "address": "Api-api Centre, 88000 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.9750212,
-    "longitude": 116.0697022,
-    "phone": "088-211 121",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Bataras Hypermarket Bundusan",
-    "address": "Jalan Bundusan, 88300 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.940614999999999,
-    "longitude": 116.10235130000001,
-    "phone": "088-701 398",
-    "rating": 4.2,
-    "total_ratings": 2441,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Sunny Supermart Sdn Bhd",
-    "address": "146 Jalan Mat Salleh, Tanjung Aru, 88100 Kota Kinabalu, Sabah, Malaysia., Tanjung Aru, 88100 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.9537645,
-    "longitude": 116.05776759999999,
-    "phone": "088-231 563",
-    "rating": 4.2,
-    "total_ratings": 1775,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Merdeka Supermarket",
-    "address": "Mile 3, Jalan Penampang, Penampang, 88300 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.9433186,
-    "longitude": 116.08271230000001,
-    "phone": "088-216 601",
-    "rating": 4.3,
-    "total_ratings": 799,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Reflexology Traditional Therapy",
-    "address": "block f 1, 5, Lorong KK Taipan, 88450 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.9935806,
-    "longitude": 116.13833199999999,
-    "phone": "",
-    "rating": 3.7,
-    "total_ratings": 3,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Spa politeknik",
-    "address": "No23A 23A-2 1/Floor, Harum Mas, 118, Jln Sepangar, Menggatal, 88450 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 6.0530301,
-    "longitude": 116.1585581,
-    "phone": "011-5168 5002",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus spa politeknik KKIP",
-    "address": "👉🏼 ini no acc sye boLotus SPA Lot 23A 1st floor harumas 118, Jalan KKIP B, melawa, 88460 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 6.0837359,
-    "longitude": 116.1564329,
-    "phone": "",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Signal Hill Eco Farm",
-    "address": "Jalan Wong Thau Yong, 88400 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.9842751,
-    "longitude": 116.08275809999999,
-    "phone": "016-789 1873",
-    "rating": 4.4,
-    "total_ratings": 237,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Servay Hypermarket",
-    "address": "23, Lorong Juta 1, Taman Likas, 88450 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.992109,
-    "longitude": 116.11203979999998,
-    "phone": "016-832 1770",
-    "rating": 4.2,
-    "total_ratings": 3406,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Reflexology",
-    "address": "Kepayan Penampang, 88200 Kota Kinabalu, Sabah, Malaysia",
-    "latitude": 5.9282604999999995,
-    "longitude": 116.0636517,
-    "phone": "016-843 1801",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Kota Kinabalu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Cafe",
-    "address": "Lot 914,Block 16, Centre Land District, Lot 914,Block 16, Jalan Taman Hui Sing, Kuching Centre Land District, 93250 Kuching, Sarawak, Malaysia",
-    "latitude": 1.5125419,
-    "longitude": 110.338448,
-    "phone": "016-888 2282",
-    "rating": 4.2,
-    "total_ratings": 46,
-    "region_searched": "Kuching"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Mystic Lotus Sdn. Bhd.",
-    "address": "Lot G6 & G7, Jalan Tun Jugah, 93350 Kuching, Sarawak, Malaysia",
-    "latitude": 1.5158258,
-    "longitude": 110.3527912,
-    "phone": "016-873 7339",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Kuching"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Kuching Sentral Complex & Bus Terminal",
-    "address": "Lot 2 ground floor 6th mile, Jalan Penrissen, Kuching Sentral, 93250 Kuching, Sarawak, Malaysia",
-    "latitude": 1.481769,
-    "longitude": 110.331728,
-    "phone": "",
-    "rating": 4.1,
-    "total_ratings": 1635,
-    "region_searched": "Kuching"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Farley Kuching",
-    "address": "Lot 4547,Block 233,KNLD, Jalan Penrissen, 6th Mile, 93250 Kuching, Sarawak, Malaysia",
-    "latitude": 1.4842057000000002,
-    "longitude": 110.3330239,
-    "phone": "010-883 0918",
-    "rating": 4.3,
-    "total_ratings": 1544,
-    "region_searched": "Kuching"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Permas Cake Shop",
-    "address": "No. 30, Lot 4487, blk 8, MLD, Taman Sg Tengah Valley, Jalan Belatok, Matang Land District, 93050 Kuching, Sarawak, Malaysia",
-    "latitude": 1.5543760000000002,
-    "longitude": 110.2506069,
-    "phone": "013-808 8242",
-    "rating": 4.7,
-    "total_ratings": 3,
-    "region_searched": "Kuching"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "CCKLocal- your family grocer",
-    "address": "Lot 6654-6663, BLK 225, KNLD, SL 19, 28, Jalan Kuching City Mall, KNLD, 93250 Kuching, Sarawak, Malaysia",
-    "latitude": 1.4963646,
-    "longitude": 110.3031714,
-    "phone": "011-1015 6225",
-    "rating": 4.3,
-    "total_ratings": 268,
-    "region_searched": "Kuching"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Ta Kiong Supermarket",
-    "address": "24, Jalan Simpang Tiga, Kampung Kenyalang Park, 93300 Kuching, Sarawak, Malaysia",
-    "latitude": 1.5361129999999998,
-    "longitude": 110.35739480000001,
-    "phone": "082-615 233",
-    "rating": 4.2,
-    "total_ratings": 1033,
-    "region_searched": "Kuching"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Kfm Berhad (Formerly Known As Kuantan Flour Mills Berhad)",
-    "address": "25, Jln Kuantan - Kemaman, Gebeng, 26080 Kuantan, Pahang, Malaysia",
-    "latitude": 3.967815399999999,
-    "longitude": 103.42672429999999,
-    "phone": "03-8959 4883",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Kuantan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Maxis • Lotus's Kuantan",
-    "address": "Lot G15, Ground Floor, Lotus's, Bandar Indera Mahkota, 25200 Kuantan, Pahang, Malaysia",
-    "latitude": 3.826898,
-    "longitude": 103.30457210000002,
-    "phone": "017-361 0151",
-    "rating": 4.9,
-    "total_ratings": 24,
-    "region_searched": "Kuantan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "The Chicken Rice Shop Lotus's Indera Mahkota",
-    "address": "44, Lor IM 8/43, Taman Mahkota Putra, 25200 Kuantan, Pahang, Malaysia",
-    "latitude": 3.8272712999999996,
-    "longitude": 103.30417249999999,
-    "phone": "09-573 9704",
-    "rating": 2.3,
-    "total_ratings": 44,
-    "region_searched": "Kuantan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "PoloBuns Kuantan @ Lotus's Indera Mahkota",
-    "address": "OL-G2, Jalan, Lorong IM 8/3, Bandar Indera Mahkota, 25200 Kuantan, Pahang, Malaysia",
-    "latitude": 3.8265493000000004,
-    "longitude": 103.3047345,
-    "phone": "017-984 5814",
-    "rating": 4.7,
-    "total_ratings": 61,
-    "region_searched": "Kuantan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "My Toys • Lotus's Indera Mahkota",
-    "address": "Lot G23, Lotus's, Lorong IM 8/3, Bandar Indera Mahkota, 25200 Kuantan, Pahang, Malaysia",
-    "latitude": 3.8266262,
-    "longitude": 103.30476709999999,
-    "phone": "",
-    "rating": 4.9,
-    "total_ratings": 254,
-    "region_searched": "Kuantan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Switch @ Lotus Indera Mahkota",
-    "address": "Lot G19 Ground Floor, Lotus's, Bandar Indera Mahkota, 25200 Kuantan, Pahang, Malaysia",
-    "latitude": 3.8265447,
-    "longitude": 103.30454999999999,
-    "phone": "09-573 3673",
-    "rating": 5,
-    "total_ratings": 394,
-    "region_searched": "Kuantan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Saniwares (Far East) Sdn Bhd",
-    "address": "812A, Jalan Perusahaan 10, Kawasan Perusahaan Mergong Barrage, Lebuhraya Sultanah Bahiyah, Alor Setar, 05150 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.1218843,
-    "longitude": 100.33714429999999,
-    "phone": "04-733 0616",
-    "rating": 4.3,
-    "total_ratings": 41,
-    "region_searched": "Alor Setar"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Food Court, Lotus's Mergong, Alor Setar",
-    "address": "Bandar Baru Mergong, 05150 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.1288813,
-    "longitude": 100.3422556,
-    "phone": "",
-    "rating": 3.7,
-    "total_ratings": 67,
-    "region_searched": "Alor Setar"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "UR by Switch , Lotus’s Stargate",
-    "address": "G10, Ground Floor, Lotus's Stargate.1, Susuran Stargate, Lebuhraya Sultanah Bahiyah, Titi Keliling, 05400 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.0790802,
-    "longitude": 100.36882469999999,
-    "phone": "04-771 9320",
-    "rating": 5,
-    "total_ratings": 219,
-    "region_searched": "Alor Setar"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Stargate",
-    "address": "Lot G13-G16 GF Lotus's Stargate No.1 Susuran, Stargate, Lebuhraya Sultanah Bahiyah, Titi Keliling, 05400 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.0792516,
-    "longitude": 100.3685282,
-    "phone": "04-771 0275",
-    "rating": 2,
-    "total_ratings": 10,
-    "region_searched": "Alor Setar"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Lotus's Mergong",
-    "address": "Lot F1, First Floor, Lotus's Mergong, 1, Lebuhraya Sultanah Bahiyah, Bandar Baru Mergong, 05150 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.1282543,
-    "longitude": 100.34296359999999,
-    "phone": "04-793 0067",
-    "rating": 1.6,
-    "total_ratings": 38,
-    "region_searched": "Alor Setar"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "KFC Lotus's Alor Setar (Mergong)",
-    "address": "Lot No. G20, Ground Floor, Lotus's Hypermarket, Bandar Baru Mergong, 05150 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.1283778,
-    "longitude": 100.34202169999999,
-    "phone": "04-735 2717",
-    "rating": 4,
-    "total_ratings": 408,
-    "region_searched": "Alor Setar"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus' Shahab Perdana",
-    "address": "147, Jalan Kristal 5, Shahab Perdana, 05150 Alor Setar, Kedah, Malaysia",
-    "latitude": 6.1394421,
-    "longitude": 100.3546085,
-    "phone": "",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Alor Setar"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Glory",
-    "address": "Lot 6816 B 5th miles, Riam Road, 98000 Miri, Sarawak, Malaysia",
-    "latitude": 4.341673,
-    "longitude": 114.007606,
-    "phone": "010-760 3506",
-    "rating": 4.8,
-    "total_ratings": 8,
-    "region_searched": "Miri"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "The Lotus Wellness & Aesthetics",
-    "address": "2nd floor, Lot 1925, Marina Square, 2, Jalan MS2/6, Marina ParkCity, 98000 Miri, Sarawak, Malaysia",
-    "latitude": 4.3769176,
-    "longitude": 113.974761,
-    "phone": "012-391 8015",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Miri"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Ng Sian Hap Trading Sdn Bhd",
-    "address": "1039, Piasau Industrial Estate, Jalan Cattleya 5, Sarawak, 98000 Miri, Sarawak, Malaysia",
-    "latitude": 4.4366052,
-    "longitude": 114.0052487,
-    "phone": "085-657 788",
-    "rating": 4.2,
-    "total_ratings": 1419,
-    "region_searched": "Miri"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "New World Mart",
-    "address": "Lot 1448 (P/Lot 994) Block Off, Jalan Pasar Lutong, M.C.L.D., Lutong, 98000 Lutong, Sarawak, Malaysia",
-    "latitude": 4.4724219,
-    "longitude": 114.0085454,
-    "phone": "085-657 736",
-    "rating": 4.2,
-    "total_ratings": 1725,
-    "region_searched": "Miri"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "llao llao",
-    "address": "No A-G-53a, ground floor, 98000, Marina ParkCity, Miri Times Square, 98000 Miri, Sarawak, Malaysia",
-    "latitude": 4.39476,
-    "longitude": 113.98489199999999,
-    "phone": "03-6143 9892",
-    "rating": 3.3,
-    "total_ratings": 115,
-    "region_searched": "Miri"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Mountain Lotus Spa Sdn Bhd 金奇养生堂",
-    "address": "Lot 1182, Block 9 MCLD, First Floor, Miri Waterfront Commercial Centre, Jalan Permaisuri, 98000 Miri, Sarawak, Malaysia",
-    "latitude": 4.3985497,
-    "longitude": 113.9865992,
-    "phone": "085-432 266",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Miri"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Harbour Mall Sandakan Malaysia 🇲🇾🇲🇾🇲🇾",
-    "address": "Harbour Square, Pusat Bandar Sandakan, 90000 Sandakan, Sabah, Malaysia",
-    "latitude": 5.838716499999999,
-    "longitude": 118.11966009999998,
-    "phone": "089-276 888",
-    "rating": 4.1,
-    "total_ratings": 3726,
-    "region_searched": "Sandakan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "LOTUS TRUCKWAY SDN BHD",
-    "address": "Jalan Lintas Labuk, 90000 Sandakan, Sabah, Malaysia",
-    "latitude": 5.877743,
-    "longitude": 118.03196079999998,
-    "phone": "019-881 9928",
-    "rating": 3.5,
-    "total_ratings": 2,
-    "region_searched": "Sandakan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Pasar Kim Fung",
-    "address": "Batu 4 92, Jalan Pasaraya, Bandar Pasaraya, 90000 Sandakan, Sabah, Malaysia",
-    "latitude": 5.8574892,
-    "longitude": 118.0788784,
-    "phone": "017-813 3473",
-    "rating": 4.1,
-    "total_ratings": 1901,
-    "region_searched": "Sandakan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Servay Supermarket Sandakan",
-    "address": "Lot 103-113, Phase 111, Mile 4,, Jalan Labuk, Bandar Pasaraya, 90000 Sandakan, Sabah, Malaysia",
-    "latitude": 5.8584317,
-    "longitude": 118.07815760000001,
-    "phone": "089-215 157",
-    "rating": 4.1,
-    "total_ratings": 1362,
-    "region_searched": "Sandakan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Julie’s Ice Cream House, Sejati Walk",
-    "address": "Lot G-A-28, Sejati Walk Ln, 90000 Sandakan, Sabah, Malaysia",
-    "latitude": 5.8929503,
-    "longitude": 118.05240710000001,
-    "phone": "010-931 0941",
-    "rating": 4.1,
-    "total_ratings": 41,
-    "region_searched": "Sandakan"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Sibu Central Market",
-    "address": "Jln Channel, Pekan Sibu, 96000 Sibu, Sarawak, Malaysia",
-    "latitude": 2.2875463,
-    "longitude": 111.828733,
-    "phone": "084-313 449",
-    "rating": 4.2,
-    "total_ratings": 10083,
-    "region_searched": "Sibu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "LaFit International Corporation",
-    "address": "CP01, Ground Floor, Car Park, 2, Jalan Ling Kai Cheng 12A, Pekan Sibu, 96000 Sibu, Sarawak, Malaysia",
-    "latitude": 2.3257133999999997,
-    "longitude": 111.8535895,
-    "phone": "",
-    "rating": 3.8,
-    "total_ratings": 407,
-    "region_searched": "Sibu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Farley Supermarket",
-    "address": "Jln Salim, 96000 Sibu, Sarawak, Malaysia",
-    "latitude": 2.2653381,
-    "longitude": 111.8631789,
-    "phone": "084-212 666",
-    "rating": 4.2,
-    "total_ratings": 3585,
-    "region_searched": "Sibu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Ta Kiong Sibu",
-    "address": "42, Jalan Tuanku Osman, Pekan Sibu, 96000 Sibu, Sarawak, Malaysia",
-    "latitude": 2.2931165,
-    "longitude": 111.82692809999999,
-    "phone": "084-317 318",
-    "rating": 4,
-    "total_ratings": 537,
-    "region_searched": "Sibu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Bataras Sibu Supermarket",
-    "address": "27b, Jln Foochow, Sibu, 96000 Sibu, Sarawak, Malaysia",
-    "latitude": 2.292064,
-    "longitude": 111.8346445,
-    "phone": "",
-    "rating": 3.9,
-    "total_ratings": 520,
-    "region_searched": "Sibu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "SENG KONG DRUG STORE 成康参药材",
-    "address": "20, Jalan Apollo, Pekan Sibu, 96000 Sibu, Sarawak, Malaysia",
-    "latitude": 2.319752,
-    "longitude": 111.84784789999999,
-    "phone": "084-342 488",
-    "rating": 5,
-    "total_ratings": 1,
-    "region_searched": "Sibu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Kek Lin Seng Sdn. Bhd.",
-    "address": "39, Rejang Park shopping center, Jalan Teruntum, Sibu, 96000 Sibu, Sarawak, Malaysia",
-    "latitude": 2.3068090999999997,
-    "longitude": 111.836353,
-    "phone": "084-312 587",
-    "rating": 4,
-    "total_ratings": 10,
-    "region_searched": "Sibu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Huong Seng Motor Trading Sdn. Bhd.",
-    "address": "No. 6B, Lorong 2, Jalan Lotus, Sibu, 96000, Sibu, Sarawak, Sibu, 96000 Sibu, Sarawak, Malaysia",
-    "latitude": 2.310033,
-    "longitude": 111.8400412,
-    "phone": "084-324 587",
-    "rating": 3,
-    "total_ratings": 2,
-    "region_searched": "Sibu"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "AEON BiG Batu Pahat",
-    "address": "1B, Jalan Persiaran Flora Utama, Taman Flora Utama, 83000 Batu Pahat, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.8655125000000001,
-    "longitude": 102.94846629999999,
-    "phone": "1-300-80-2366",
-    "rating": 4.1,
-    "total_ratings": 1886,
-    "region_searched": "Batu Pahat"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Watsons Batu Pahat Mall (Pharmacy)",
-    "address": "Lot G51 & G52 Ground Floor, Batu Pahat Mall, Jln Kluang, 83000 Batu Pahat, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.8638484000000002,
-    "longitude": 102.9620825,
-    "phone": "07-439 5711",
-    "rating": 3.9,
-    "total_ratings": 3757,
-    "region_searched": "Batu Pahat"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Little Lotus Garden 莲花园",
-    "address": "Jalan Tongkang Pechah, 83000 Batu Pahat, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.9034023,
-    "longitude": 102.949568,
-    "phone": "",
-    "rating": 5,
-    "total_ratings": 2,
-    "region_searched": "Batu Pahat"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "MBO Cinemas",
-    "address": "2, Jln Kluang, 83000 Batu Pahat, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.8638979999999998,
-    "longitude": 102.9638617,
-    "phone": "03-7664 2808",
-    "rating": 4.2,
-    "total_ratings": 21,
-    "region_searched": "Batu Pahat"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "S Lotus Reflexology & Theraphy Centre",
-    "address": "19, Jalan Setia Jaya Utama, Taman Setia Jaya, 83000 Batu Pahat, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.8678144,
-    "longitude": 102.9439553,
-    "phone": "07-434 1919",
-    "rating": 5,
-    "total_ratings": 2,
-    "region_searched": "Batu Pahat"
-  },
-  {
-    "store_name": "Lotus's Malaysia",
-    "branch_name": "Lotus Herbal Soup阿莲炖汤",
-    "address": "42, Jalan Kundang 2, Taman Bukit Pasir, 83000 Batu Pahat, Johor Darul Ta'zim, Malaysia",
-    "latitude": 1.8677833000000001,
-    "longitude": 102.94079909999999,
-    "phone": "013-790 0797",
-    "rating": null,
-    "total_ratings": 0,
-    "region_searched": "Batu Pahat"
+    "total_ratings": null,
+    "region_searched": "Kuala Lumpur",
+    "state_code": 14,
+    "facilities": []
   }
 ]

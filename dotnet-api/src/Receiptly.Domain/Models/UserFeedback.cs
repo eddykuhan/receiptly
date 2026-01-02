@@ -28,25 +28,6 @@ public class UserCorrection
 }
 
 /// <summary>
-/// User-reported issue with OCR processing.
-/// </summary>
-public class IssueReport
-{
-    public Guid Id { get; set; }
-    public Guid ReceiptId { get; set; }
-    public string UserId { get; set; } = string.Empty;
-    
-    public string IssueType { get; set; } = string.Empty;  // wrong_merchant, wrong_total, etc.
-    public string? Description { get; set; }
-    public string Severity { get; set; } = "Medium";  // Low, Medium, High, Critical
-    
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    // Navigation properties
-    public Receipt? Receipt { get; set; }
-}
-
-/// <summary>
 /// Temporary debug mode activation for specific users.
 /// </summary>
 public class UserDebugSession

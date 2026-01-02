@@ -96,9 +96,8 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
         if (query.MinLongitude.HasValue) queryable = queryable.Where(q => (q.Store != null ? q.Store.Longitude : q.Gold.Longitude) >= query.MinLongitude.Value);
         if (query.MaxLongitude.HasValue) queryable = queryable.Where(q => (q.Store != null ? q.Store.Longitude : q.Gold.Longitude) <= query.MaxLongitude.Value);
 
-        // Filter to only items with location data (either from store or gold record)
-        queryable = queryable.Where(q => 
-            (q.Store != null) || (q.Gold.Latitude.HasValue && q.Gold.Longitude.HasValue));
+        // No location filter needed here - scraped data joins to stores via PricingZoneId,
+        // user receipts have lat/lng in gold record. Both cases are handled by the join.
 
         var totalCount = await queryable.LongCountAsync(cancellationToken);
         var skip = (page - 1) * pageSize;

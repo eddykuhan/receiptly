@@ -14,7 +14,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<UserCorrection> UserCorrections { get; set; }
-    public DbSet<IssueReport> IssueReports { get; set; }
     public DbSet<UserDebugSession> UserDebugSessions { get; set; }
     
     // Points and Rewards System
@@ -28,7 +27,6 @@ public class ApplicationDbContext : DbContext
     
     // Analytics Gold Layer
     public DbSet<PurchaseAnalyticsGold> PurchaseAnalyticsGold { get; set; }
-    public DbSet<MasterProduct> MasterProducts { get; set; }
     
     // Canonical Items System
     public DbSet<CanonicalItem> CanonicalItems { get; set; }
@@ -241,46 +239,6 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => new { e.ReceiptId, e.FieldName });
         });
 
-        // Configure IssueReport entity
-        modelBuilder.Entity<IssueReport>(entity =>
-        {
-            entity.ToTable("issue_reports");
-            
-            entity.HasKey(e => e.Id);
-            
-            entity.Property(e => e.UserId)
-                .IsRequired()
-                .HasMaxLength(450);
-            
-            entity.Property(e => e.ReceiptId)
-                .IsRequired();
-            
-            entity.Property(e => e.IssueType)
-                .IsRequired()
-                .HasMaxLength(50);
-            
-            entity.Property(e => e.Severity)
-                .IsRequired()
-                .HasMaxLength(20);
-            
-            entity.Property(e => e.Description)
-                .HasMaxLength(2000);
-            
-            entity.Property(e => e.CreatedAt)
-                .IsRequired()
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-            
-            entity.HasOne(e => e.Receipt)
-                .WithMany()
-                .HasForeignKey(e => e.ReceiptId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
-            entity.HasIndex(e => e.UserId);
-            entity.HasIndex(e => e.ReceiptId);
-            entity.HasIndex(e => e.IssueType);
-            entity.HasIndex(e => e.Severity);
-        });
-
         // Configure UserDebugSession entity
         modelBuilder.Entity<UserDebugSession>(entity =>
         {
@@ -416,15 +374,6 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // Configure MasterProduct entity
-        modelBuilder.Entity<MasterProduct>(entity =>
-        {
-            entity.ToTable("master_products");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired();
-            entity.HasIndex(e => e.Name).IsUnique().HasDatabaseName("idx_master_products_name");
-        });
-
         // Configure CanonicalItem entity
         modelBuilder.Entity<CanonicalItem>(entity =>
         {
@@ -447,11 +396,74 @@ public class ApplicationDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
+            // Amazon-style structured attributes
+            entity.Property(e => e.IsMaster)
+                .IsRequired()
+                .HasDefaultValue(false);
+            
+            entity.Property(e => e.SourceType)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.Confidence)
+                .HasColumnType("decimal(3,2)")
+                .HasDefaultValue(1.0m);
+            
+            entity.Property(e => e.Brand)
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.Size)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.SizeNormalized)
+                .HasColumnType("decimal(10,2)");
+            
+            entity.Property(e => e.SizeUnit)
+                .HasMaxLength(10);
+            
+            entity.Property(e => e.PackCount)
+                .HasDefaultValue(1);
+            
+            entity.Property(e => e.Variant)
+                .HasMaxLength(200);
+            
+            entity.Property(e => e.NameTokens)
+                .HasColumnType("text[]");
+            
+            // Self-referencing foreign key for master-child relationship
+            entity.HasOne(e => e.MasterItem)
+                .WithMany(e => e.ChildItems)
+                .HasForeignKey(e => e.MasterItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Indexes
             entity.HasIndex(e => e.Name)
                 .HasDatabaseName("idx_canonical_items_name");
             
             entity.HasIndex(e => e.Category)
                 .HasDatabaseName("idx_canonical_items_category");
+            
+            // Amazon-style indexes for fast retrieval
+            entity.HasIndex(e => e.IsMaster)
+                .HasFilter("\"IsMaster\" = TRUE")
+                .HasDatabaseName("idx_canonical_items_master");
+            
+            entity.HasIndex(e => e.Brand)
+                .HasFilter("\"IsMaster\" = TRUE AND \"Brand\" IS NOT NULL")
+                .HasDatabaseName("idx_canonical_items_brand");
+            
+            entity.HasIndex(e => new { e.SizeNormalized, e.SizeUnit })
+                .HasFilter("\"IsMaster\" = TRUE AND \"SizeNormalized\" IS NOT NULL")
+                .HasDatabaseName("idx_canonical_items_size");
+            
+            entity.HasIndex(e => e.NameTokens)
+                .HasMethod("gin")
+                .HasFilter("\"IsMaster\" = TRUE")
+                .HasDatabaseName("idx_canonical_items_tokens");
+            
+            // Composite index for dairy lookup (example category-specific)
+            entity.HasIndex(e => new { e.Brand, e.SizeNormalized, e.Category })
+                .HasFilter("\"IsMaster\" = TRUE AND \"Category\" = 'Dairy'")
+                .HasDatabaseName("idx_canonical_items_dairy_lookup");
         });
 
         // Configure CanonicalItemAlias entity
@@ -468,8 +480,23 @@ public class ApplicationDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             
+            // Amazon-style tracking fields
+            entity.Property(e => e.Source)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.MatchConfidence)
+                .HasColumnType("decimal(3,2)");
+            
+            entity.Property(e => e.MatchMethod)
+                .HasMaxLength(50);
+            
+            entity.Property(e => e.UsageCount)
+                .HasDefaultValue(1);
+            
+            entity.Property(e => e.LastSeenAt);
+            
             entity.HasOne(e => e.CanonicalItem)
-                .WithMany()
+                .WithMany(e => e.Aliases)
                 .HasForeignKey(e => e.CanonicalItemId)
                 .OnDelete(DeleteBehavior.Cascade);
             
@@ -478,6 +505,11 @@ public class ApplicationDbContext : DbContext
             
             entity.HasIndex(e => e.CanonicalItemId)
                 .HasDatabaseName("idx_canonical_aliases_item_id");
+            
+            // Amazon-style index for alias performance tracking
+            entity.HasIndex(e => e.UsageCount)
+                .IsDescending()
+                .HasDatabaseName("idx_canonical_aliases_usage");
         });
 
         // Configure CanonicalItemEmbedding entity
