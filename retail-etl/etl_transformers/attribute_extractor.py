@@ -35,7 +35,10 @@ class AttributeExtractor:
     
     # Pack count patterns
     PACK_PATTERN = re.compile(
-        r'(\d+)\s*(?:pack|x|pk|pcs?|pieces?|units?|tins?|cans?|bottles?)',
+        r'(?:'
+        r'(\d+)\s*(?:pack|x|pk|pcs?|pieces?|units?|tins?|cans?|bottles?)|'  # "2 pack" or "2x"
+        r'(?:pack|x|pk|pcs?|pieces?|units?|tins?|cans?|bottles?)\s*(\d+)'   # "x 2" or "pack 2"
+        r')',
         re.IGNORECASE
     )
     
@@ -138,7 +141,8 @@ class AttributeExtractor:
         """
         match = self.PACK_PATTERN.search(text)
         if match:
-            return int(match.group(1))
+            # Pattern has two groups: (num before x) or (num after x)
+            return int(match.group(1) or match.group(2))
         return 1
     
     def extract_variant(self, text: str, brand: Optional[str], size: Optional[str]) -> Optional[str]:
