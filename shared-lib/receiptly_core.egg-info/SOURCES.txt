@@ -1,0 +1,12 @@
+README.md
+setup.py
+receiptly_core/__init__.py
+receiptly_core/attribute_extractor.py
+receiptly_core/candidate_generator.py
+receiptly_core/matcher.py
+receiptly_core/normalizer.py
+receiptly_core.egg-info/PKG-INFO
+receiptly_core.egg-info/SOURCES.txt
+receiptly_core.egg-info/dependency_links.txt
+receiptly_core.egg-info/requires.txt
+receiptly_core.egg-info/top_level.txt

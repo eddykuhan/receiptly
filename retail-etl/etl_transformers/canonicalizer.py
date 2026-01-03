@@ -15,9 +15,8 @@ from psycopg2.extras import RealDictCursor
 import uuid
 import torch
 
-from .attribute_extractor import AttributeExtractor
-from .candidate_generator import CandidateGenerator
-from .matcher import AmazonStyleMatcher
+# Import from shared library
+from receiptly_core import AttributeExtractor, AmazonStyleMatcher, CandidateGenerator, normalize_text
 
 
 class Canonicalizer:
@@ -49,7 +48,7 @@ class Canonicalizer:
         self.conn = None
         self._cache = {} # Local cache to avoid DB/AI calls for repeated items in same run
         
-        # Amazon-style components
+        # Amazon-style components (from shared library)
         self.attribute_extractor = AttributeExtractor()
         self.candidate_generator = None  # Will be initialized after connection
         self.matcher = AmazonStyleMatcher(embedding_model=self.model)
@@ -84,16 +83,14 @@ class Canonicalizer:
                     pass
             self.conn = psycopg2.connect(**self.db_config)
             
-            # Update candidate generator and matcher with new connection
+            # Update candidate generator with new connection
             if self.candidate_generator:
                 self.candidate_generator.conn = self.conn
             else:
                 self.candidate_generator = CandidateGenerator(self.conn)
             
-            if self.matcher:
-                self.matcher.conn = self.conn
-            else:
-                self.matcher = AmazonStyleMatcher(self.conn, self.embedder)
+            # Matcher doesn't need database connection (uses shared library)
+            # It was already initialized in __init__ with the embedding model
     
     def close(self):
         """Close database connection."""
@@ -101,24 +98,8 @@ class Canonicalizer:
             self.conn.close()
     
     def normalize_text(self, text: str) -> str:
-        """
-        Normalize product name text.
-        
-        Args:
-            text: Raw product name
-            
-        Returns:
-            Normalized text (lowercase, no extra spaces)
-        """
-        # Convert to lowercase
-        text = text.lower()
-        # Replace special characters with space
-        text = re.sub(r'[^a-z0-9\s]', ' ', text)
-        # Remove ' 1 unit' suffix if present
-        text = re.sub(r'\s1\sunit$', '', text)
-        # Remove extra whitespace
-        text = re.sub(r'\s+', ' ', text.strip())
-        return text
+        """Wrapper for shared library normalize_text function."""
+        return normalize_text(text)
     
     def check_exact_match(self, normalized_name: str) -> Optional[str]:
         """
@@ -283,7 +264,7 @@ class Canonicalizer:
         attributes = self.attribute_extractor.extract_all_attributes(item_name)
         
         # Check if this exact item already exists as a master
-        normalized = self.normalize_text(item_name)
+        normalized = normalize_text(item_name)
         canonical_id = self.check_exact_match(normalized)
         
         if canonical_id:
@@ -433,6 +414,7 @@ class Canonicalizer:
                         'size_normalized': attributes['size_normalized'],
                         'size_unit': attributes['size_unit'],
                         'pack_count': attributes['pack_count'],
+                        'variant': attributes['variant'],  # Include variant for constraint checking
                         'category': item.get('category', 'Unknown'),
                         'name_tokens': attributes['name_tokens']
                     },
@@ -704,6 +686,10 @@ class Canonicalizer:
     ):
         """Create or update alias for a canonical item."""
         self.connect()
+        
+        # Convert numpy types to Python types
+        if hasattr(confidence, 'item'):  # numpy scalar
+            confidence = float(confidence)
         
         with self.conn.cursor() as cur:
             cur.execute(

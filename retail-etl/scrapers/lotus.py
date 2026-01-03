@@ -146,7 +146,9 @@ class LotusScraper(BaseScraper):
             return []
         
         all_products = []
+        seen_skus = set()  # Track SKUs to avoid duplicates
         total_scraped = 0
+        total_duplicates = 0
         
         logger.info(f"Starting Lotus scrape for {len(self.all_categories)} categories")
         
@@ -158,13 +160,23 @@ class LotusScraper(BaseScraper):
             logger.info(f"Scraping category {idx}/{len(self.all_categories)} (ID: {category_id})")
             category_products = self._scrape_category(category_id)
             
-            all_products.extend(category_products)
-            total_scraped += len(category_products)
+            # Deduplicate by SKU
+            new_products = 0
+            for product in category_products:
+                sku = product.get('sku', '')
+                if sku and sku not in seen_skus:
+                    seen_skus.add(sku)
+                    all_products.append(product)
+                    new_products += 1
+                elif sku:
+                    total_duplicates += 1
             
-            logger.info(f"Scraped {len(category_products)} products (total so far: {total_scraped})")
+            total_scraped += new_products
+            
+            logger.info(f"Scraped {len(category_products)} products, {new_products} new (total unique: {total_scraped}, duplicates skipped: {total_duplicates})")
             time.sleep(0.5)  # Rate limiting between categories
         
-        logger.info(f"Total products scraped: {len(all_products)}")
+        logger.info(f"Total unique products scraped: {len(all_products)} (skipped {total_duplicates} duplicates)")
         return all_products
 
     def _scrape_category(self, category_id: int) -> List[Dict]:

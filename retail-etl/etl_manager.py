@@ -135,7 +135,7 @@ class ETLManager:
             self.stats['errors'] += 1
             return []
     
-    def transform(self, records: List[Dict], batch_size: int = 100, checkpoint_data: Dict = None) -> List[Dict]:
+    def transform(self, records: List[Dict], batch_size: int = 25, checkpoint_data: Dict = None) -> List[Dict]:
         """
         Transform records with canonicalization using Amazon-style approach.
         Scraped items are processed as MASTERS (IsMaster=true) in batches.
@@ -215,6 +215,17 @@ class ETLManager:
                 raise  # Re-raise to stop pipeline but keep checkpoint
         
         logger.info(f"Successfully processed {len(all_transformed)} total products ({len(already_processed)} from DB, {len(all_transformed) - len(already_processed)} newly canonicalized)")
+        
+        # Ensure all canonical items are committed before load phase
+        logger.info("Flushing canonical items to database...")
+        try:
+            self.canonicalizer.connect()  # Ensure connection is alive
+            self.canonicalizer.conn.commit()  # Final commit
+            logger.info("✓ All canonical items committed")
+        except Exception as e:
+            logger.error(f"Error committing canonical items: {e}")
+            raise
+        
         return all_transformed
     
     def load(self, records: List[Dict]) -> Dict:

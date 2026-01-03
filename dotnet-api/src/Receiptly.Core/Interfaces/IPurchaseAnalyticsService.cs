@@ -167,5 +167,11 @@ public class SuggestionResult
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = string.Empty;
+    public string? Brand { get; init; }
+    public string? Category { get; init; }
+    public decimal Score { get; init; }
+    public int PurchaseCount { get; init; }
+    public decimal? LowestPrice { get; init; }
+    public string? LowestPriceStore { get; init; }
 }
 

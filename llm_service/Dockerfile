@@ -3,9 +3,15 @@ FROM python:3.11-slim as builder
 
 WORKDIR /app
 
+# Copy shared library first
+COPY ../shared-lib /shared-lib
+
 # Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Install shared library from local path
+RUN pip install --no-cache-dir --user /shared-lib
 
 # Runtime stage
 FROM python:3.11-slim
