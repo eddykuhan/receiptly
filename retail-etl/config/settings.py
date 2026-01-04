@@ -20,6 +20,8 @@ DB_CONFIG = {
 from scrapers.jaya_grocer import JayaGrocerScraper
 from scrapers.mydin import MydinScraper
 from scrapers.lotus import LotusScraper
+from scrapers.village_grocer import VillageGrocerScraper
+from scrapers.village_grocer_location import VillageGrocerLocationScraper
 # from scrapers.aeon import AeonScraper
 
 # Scraper configurations
@@ -43,6 +45,20 @@ SCRAPERS = [
         'pricing_zone_id': 'LOTUSS_NATIONAL',
         # Lotus scraper uses GROCERY_CATEGORIES defined in scraper class (25 categories)
     },
+    {
+        'scraper_class': VillageGrocerScraper,
+        'store_url': 'https://www.bites.com.my',  # Main catalog (Shopify API)
+        'pricing_zone_id': 'VILLAGE_GROCER_MY',
+        'max_products': None,  # None = scrape all products
+        'collections': None,  # None = use default collections from VillageGrocerScraperConfig
+    },
+    # {
+    #     'scraper_class': VillageGrocerLocationScraper,
+    #     'location': 'Mont Kiara',
+    #     'pricing_zone_id': 'VILLAGE_GROCER_MONT_KIARA_MY',
+    #     'max_products': None,  # None = scrape all products
+    #     'collections': None,  # None = use default location collections
+    # },
     # {
     #     'scraper_class': AeonScraper,
     #     'store_url': 'https://myaeon.com.my/view-all-products',

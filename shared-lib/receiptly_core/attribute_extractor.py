@@ -181,10 +181,40 @@ class AttributeExtractor:
         # Clean up extra whitespace
         clean_text = re.sub(r'\s+', ' ', clean_text.strip())
         
+        # Apply normalization rules for common product variants
         if clean_text:
-            return clean_text.title()
+            variant_normalized = self._normalize_variant(clean_text, brand)
+            return variant_normalized.title() if variant_normalized else None
         
         return None
+    
+    def _normalize_variant(self, variant: str, brand: Optional[str]) -> Optional[str]:
+        """
+        Apply normalization rules to handle common product naming inconsistencies.
+        
+        Args:
+            variant: Extracted variant text (lowercase)
+            brand: Product brand
+            
+        Returns:
+            Normalized variant text
+        """
+        # Nescafe: "Decaf" without other qualifiers should be "Classic Decaf"
+        # This handles cases where retailers omit "Classic" from the name
+        if brand and 'nescafe' in brand.lower():
+            # Check if it's just "decaf" or "decaf jar/coffee" without "gold" or "classic"
+            variant_lower = variant.lower()
+            has_decaf = 'decaf' in variant_lower
+            has_gold = 'gold' in variant_lower
+            has_classic = 'classic' in variant_lower
+            has_blend = 'blend' in variant_lower
+            
+            if has_decaf and not has_gold and not has_classic and not has_blend:
+                # It's just "Decaf" or "Decaf Jar/Coffee" - normalize to "Classic Decaf"
+                # Replace "decaf" with "classic decaf" to add the missing differentiator
+                variant = re.sub(r'\bdecaf\b', 'classic decaf', variant_lower)
+        
+        return variant
     
     def extract_key_tokens(self, text: str) -> List[str]:
         """

@@ -169,12 +169,43 @@ class AmazonStyleMatcher:
                 # Require at least 50% overlap in variant keywords from BOTH sides
                 # This prevents "Gold Blend" from matching "Gold Origins Cap Colombia"
                 if query_keywords and candidate_keywords:
-                    overlap = len(query_keywords & candidate_keywords)
+                    overlap = query_keywords & candidate_keywords
+                    unique_query = query_keywords - candidate_keywords
+                    unique_candidate = candidate_keywords - query_keywords
+                    
+                    # Check for conflicting variant differentiators
+                    # These keywords distinguish product variants - if they conflict, reject the match
+                    differentiators = {
+                        'blend', 'decaf', 'classic', 'gold', 'instant', 'cappuccino', 'espresso',
+                        'latte', 'mocha', 'mild', 'rich', 'strong', 'original', 'origins',
+                        'french', 'italian', 'dark', 'light', 'medium', 'roast', 'smooth',
+                        'intense', 'bold', 'creamy', 'premium', 'signature', 'special'
+                    }
+                    
+                    conflicting_query = unique_query & differentiators
+                    conflicting_candidate = unique_candidate & differentiators
+                    
+                    # Rule 1: If BOTH variants have unique differentiating keywords, they're different products
+                    # "gold blend" vs "gold decaf": unique={'blend'} vs {'decaf'} → REJECT
+                    if conflicting_query and conflicting_candidate:
+                        continue
+                    
+                    # Rule 2: If ONE variant has unique differentiators in the overlap set,
+                    # and the OTHER doesn't share ALL of them, they're different
+                    # "gold decaf" vs "decaf": overlap={'decaf'}, but query has extra 'gold' → REJECT
+                    # "gold blend coffee" vs "gold blend": overlap={'gold','blend'}, extra 'coffee' OK → ACCEPT
+                    all_query_differentiators = query_keywords & differentiators
+                    all_candidate_differentiators = candidate_keywords & differentiators
+                    
+                    # If all differentiators aren't shared, reject
+                    # This catches "gold decaf" vs "decaf" where "gold" is a differentiator not in "decaf"
+                    if all_query_differentiators != all_candidate_differentiators:
+                        continue
                     
                     # Calculate overlap ratio from both perspectives and require both to pass
                     # This ensures that shorter variants don't incorrectly match longer ones
-                    query_ratio = overlap / len(query_keywords)
-                    candidate_ratio = overlap / len(candidate_keywords)
+                    query_ratio = len(overlap) / len(query_keywords)
+                    candidate_ratio = len(overlap) / len(candidate_keywords)
                     
                     # Reject if EITHER side has less than 50% overlap
                     # "gold blend" (2) vs "gold origins cap colombia" (4):
