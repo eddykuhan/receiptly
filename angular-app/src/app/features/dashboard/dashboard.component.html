@@ -170,9 +170,16 @@
       </div>
       } @else {
       <div class="card bg-base-100 shadow-sm">
-        <div class="card-body text-center py-8">
-          <span class="material-icons text-4xl text-base-content/20 mb-2">local_offer</span>
-          <p class="text-base-content/60">No deals available at the moment</p>
+        <div class="card-body text-center py-8 space-y-4">
+          <span class="material-icons text-4xl text-base-content/20">local_offer</span>
+          <div class="space-y-2">
+            <p class="font-semibold text-base-content">No deals found nearby</p>
+            <p class="text-sm text-base-content/60">Try increasing your search distance in your profile settings to see more deals from stores further away.</p>
+          </div>
+          <button class="btn btn-sm btn-outline btn-primary" (click)="navigateToProfile()">
+            <span class="material-icons text-sm">settings</span>
+            Update Profile Settings
+          </button>
         </div>
       </div>
       }
