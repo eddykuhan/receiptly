@@ -11,6 +11,7 @@ JG_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'jaya_grocer_locations
 MYDIN_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'mydin_locations.json')
 LOTUSS_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'lotuss_malaysia_locations.json')
 AEON_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'aeon_official_stores.json')
+VILLAGE_GROCER_FILE = os.path.join(BASE_DIR, 'store-scraper', 'data', 'village_grocer_malaysia_locations.json')
 
 def get_db_connection():
     return psycopg2.connect(**DB_CONFIG)
@@ -38,6 +39,18 @@ def determine_jg_zone(address):
         return 'JG_SEREMBAN'
         
     return 'JG_KL' # Fallback
+
+def determine_village_grocer_zone(region_searched):
+    """Determine Village Grocer pricing zone based on region searched."""
+    region_lower = region_searched.lower() if region_searched else ''
+    
+    # # Location-specific zones for major hubs
+    # if region_lower in ['mont kiara', 'kl']:
+    #     return 'VILLAGE_GROCER_MONT_KIARA_MY'  # Flagship Mont Kiara location
+    
+    # Default to main catalog pricing zone for other locations
+    # Physical stores use same pricing as main online catalog
+    return 'VILLAGE_GROCER_MY'
 
 def seed_stores():
     print("Connecting to database...")
@@ -114,8 +127,24 @@ def seed_stores():
                  ))
         else:
             print(f"Warning: File not found: {AEON_FILE}")
+
+        # 6. Process Village Grocer
+        if os.path.exists(VILLAGE_GROCER_FILE):
+             print(f"Processing Village Grocer data from {VILLAGE_GROCER_FILE}...")
+             vg_locations = load_json(VILLAGE_GROCER_FILE)
+             for loc in vg_locations:
+                 stores_data.append((
+                    loc.get('branch_name', loc.get('store_name')), # Name
+                    'Village Grocer',   # RetailChain
+                    determine_village_grocer_zone(loc.get('region_searched', '')), # PricingZoneId
+                    loc.get('address'), # Address
+                    loc.get('latitude'), # Latitude
+                    loc.get('longitude') # Longitude
+                 ))
+        else:
+            print(f"Warning: File not found: {VILLAGE_GROCER_FILE}")
             
-        # 5. Bulk Insert
+        # 7. Bulk Insert
         if stores_data:
             print(f"Inserting {len(stores_data)} stores...")
             insert_query = """

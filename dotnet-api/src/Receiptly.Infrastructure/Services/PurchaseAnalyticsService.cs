@@ -421,27 +421,99 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
             return new List<SuggestionResult>();
         }
 
-        var normalizedQuery = $"%{query.Trim()}%";
+        var trimmedQuery = query.Trim();
+        var normalizedQuery = $"%{trimmedQuery}%";
+        var recentPurchaseCutoff = DateTime.UtcNow.AddDays(-30);
 
-        // Query canonical_items table instead of analytics directly for cleaner suggestions
+        // Build base query with multi-field search (Name, Brand, Category)
         var canonicalQuery = _context.CanonicalItems
             .AsNoTracking()
-            .Where(c => EF.Functions.ILike(c.Name, normalizedQuery));
+            .Where(c => 
+                EF.Functions.ILike(c.Name, normalizedQuery) ||
+                EF.Functions.ILike(c.Brand ?? "", normalizedQuery) ||
+                EF.Functions.ILike(c.Category ?? "", normalizedQuery));
 
-        // Note: In a real production scenario, we might want to join with gold layer
-        // to only show items that actually have price points near the user.
-        // For now, we return canonical item matches directly.
+        // If location provided, filter to items available in nearby stores
+        if (userLat.HasValue && userLng.HasValue && radiusKm.HasValue)
+        {
+            var latDelta = radiusKm.Value / 111.0;
+            var lngDelta = radiusKm.Value / (111.0 * Math.Cos(userLat.Value * (Math.PI / 180.0)));
+            var minLat = userLat.Value - latDelta;
+            var maxLat = userLat.Value + latDelta;
+            var minLng = userLng.Value - lngDelta;
+            var maxLng = userLng.Value + lngDelta;
 
+            canonicalQuery = canonicalQuery.Where(c => 
+                _context.PurchaseAnalyticsGold.Any(g => 
+                    g.CanonicalItemId == c.Id &&
+                    ((g.Latitude.HasValue && g.Longitude.HasValue &&
+                      g.Latitude >= minLat && g.Latitude <= maxLat &&
+                      g.Longitude >= minLng && g.Longitude <= maxLng) ||
+                     (g.PricingZoneId != null && 
+                      _context.Stores.Any(s => 
+                          s.PricingZoneId == g.PricingZoneId &&
+                          s.Latitude >= minLat && s.Latitude <= maxLat &&
+                          s.Longitude >= minLng && s.Longitude <= maxLng)))));
+        }
+
+        // Join with purchase analytics for popularity scoring
         var results = await canonicalQuery
-            .Select(c => new SuggestionResult
-            {
-                Id = c.Id,
-                Name = c.Name
-            })
-            .Take(limit)
+            .GroupJoin(
+                _context.PurchaseAnalyticsGold,
+                c => c.Id,
+                g => g.CanonicalItemId,
+                (c, purchases) => new
+                {
+                    Item = c,
+                    TotalPurchases = purchases.Count(),
+                    RecentPurchases = purchases.Count(p => p.PurchaseDate >= recentPurchaseCutoff),
+                    LowestPrice = purchases.Min(p => (decimal?)p.UnitPrice),
+                    LowestPriceStore = purchases
+                        .Where(p => p.UnitPrice == purchases.Min(x => x.UnitPrice))
+                        .Select(p => p.StoreName)
+                        .FirstOrDefault()
+                })
             .ToListAsync(cancellationToken);
+
+        // Calculate scores and apply fuzzy matching bonus
+        var scoredResults = results.Select(r =>
+        {
+            var score = 0m;
             
-        return results.OrderBy(r => r.Name).ToList();
+            // Exact match bonus (case-insensitive)
+            if (r.Item.Name.Equals(trimmedQuery, StringComparison.OrdinalIgnoreCase))
+                score += 100;
+            else if (r.Item.Name.StartsWith(trimmedQuery, StringComparison.OrdinalIgnoreCase))
+                score += 50;
+            else if (r.Item.Brand != null && r.Item.Brand.Equals(trimmedQuery, StringComparison.OrdinalIgnoreCase))
+                score += 40;
+            
+            // Popularity scoring: Recent purchases weighted higher
+            score += r.RecentPurchases * 5;  // Recent activity bonus
+            score += r.TotalPurchases * 1;   // Historical popularity
+            
+            // Brand match bonus
+            if (r.Item.Brand != null && r.Item.Brand.Contains(trimmedQuery, StringComparison.OrdinalIgnoreCase))
+                score += 10;
+
+            return new SuggestionResult
+            {
+                Id = r.Item.Id,
+                Name = r.Item.Name,
+                Brand = r.Item.Brand,
+                Category = r.Item.Category,
+                Score = score,
+                PurchaseCount = r.TotalPurchases,
+                LowestPrice = r.LowestPrice,
+                LowestPriceStore = r.LowestPriceStore
+            };
+        })
+        .OrderByDescending(r => r.Score)
+        .ThenBy(r => r.Name)
+        .Take(limit)
+        .ToList();
+
+        return scoredResults;
     }
 
     public async Task<List<string>> GetCategoriesAsync(CancellationToken cancellationToken = default)

@@ -33,11 +33,12 @@ class AttributeExtractor:
         re.IGNORECASE
     )
     
-    # Pack count patterns
+    # Pack count patterns (exclude if the number is part of a size like "170g")
+    # Negative lookahead prevents matching "Pack 170g" or "x 500ml"
     PACK_PATTERN = re.compile(
         r'(?:'
-        r'(\d+)\s*(?:pack|x|pk|pcs?|pieces?|units?|tins?|cans?|bottles?)|'  # "2 pack" or "2x"
-        r'(?:pack|x|pk|pcs?|pieces?|units?|tins?|cans?|bottles?)\s*(\d+)'   # "x 2" or "pack 2"
+        r'(\d+)\s*(?:pack|x|pk|pcs?|pieces?|units?|tins?|cans?|bottles?)(?!\d)|'  # "2 pack" or "2x" but NOT if more digits follow
+        r'(?:pack|x|pk|pcs?|pieces?|units?|tins?|cans?|bottles?)\s*(\d+)(?!\d*\s*(?:g|kg|ml|l)\b)'   # "x 2" but NOT "pack 170g"
         r')',
         re.IGNORECASE
     )
@@ -163,9 +164,16 @@ class AttributeExtractor:
         if brand:
             clean_text = re.sub(re.escape(brand.lower()), '', clean_text, count=1)
         
-        # Remove size
+        # Remove size - use the SIZE_PATTERN to match actual format in text
+        # (size param is normalized with decimal, but text may have different format)
         if size:
-            clean_text = re.sub(re.escape(size.lower()), '', clean_text, count=1)
+            # First try exact match
+            if size.lower() in clean_text:
+                clean_text = clean_text.replace(size.lower(), '', 1)
+            else:
+                # Try removing the entire size pattern again (matches all size formats)
+                # This catches cases like "100g" when size was extracted as "100.0G"
+                clean_text = self.SIZE_PATTERN.sub('', clean_text, count=1)
         
         # Remove pack count indicators
         clean_text = self.PACK_PATTERN.sub('', clean_text)
@@ -173,10 +181,40 @@ class AttributeExtractor:
         # Clean up extra whitespace
         clean_text = re.sub(r'\s+', ' ', clean_text.strip())
         
+        # Apply normalization rules for common product variants
         if clean_text:
-            return clean_text.title()
+            variant_normalized = self._normalize_variant(clean_text, brand)
+            return variant_normalized.title() if variant_normalized else None
         
         return None
+    
+    def _normalize_variant(self, variant: str, brand: Optional[str]) -> Optional[str]:
+        """
+        Apply normalization rules to handle common product naming inconsistencies.
+        
+        Args:
+            variant: Extracted variant text (lowercase)
+            brand: Product brand
+            
+        Returns:
+            Normalized variant text
+        """
+        # Nescafe: "Decaf" without other qualifiers should be "Classic Decaf"
+        # This handles cases where retailers omit "Classic" from the name
+        if brand and 'nescafe' in brand.lower():
+            # Check if it's just "decaf" or "decaf jar/coffee" without "gold" or "classic"
+            variant_lower = variant.lower()
+            has_decaf = 'decaf' in variant_lower
+            has_gold = 'gold' in variant_lower
+            has_classic = 'classic' in variant_lower
+            has_blend = 'blend' in variant_lower
+            
+            if has_decaf and not has_gold and not has_classic and not has_blend:
+                # It's just "Decaf" or "Decaf Jar/Coffee" - normalize to "Classic Decaf"
+                # Replace "decaf" with "classic decaf" to add the missing differentiator
+                variant = re.sub(r'\bdecaf\b', 'classic decaf', variant_lower)
+        
+        return variant
     
     def extract_key_tokens(self, text: str) -> List[str]:
         """
