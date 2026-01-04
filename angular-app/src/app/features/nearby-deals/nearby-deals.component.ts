@@ -125,4 +125,8 @@ export class NearbyDealsComponent implements OnInit {
     hasLocation(deal: Deal): boolean {
         return !!(deal.latitude && deal.longitude);
     }
+
+    navigateToProfile() {
+        this.router.navigate(['/profile']);
+    }
 }

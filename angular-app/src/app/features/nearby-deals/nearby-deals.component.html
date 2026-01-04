@@ -68,23 +68,23 @@
         }
         <!-- Empty State -->
         @else if (deals().length === 0) {
-        <div class="hero bg-base-100 rounded-box p-8 shadow-md">
-            <div class="hero-content text-center">
-                <div class="max-w-md">
-                    <span class="material-icons text-6xl text-base-content/20 mb-4">location_off</span>
-                    <h2 class="text-2xl font-bold">No Deals Found Nearby</h2>
-                    <p class="py-6">
+        <div class="card bg-base-100 shadow-md">
+            <div class="card-body text-center py-8 space-y-4">
+                <span class="material-icons text-4xl text-base-content/20">local_offer</span>
+                <div class="space-y-2">
+                    <p class="font-semibold text-base-content">No deals found nearby</p>
+                    <p class="text-sm text-base-content/60">
                         @if (userLocation()) {
-                        No deals found within {{ radius() }}km of your location.
+                        Try increasing your search distance in your profile settings to see more deals from stores further away.
                         } @else {
-                        Enable location access to see deals near you.
+                        Enable location access to find deals near you.
                         }
                     </p>
-                    <button class="btn btn-primary" routerLink="/camera">
-                        <span class="material-icons">photo_camera</span>
-                        Scan Receipt to Contribute
-                    </button>
                 </div>
+                <button class="btn btn-sm btn-outline btn-primary" (click)="navigateToProfile()">
+                    <span class="material-icons text-sm">settings</span>
+                    Update Profile Settings
+                </button>
             </div>
         </div>
         }
