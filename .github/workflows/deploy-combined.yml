@@ -239,6 +239,11 @@ jobs:
       - name: Build and Push LLM Service to ECR
         run: |
           echo "🏗️ Building and pushing LLM Service..."
+          
+          # Copy shared-lib into llm_service directory for Docker build context
+          echo "📦 Preparing shared-lib for build context..."
+          cp -r shared-lib llm_service/shared-lib
+          
           cd llm_service
           
           # Enable BuildKit for better caching
@@ -267,6 +272,11 @@ jobs:
           docker rmi ${{ steps.secrets.outputs.llm_service_repo }}:latest \
             ${{ steps.secrets.outputs.llm_service_repo }}:${{ github.sha }} \
             ${{ steps.secrets.outputs.llm_service_repo }}:cache 2>/dev/null || true
+          
+          # Clean up shared-lib copy from build context
+          cd ..
+          rm -rf llm_service/shared-lib
+          
           df -h
 
       - name: Create environment files

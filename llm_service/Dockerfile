@@ -4,7 +4,7 @@ FROM python:3.11-slim as builder
 WORKDIR /app
 
 # Copy shared library first
-COPY ../shared-lib /shared-lib
+COPY shared-lib /shared-lib
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
