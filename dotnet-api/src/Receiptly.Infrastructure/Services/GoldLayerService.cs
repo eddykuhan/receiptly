@@ -33,6 +33,32 @@ public class GoldLayerService : IGoldLayerService
 
         try
         {
+            // Verify all CanonicalItemIds exist before inserting
+            var canonicalItemIds = items
+                .Where(i => i.CanonicalItemId.HasValue)
+                .Select(i => i.CanonicalItemId!.Value)
+                .Distinct()
+                .ToList();
+
+            HashSet<Guid> existingCanonicalIds = new();
+            if (canonicalItemIds.Any())
+            {
+                existingCanonicalIds = (await _context.Set<CanonicalItem>()
+                    .Where(c => canonicalItemIds.Contains(c.Id))
+                    .Select(c => c.Id)
+                    .ToListAsync(cancellationToken))
+                    .ToHashSet();
+
+                var missingIds = canonicalItemIds.Except(existingCanonicalIds).ToList();
+                if (missingIds.Any())
+                {
+                    _logger.LogWarning(
+                        "Found {Count} items with non-existent CanonicalItemIds: {Ids}. Setting to null.",
+                        missingIds.Count,
+                        string.Join(", ", missingIds));
+                }
+            }
+
             var goldRecords = items.Select(item => new PurchaseAnalyticsGold
             {
                 Id = Guid.NewGuid(),
@@ -43,7 +69,9 @@ public class GoldLayerService : IGoldLayerService
                 // Item details
                 ItemName = item.Name,
                 CanonicalName = item.CanonicalName,
-                CanonicalItemId = item.CanonicalItemId,
+                CanonicalItemId = item.CanonicalItemId.HasValue && existingCanonicalIds.Contains(item.CanonicalItemId.Value)
+                    ? item.CanonicalItemId
+                    : null, // Set to null if canonical item doesn't exist
                 UnitPrice = item.UnitPrice ?? item.Price,
                 TotalPrice = item.TotalPrice ?? (item.UnitPrice ?? item.Price) * item.Quantity,
                 Quantity = item.Quantity,
