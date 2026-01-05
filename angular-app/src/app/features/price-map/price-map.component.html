@@ -190,7 +190,14 @@
                                                 [class.bg-warning]="getPriceTier(result.price) === 'yellow'"
                                                 [class.bg-error]="getPriceTier(result.price) === 'red'"></span>
                                         </div>
-                                        <h3 class="font-bold text-sm truncate">{{ result.store.name }}</h3>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <h3 class="font-bold text-sm truncate">{{ result.store.name }}</h3>
+                                            @if (result.status === 1) {
+                                            <span class="badge badge-success badge-xs gap-1 flex-shrink-0 tooltip" data-tip="Verified from receipt">
+                                                <span class="material-icons" style="font-size: 10px;">verified</span>
+                                            </span>
+                                            }
+                                        </div>
                                         <p class="text-xs text-base-content/60 truncate">{{ result.store.address }}</p>
                                         @if (result.distance) {
                                         <p class="text-xs text-base-content/50 mt-1">{{ result.distance.toFixed(1) }} km
@@ -210,13 +217,21 @@
 
                     <ng-template #itemsList>
                         <div *ngFor="let it of searchResults()" class="card bg-base-200 p-3">
-                            <div class="flex items-center justify-between">
-                                <div class="min-w-0 pr-2">
-                                    <div class="font-medium text-sm truncate">{{ it.itemName || 'Item' }}</div>
-                                    <div class="text-xs text-base-content/50">Updated {{
-                                        getRelativeTime(it.lastPurchaseDate) }}</div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium text-sm mb-1">{{ it.itemName || 'Item' }}</div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <div class="text-xs text-base-content/50">Updated {{
+                                            getRelativeTime(it.lastPurchaseDate) }}</div>
+                                        @if (it.status === 1) {
+                                        <span class="badge badge-success badge-xs gap-1 tooltip" data-tip="Verified from receipt">
+                                            <span class="material-icons" style="font-size: 10px;">verified</span>
+                                            Verified
+                                        </span>
+                                        }
+                                    </div>
                                 </div>
-                                <div class="text-right">
+                                <div class="text-right flex-shrink-0">
                                     <div class="font-mono font-bold text-primary">{{ it.price | myr }}</div>
                                 </div>
                             </div>
@@ -281,7 +296,14 @@
                                     @if (getPriceTier(result.price) === 'green') {
                                     <span class="badge badge-success badge-sm mb-1">Cheapest</span>
                                     }
-                                    <h3 class="font-bold text-sm">{{ result.store.name }}</h3>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="font-bold text-sm">{{ result.store.name }}</h3>
+                                        @if (result.status === 1) {
+                                        <span class="badge badge-success badge-xs gap-1 flex-shrink-0 tooltip" data-tip="Verified from receipt">
+                                            <span class="material-icons" style="font-size: 10px;">verified</span>
+                                        </span>
+                                        }
+                                    </div>
                                     <div class="flex items-center gap-2 mt-1">
                                         <div class="tooltip tooltip-right" [attr.data-tip]="result.store.address">
                                             <button class="btn btn-ghost btn-xs btn-circle">
@@ -307,13 +329,21 @@
 
                 <ng-template #mobileItemsList>
                     <div *ngFor="let it of searchResults()" class="card bg-base-200 p-3">
-                        <div class="flex items-center justify-between">
-                            <div class="min-w-0 pr-2">
-                                <div class="font-medium text-sm truncate">{{ it.itemName || 'Item' }}</div>
-                                <div class="text-xs text-base-content/50">Updated {{
-                                    getRelativeTime(it.lastPurchaseDate) }}</div>
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium text-sm mb-1">{{ it.itemName || 'Item' }}</div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <div class="text-xs text-base-content/50">Updated {{
+                                        getRelativeTime(it.lastPurchaseDate) }}</div>
+                                    @if (it.status === 1) {
+                                    <span class="badge badge-success badge-xs gap-1 tooltip" data-tip="Verified from receipt">
+                                        <span class="material-icons" style="font-size: 10px;">verified</span>
+                                        Verified
+                                    </span>
+                                    }
+                                </div>
                             </div>
-                            <div class="text-right">
+                            <div class="text-right flex-shrink-0">
                                 <div class="font-mono font-bold text-primary">{{ it.price | myr }}</div>
                             </div>
                         </div>

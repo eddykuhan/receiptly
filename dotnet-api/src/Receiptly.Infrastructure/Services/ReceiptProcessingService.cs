@@ -450,6 +450,12 @@ public class ReceiptProcessingService : IReceiptProcessingService
         // Extract Google Places metadata
         if (ocrResponse.Metadata != null)
         {
+            // Extract Branch Name
+            if (ocrResponse.Metadata.TryGetValue("matched_branch", out var branchName))
+            {
+                receipt.BranchName = branchName?.ToString();
+            }
+            
             // Extract Latitude
             if (ocrResponse.Metadata.TryGetValue("latitude", out var lat) && 
                 double.TryParse(lat?.ToString(), out var latitude))
