@@ -7,7 +7,7 @@ WORKDIR /app
 COPY shared-lib /shared-lib
 
 # Copy requirements and install dependencies
-COPY llm_service/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Install shared library from local path
