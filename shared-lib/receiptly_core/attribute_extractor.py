@@ -27,8 +27,8 @@ class AttributeExtractor:
     
     # Size patterns (matches common units)
     SIZE_PATTERN = re.compile(
-        r'(\d+(?:\.\d+)?)\s*(l|litre|liter|ml|milliliter|millilitre|'
-        r'kg|kilogram|kilograms|g|gram|grams|oz|ounce|lb|pound|'
+        r'(\d+(?:\.\d+)?)\s*(l|lt|ltr|litre|liter|ml|milliliter|millilitre|'
+        r'kg|kilogram|kilograms|g|gm|gram|grams|oz|ounce|lb|pound|'
         r'pack|pkt|sachet)s?\b',
         re.IGNORECASE
     )
@@ -105,10 +105,10 @@ class AttributeExtractor:
         if unit in ['ml', 'milliliter', 'millilitre']:
             normalized_value = value / 1000
             normalized_unit = 'L'
-        elif unit in ['l', 'liter', 'litre']:
+        elif unit in ['l', 'lt', 'ltr', 'liter', 'litre']:
             normalized_value = value
             normalized_unit = 'L'
-        elif unit in ['g', 'gram', 'grams']:
+        elif unit in ['g', 'gm', 'gram', 'grams']:
             normalized_value = value / 1000
             normalized_unit = 'kg'
         elif unit in ['kg', 'kilogram', 'kilograms']:
