@@ -11,6 +11,7 @@ import logging
 from playwright.sync_api import sync_playwright, Page, Browser
 
 from scrapers.base_scraper import BaseScraper
+from etl_transformers.category_normalizer import normalize_category
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +257,7 @@ class AeonScraper(BaseScraper):
             return {
                 'item_name': item_name,
                 'unit_price': float(price),
-                'category': category,
+                'category': normalize_category(category),  # Normalize category
                 'brand': variant.get('brandingText', ''),
                 'sku': entity.get('sku', ''),
                 'available': available,

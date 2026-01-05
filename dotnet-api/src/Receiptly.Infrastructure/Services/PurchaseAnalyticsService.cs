@@ -13,13 +13,16 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
 
     private readonly ApplicationDbContext _context;
     private readonly ILogger<PurchaseAnalyticsService> _logger;
+    private readonly CategoryNormalizationService _categoryNormalization;
 
     public PurchaseAnalyticsService(
         ApplicationDbContext context,
-        ILogger<PurchaseAnalyticsService> logger)
+        ILogger<PurchaseAnalyticsService> logger,
+        CategoryNormalizationService categoryNormalization)
     {
         _context = context;
         _logger = logger;
+        _categoryNormalization = categoryNormalization;
     }
 
     public async Task<PurchaseAnalyticsResult> GetPurchasesAsync(
@@ -518,13 +521,15 @@ public class PurchaseAnalyticsService : IPurchaseAnalyticsService
 
     public async Task<List<string>> GetCategoriesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.PurchaseAnalyticsGold
+        var rawCategories = await _context.PurchaseAnalyticsGold
             .AsNoTracking()
             .Where(g => g.Category != null)
             .Select(g => g.Category!)
             .Distinct()
-            .OrderBy(c => c)
             .ToListAsync(cancellationToken);
+
+        // Normalize and deduplicate categories
+        return _categoryNormalization.NormalizeAndDeduplicate(rawCategories);
     }
 
     public async Task<List<StoreStats>> GetNearbyStoresAsync(

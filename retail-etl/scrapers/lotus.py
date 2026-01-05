@@ -12,6 +12,7 @@ import logging
 import os
 
 from scrapers.base_scraper import BaseScraper
+from etl_transformers.category_normalizer import normalize_category
 
 logger = logging.getLogger(__name__)
 
@@ -296,7 +297,7 @@ class LotusScraper(BaseScraper):
             record = {
                 'item_name': product.get('name', '').strip(),
                 'unit_price': float(final_price),
-                'category': category,
+                'category': normalize_category(category),  # Normalize category
                 'brand': brand,
                 'sku': product.get('sku', ''),
                 'available': product.get('stockStatus') == 'IN_STOCK',
