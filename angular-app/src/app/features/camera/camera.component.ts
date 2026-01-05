@@ -283,7 +283,7 @@ export class CameraComponent {
     const ctx = canvas.getContext('2d')!;
     ctx.drawImage(video, 0, 0);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
     this.stopCamera();
 
     const blob = await (await fetch(dataUrl)).blob();

@@ -192,7 +192,7 @@ export class OpenCVService {
     return cv.matFromImageData(imageData);
   }
 
-  private async matToBlob(mat: any, type: string = 'image/png', quality: number = 1): Promise<Blob> {
+  private async matToBlob(mat: any, type: string = 'image/jpeg', quality: number = 0.95): Promise<Blob> {
     const canvas = document.createElement('canvas');
     canvas.width = mat.cols;
     canvas.height = mat.rows;

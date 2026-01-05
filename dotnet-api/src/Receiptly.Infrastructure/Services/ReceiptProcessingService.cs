@@ -2,6 +2,8 @@ using Receiptly.Core.Services;
 using Receiptly.Core.Interfaces;
 using Receiptly.Domain.Models;
 using Receiptly.Infrastructure.Services;
+using Receiptly.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -16,6 +18,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
     private readonly ILogger<ReceiptProcessingService> _logger;
     private readonly CanonicalizationService _canonicalizationService;
     private readonly IGoldLayerService _goldLayerService;
+    private readonly ApplicationDbContext _context;
 
     public ReceiptProcessingService(
         S3StorageService s3Storage, 
@@ -24,6 +27,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
         IImageHashService imageHashService,
         CanonicalizationService canonicalizationService,
         IGoldLayerService goldLayerService,
+        ApplicationDbContext context,
         ILogger<ReceiptProcessingService> logger)
     {
         _s3Storage = s3Storage;
@@ -32,6 +36,7 @@ public class ReceiptProcessingService : IReceiptProcessingService
         _imageHashService = imageHashService;
         _canonicalizationService = canonicalizationService;
         _goldLayerService = goldLayerService;
+        _context = context;
         _logger = logger;
     }
 
@@ -677,12 +682,39 @@ public class ReceiptProcessingService : IReceiptProcessingService
 
                 item.Price = price;
 
-                // Canonicalize name
+                // Canonicalize name and verify canonical item exists
                 if (!string.IsNullOrWhiteSpace(item.Name))
                 {
-                    var canonResult = await _canonicalizationService.GetCanonicalNameAsync(item.Name);
-                    item.CanonicalName = canonResult.CanonicalName;
-                    item.CanonicalItemId = canonResult.CanonicalItemId;
+                    try
+                    {
+                        var canonResult = await _canonicalizationService.GetCanonicalNameAsync(item.Name);
+                        item.CanonicalName = canonResult.CanonicalName;
+                        
+                        // Only set CanonicalItemId if it exists and is valid
+                        // Note: LLM service should create the canonical_item record, but verify it exists
+                        if (canonResult.CanonicalItemId.HasValue && canonResult.CanonicalItemId.Value != Guid.Empty)
+                        {
+                            // Verify the canonical item exists in the database before assigning
+                            var exists = await _context.Set<CanonicalItem>()
+                                .AnyAsync(c => c.Id == canonResult.CanonicalItemId.Value);
+                            
+                            if (exists)
+                            {
+                                item.CanonicalItemId = canonResult.CanonicalItemId.Value;
+                            }
+                            else
+                            {
+                                _logger.LogWarning(
+                                    "Canonical item {CanonicalItemId} returned by LLM service does not exist in database. Item: {ItemName}",
+                                    canonResult.CanonicalItemId.Value, item.Name);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error canonicalizing item: {ItemName}", item.Name);
+                        // Continue without canonical data rather than failing the whole receipt
+                    }
                 }
 
                 items.Add(item);
