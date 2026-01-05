@@ -19,6 +19,7 @@ export interface StoreWithPrice {
     lastPurchaseDate: Date;
     distance?: number;
     itemName?: string; // Add itemName for nearby items display
+    status?: number; // Receipt validation status (1 = Validated)
 }
 
 export interface ProductSuggestion {
@@ -31,6 +32,7 @@ interface PurchaseAnalyticsMetadataDto {
     storePhoneNumber?: string;
     latitude?: number;
     longitude?: number;
+    status?: number;
 }
 
 interface PurchaseAnalyticsItemDto {
@@ -267,7 +269,8 @@ export class PriceMapService {
                     store: storeLocation,
                     price: finalPrice,
                     lastPurchaseDate: purchaseDate,
-                    itemName: itemName || undefined
+                    itemName: itemName || undefined,
+                    status: metadata?.status
                 });
             } else {
                 // If same store and date, take minimum price
@@ -278,7 +281,8 @@ export class PriceMapService {
                     price: updatedPrice,
                     lastPurchaseDate: purchaseDate,
                     distance: existing.distance,
-                    itemName: existing.itemName || itemName || undefined
+                    itemName: existing.itemName || itemName || undefined,
+                    status: metadata?.status
                 });
             }
         });

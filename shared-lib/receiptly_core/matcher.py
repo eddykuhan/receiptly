@@ -6,9 +6,15 @@ from candidate pool.
 """
 from typing import Dict, List, Optional, Tuple
 from fuzzywuzzy import fuzz
-from sentence_transformers import SentenceTransformer
-import numpy as np
-import torch
+
+try:
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+    import torch
+    HAS_SENTENCE_TRANSFORMERS = True
+except ImportError:
+    HAS_SENTENCE_TRANSFORMERS = False
+    SentenceTransformer = None
 
 
 class AmazonStyleMatcher:
@@ -25,9 +31,14 @@ class AmazonStyleMatcher:
         
         Args:
             embedding_model: SentenceTransformer for text similarity
-                            (defaults to 'all-MiniLM-L6-v2')
+                            If None and SentenceTransformers available, uses 'all-MiniLM-L6-v2'
+                            If SentenceTransformers not available, falls back to fuzzy matching
         """
-        if embedding_model is None:
+        self.embedding_model = None
+        
+        if embedding_model is not None:
+            self.embedding_model = embedding_model
+        elif HAS_SENTENCE_TRANSFORMERS:
             # Auto-detect and use GPU if available
             if torch.cuda.is_available():
                 device = 'cuda'
@@ -39,7 +50,7 @@ class AmazonStyleMatcher:
             self.embedding_model.encode(['test'], show_progress_bar=False)  # Set default
             print(f"[Matcher] Using device: {device}")
         else:
-            self.embedding_model = embedding_model
+            print("[Matcher] SentenceTransformers not available, using fuzzy matching for text similarity")
     
     def find_best_match(
         self,
@@ -335,7 +346,7 @@ class AmazonStyleMatcher:
             return max(0.0, 1.0 - diff)
     
     def _score_text_similarity(self, query_text: str, candidate_text: str) -> float:
-        """Score text similarity using embeddings (0.0 to 1.0)."""
+        """Score text similarity using embeddings or fuzzy matching (0.0 to 1.0)."""
         if not query_text or not candidate_text:
             return 0.0
         
@@ -343,11 +354,26 @@ class AmazonStyleMatcher:
         query_normalized = ' '.join(query_text.replace('-', ' ').split())
         candidate_normalized = ' '.join(candidate_text.replace('-', ' ').split())
         
-        # Generate embeddings
-        query_emb = self.embedding_model.encode([query_normalized], show_progress_bar=False)[0]
-        candidate_emb = self.embedding_model.encode([candidate_normalized], show_progress_bar=False)[0]
+        # Use embeddings if available, otherwise fall back to fuzzy matching
+        if self.embedding_model is not None:
+            try:
+                # Generate embeddings
+                query_emb = self.embedding_model.encode([query_normalized], show_progress_bar=False)[0]
+                candidate_emb = self.embedding_model.encode([candidate_normalized], show_progress_bar=False)[0]
+                
+                # Cosine similarity
+                import numpy as np
+                similarity = np.dot(query_emb, candidate_emb) / (
+                    np.linalg.norm(query_emb) * np.linalg.norm(candidate_emb)
+                )
+                return float(similarity)
+            except Exception as e:
+                print(f"[Matcher] Embedding failed, falling back to fuzzy matching: {e}")
+                # Fall through to fuzzy matching
         
-        # Cosine similarity
+        # Fallback: Use fuzzy matching (faster, no ML dependencies)
+        similarity = fuzz.ratio(query_normalized, candidate_normalized) / 100.0
+        return similarity
         similarity = np.dot(query_emb, candidate_emb) / (
             np.linalg.norm(query_emb) * np.linalg.norm(candidate_emb)
         )

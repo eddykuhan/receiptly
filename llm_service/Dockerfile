@@ -1,5 +1,5 @@
 # Build stage
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY shared-lib /shared-lib
 
 # Copy requirements and install dependencies
-COPY requirements.txt .
+COPY llm_service/requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Install shared library from local path
@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=builder /root/.local /root/.local
 
 # Copy application code
-COPY . .
+COPY llm_service/ .
 
 # Make sure scripts in .local are usable
 ENV PATH=/root/.local/bin:$PATH

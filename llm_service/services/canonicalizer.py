@@ -4,7 +4,7 @@ import logging
 import time
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from sentence_transformers import SentenceTransformer
+from openai import AsyncOpenAI
 
 # Import from shared library
 from receiptly_core import AttributeExtractor, AmazonStyleMatcher, CandidateGenerator, normalize_text
@@ -19,11 +19,27 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 llm = LLMClient()
-model = SentenceTransformer('all-MiniLM-L6-v2')
+openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 attribute_extractor = AttributeExtractor()
-matcher = AmazonStyleMatcher(embedding_model=model)
 
-logger.info("Canonicalizer service initialized with receiptly-core (AttributeExtractor + AmazonStyleMatcher)")
+# Initialize matcher without SentenceTransformers (will use fuzzy matching for text similarity)
+matcher = AmazonStyleMatcher(embedding_model=None)
+
+logger.info("Canonicalizer service initialized with receiptly-core (AttributeExtractor + AmazonStyleMatcher + OpenAI embeddings)")
+
+
+async def get_embedding(text: str) -> list[float]:
+    """Generate embedding using OpenAI's text-embedding-3-small model with 384 dimensions."""
+    try:
+        response = await openai_client.embeddings.create(
+            model="text-embedding-3-small",
+            input=text,
+            dimensions=384  # Match existing database vector size
+        )
+        return response.data[0].embedding
+    except Exception as e:
+        logger.error(f"Failed to generate embedding for '{text}': {e}")
+        raise
 
 def get_db_connection():
     try:
@@ -56,6 +72,7 @@ async def find_similar_item(clean_name: str, category: str = "Unknown"):
     
     # Step 1: Extract structured attributes
     query_attrs = attribute_extractor.extract_all_attributes(clean_name)
+    query_attrs['item_name'] = clean_name  # Add original name for text similarity scoring
     logger.debug(f"Extracted attributes: {query_attrs}")
     
     conn = get_db_connection()
@@ -87,11 +104,12 @@ async def find_similar_item(clean_name: str, category: str = "Unknown"):
         if best_match:
             canonical_id = str(best_match['id'])
             logger.info(f"Match found: {canonical_id} (score: {score:.3f})")
-            logger.debug(f"Score breakdown: {breakdown}")
+            logger.info(f"Score breakdown: {breakdown}")
             return canonical_id
         
         # Step 5: No viable match, create new item
         logger.info(f"No match above threshold (best score: {score:.3f}), creating new item")
+        logger.info(f"Best score breakdown: {breakdown}")
         return await _create_new_canonical_item(conn, clean_name, category, query_attrs)
         
     except Exception as e:
@@ -111,20 +129,23 @@ async def _create_new_canonical_item(conn, clean_name: str, category: str, attri
     with conn.cursor() as cur:
         cur.execute('''
             INSERT INTO canonical_items (
-                "Id", "Name", "Category", "Brand", "Size", "PackCount", 
-                "Variant", "CreatedAt", "UpdatedAt"
+                "Id", "Name", "Category", "Brand", "Size", "SizeNormalized", "SizeUnit",
+                "PackCount", "Variant", "NameTokens", "CreatedAt", "UpdatedAt"
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
         ''', (
             new_id, norm, category,
             attributes.get('brand'),
-            attributes.get('size_normalized'),
+            attributes.get('size'),  # Original size (e.g., "1.0L")
+            attributes.get('size_normalized'),  # Normalized value (e.g., 1.0)
+            attributes.get('size_unit'),  # Normalized unit (e.g., "L")
             attributes.get('pack_count', 1),
-            attributes.get('variant')
+            attributes.get('variant'),
+            attributes.get('name_tokens')  # List of key tokens for matching
         ))
         
-        # Store embedding
-        embedding = model.encode(norm).tolist()
+        # Store embedding using OpenAI
+        embedding = await get_embedding(norm)
         cur.execute('''
             INSERT INTO canonical_item_embeddings ("CanonicalItemId", "Embedding", "CreatedAt")
             VALUES (%s, %s::vector, NOW())

@@ -82,6 +82,9 @@ public class ApplicationDbContext : DbContext
                 .HasColumnType("decimal(18,2)");
             
             // Optional string fields
+            entity.Property(e => e.BranchName)
+                .HasMaxLength(200);
+            
             entity.Property(e => e.StorePhoneNumber)
                 .HasMaxLength(50);
             

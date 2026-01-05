@@ -222,17 +222,24 @@ async def api_generate_embedding(body: dict):
     
     Response:
     {
-        "embedding": [0.123, -0.456, ...]  // 384-dimensional vector
+        "embedding": [0.123, -0.456, ...]  // OpenAI text-embedding-3-small (1536 dimensions)
     }
     """
-    from sentence_transformers import SentenceTransformer
+    from openai import AsyncOpenAI
+    from config import get_settings
     
     text = body.get("text", "")
     if not text:
         raise HTTPException(status_code=400, detail="Text is required")
     
-    # Use the same model as canonicalizer
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    embedding = model.encode(text).tolist()
+    # Use OpenAI embeddings (same as canonicalizer)
+    settings = get_settings()
+    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    response = await client.embeddings.create(
+        model="text-embedding-3-small",
+        input=text,
+        dimensions=384  # Match database vector size
+    )
+    embedding = response.data[0].embedding
     
     return {"embedding": embedding}
