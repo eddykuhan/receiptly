@@ -53,8 +53,6 @@ export class CameraService {
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
       source: CameraSource.Camera,
-      width: 1920,
-      correctOrientation: true
     });
     
     return this.processPhoto(image);
@@ -71,8 +69,6 @@ export class CameraService {
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
       source: CameraSource.Photos,
-      width: 1920,
-      correctOrientation: true
     });
     
     return this.processPhoto(image);
