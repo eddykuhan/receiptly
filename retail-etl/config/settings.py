@@ -41,7 +41,7 @@ SCRAPERS = [
     {
         'scraper_class': LotusScraper,
         'store_url': 'https://api-o2o.lotuss.com.my/lotuss-mobile-bff',
-        'max_pages': 100,
+        'max_products': None,  # None = scrape all products
         'pricing_zone_id': 'LOTUSS_NATIONAL',
         # Lotus scraper uses GROCERY_CATEGORIES defined in scraper class (25 categories)
     },

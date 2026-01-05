@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'store-sc
 
 from jaya_grocer_scraper import JayaGrocerScraper as OriginalScraper
 from scrapers.base_scraper import BaseScraper
+from etl_transformers.category_normalizer import normalize_category
 from typing import List, Dict
 
 
@@ -55,7 +56,7 @@ class JayaGrocerScraper(BaseScraper):
             record = {
                 'item_name': item_name,
                 'unit_price': product['unit_price'],
-                'category': product.get('category', 'Unknown'),
+                'category': normalize_category(product.get('category', 'Unknown')),
                 'brand': product.get('brand', ''),
                 'sku': product.get('sku', ''),
                 'available': product.get('available', True),

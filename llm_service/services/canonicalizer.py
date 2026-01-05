@@ -145,8 +145,23 @@ async def canonicalize_item(raw: str) -> dict:
     logger.debug("Checking memory cache")
     cached = get_cached(raw)
     if cached and isinstance(cached, dict):
-        logger.info(f"Cache hit for '{raw}': {cached['canonical_item_id']} ({time.time() - start_time:.2f}s)")
-        return cached
+        # Verify cached canonical ID still exists in database
+        canonical_id = cached.get('canonical_item_id')
+        if canonical_id:
+            conn = get_db_connection()
+            try:
+                with conn.cursor() as cur:
+                    cur.execute('SELECT 1 FROM canonical_items WHERE "Id" = %s', (canonical_id,))
+                    exists = cur.fetchone() is not None
+                    
+                if exists:
+                    logger.info(f"✅ Cache hit for '{raw}': {canonical_id} ({time.time() - start_time:.2f}s)")
+                    return cached
+                else:
+                    logger.warning(f"⚠️ Cached canonical ID {canonical_id} no longer exists in database. Invalidating cache.")
+                    # Cache is stale, continue to re-canonicalize
+            finally:
+                conn.close()
 
     logger.debug("Cache miss, proceeding with canonicalization")
 

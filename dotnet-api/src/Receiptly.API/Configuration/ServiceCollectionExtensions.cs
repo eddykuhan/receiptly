@@ -269,6 +269,7 @@ public static class ServiceCollectionExtensions
 
         // LLM Services - configuration added via AddLlmService method
         services.AddScoped<CanonicalizationService>();
+        services.AddScoped<CategoryNormalizationService>();
         services.AddScoped<IChatService, ChatService>();
 
         // AutoMapper

@@ -139,12 +139,11 @@ class ETLManager:
         """
         Transform records with canonicalization using Amazon-style approach.
         Scraped items are processed as MASTERS (IsMaster=true) in batches.
-        Supports resume from checkpoint after interruption.
         
         Args:
             records: Raw scraped records to transform
             batch_size: Number of records per batch
-            checkpoint_data: Previously transformed records to skip
+            checkpoint_data: Not used in chunked mode (kept for compatibility)
         """
         # Step 1: Check database for items already processed in previous runs
         logger.info("Checking database for existing items...")
@@ -169,25 +168,17 @@ class ETLManager:
         
         logger.info(f"Found {len(already_processed)} items already in database, {len(new_records)} new items to process")
         
-        # Step 2: Load previously transformed records from checkpoint (current run)
-        transformed = checkpoint_data.get('transformed', []) if checkpoint_data else []
-        checkpoint_count = len(transformed)
-        
-        if checkpoint_count > 0:
-            logger.info(f"Resuming from checkpoint: {checkpoint_count} records already transformed in this run")
-            new_records = new_records[checkpoint_count:]  # Skip already processed in current run
-        
-        # Combine already-processed items with checkpoint items
-        all_transformed = already_processed + transformed
+        # Combine already-processed items
+        all_transformed = already_processed[:]
         
         total = len(new_records)
         if total == 0:
-            logger.info("All records already processed (from database or checkpoint)")
+            logger.info("All records already processed in database")
             return all_transformed
         
-        logger.info(f"Transforming {total} remaining new records...")
+        logger.info(f"Transforming {total} new records in batches of {batch_size}...")
         
-        # Step 3: Process new records
+        # Step 2: Process new records
         for i in range(0, total, batch_size):
             batch = new_records[i:i + batch_size]
             try:
@@ -201,30 +192,36 @@ class ETLManager:
                     all_transformed.append(record)
                     self.stats['canonicalized'] += 1
                 
-                # Save checkpoint after each batch (only new transformed items)
-                self.save_checkpoint({'transformed': transformed + batch})
-                
-                logger.info(f"Transform Progress: {min(i + batch_size, total)}/{total} new products...")
+                if (i + batch_size) % 100 == 0 or i + batch_size >= total:
+                    logger.info(f"Transform Progress: {min(i + batch_size, total)}/{total} new products...")
                 
             except Exception as e:
                 logger.error(f"Error in batch transformation at batch {i}: {e}")
                 logger.exception(e)
                 self.stats['errors'] += 1
-                # Save checkpoint even on error so we can resume
-                self.save_checkpoint({'transformed': transformed + batch[:len(canonical_ids)] if 'canonical_ids' in locals() else transformed})
-                raise  # Re-raise to stop pipeline but keep checkpoint
+                raise  # Re-raise to stop pipeline
         
-        logger.info(f"Successfully processed {len(all_transformed)} total products ({len(already_processed)} from DB, {len(all_transformed) - len(already_processed)} newly canonicalized)")
+        logger.info(f"✓ Transformed {len(all_transformed)} total products ({len(already_processed)} from DB, {total} newly canonicalized)")
         
         # Ensure all canonical items are committed before load phase
         logger.info("Flushing canonical items to database...")
         try:
-            self.canonicalizer.connect()  # Ensure connection is alive
-            self.canonicalizer.conn.commit()  # Final commit
+            # Check connection health before commit
+            self.canonicalizer.connect()
+            with self.canonicalizer.conn.cursor() as cur:
+                cur.execute("SELECT 1")  # Health check
+            self.canonicalizer.conn.commit()
             logger.info("✓ All canonical items committed")
         except Exception as e:
             logger.error(f"Error committing canonical items: {e}")
-            raise
+            logger.error("Connection may have been lost. Attempting reconnect...")
+            try:
+                self.canonicalizer.connect()
+                self.canonicalizer.conn.commit()
+                logger.info("✓ Reconnected and committed")
+            except Exception as e2:
+                logger.error(f"Reconnect failed: {e2}")
+                raise
         
         return all_transformed
     
@@ -248,14 +245,26 @@ class ETLManager:
             self.stats['errors'] += 1
             return {'inserted': 0, 'skipped': 0, 'total': 0}
     
-    def run_pipeline(self):
-        """Execute the full ETL pipeline for all configured scrapers."""
+    def run_pipeline(self, chunk_size: int = 1000):
+        """
+        Execute the full ETL pipeline for all configured scrapers with chunked processing.
+        
+        Processes data in chunks to avoid connection timeouts and memory issues:
+        1. Scrape all data
+        2. Split into chunks (default 1000 items)
+        3. For each chunk: transform → load → commit
+        
+        Args:
+            chunk_size: Number of items to process per chunk (default 1000)
+        """
         logger.info("=" * 60)
         logger.info(f"Starting ETL pipeline at {datetime.utcnow().isoformat()}")
+        logger.info(f"Chunk size: {chunk_size} items per batch")
         logger.info("=" * 60)
         
         # Check for existing checkpoint
         checkpoint_data = self.load_checkpoint()
+        chunks_completed = checkpoint_data.get('chunks_completed', 0) if checkpoint_data else 0
         
         all_records = []
         
@@ -268,19 +277,51 @@ class ETLManager:
             logger.warning("No records scraped. Exiting.")
             return
         
-        # Transform: Canonicalize (with resume support)
-        try:
-            transformed_records = self.transform(all_records, checkpoint_data=checkpoint_data)
-        except Exception as e:
-            logger.error(f"Transform failed: {e}. Checkpoint saved for resume.")
-            self.canonicalizer.close()
-            self.loader.close()
-            raise
+        # Split into chunks
+        total_records = len(all_records)
+        num_chunks = (total_records + chunk_size - 1) // chunk_size  # Ceiling division
+        logger.info(f"Processing {total_records} records in {num_chunks} chunks of {chunk_size}")
         
-        # Load: Insert into database
-        load_result = self.load(transformed_records)
+        total_loaded = 0
+        total_skipped = 0
         
-        # Clear checkpoint after successful load
+        # Process each chunk: transform → load immediately
+        for chunk_idx in range(chunks_completed, num_chunks):
+            start_idx = chunk_idx * chunk_size
+            end_idx = min(start_idx + chunk_size, total_records)
+            chunk_records = all_records[start_idx:end_idx]
+            
+            logger.info("=" * 60)
+            logger.info(f"Processing Chunk {chunk_idx + 1}/{num_chunks} (items {start_idx + 1}-{end_idx})")
+            logger.info("=" * 60)
+            
+            try:
+                # Transform this chunk
+                transformed_chunk = self.transform(chunk_records, checkpoint_data=None)
+                
+                # Immediately load this chunk
+                load_result = self.load(transformed_chunk)
+                total_loaded += load_result.get('inserted', 0)
+                total_skipped += load_result.get('skipped', 0)
+                
+                # Update checkpoint
+                self.save_checkpoint({
+                    'chunks_completed': chunk_idx + 1,
+                    'total_chunks': num_chunks,
+                    'records_loaded': total_loaded,
+                    'records_skipped': total_skipped
+                })
+                
+                logger.info(f"✓ Chunk {chunk_idx + 1}/{num_chunks} completed: {load_result.get('inserted', 0)} loaded, {load_result.get('skipped', 0)} skipped")
+                
+            except Exception as e:
+                logger.error(f"Error processing chunk {chunk_idx + 1}: {e}")
+                logger.error(f"Checkpoint saved. Resume from chunk {chunk_idx + 1}")
+                self.canonicalizer.close()
+                self.loader.close()
+                raise
+        
+        # Clear checkpoint after successful completion
         self.clear_checkpoint()
         
         # Cleanup
@@ -292,8 +333,8 @@ class ETLManager:
         logger.info("ETL Pipeline Summary:")
         logger.info(f"  Scraped: {self.stats['scraped']} products")
         logger.info(f"  Canonicalized: {self.stats['canonicalized']} products")
-        logger.info(f"  Loaded: {self.stats['loaded']} new records")
-        logger.info(f"  Skipped: {load_result.get('skipped', 0)} unchanged records")
+        logger.info(f"  Loaded: {total_loaded} new records")
+        logger.info(f"  Skipped: {total_skipped} unchanged records")
         logger.info(f"  Errors: {self.stats['errors']}")
         logger.info("=" * 60)
         

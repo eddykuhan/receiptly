@@ -11,6 +11,7 @@ from datetime import datetime
 import logging
 
 from scrapers.base_scraper import BaseScraper
+from etl_transformers.category_normalizer import normalize_category
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +183,7 @@ class MydinScraper(BaseScraper):
         return {
             'item_name': name,
             'unit_price': price,
-            'category': cat_name,
+            'category': normalize_category(cat_name),  # Normalize category
             'brand': '',
             'sku': product.get('sku', ''),
             'product_url': f"https://mydin.my/{product.get('url_key')}.html",

@@ -115,21 +115,26 @@ class PostgresLoader:
         
         try:
             with self.conn.cursor(cursor_factory=DictCursor) as cur:
-                # Query for existing items in batches
-                query = '''
-                    SELECT DISTINCT ON ("ItemName", "StoreName")
-                        "ItemName", "StoreName", "CanonicalItemId"
-                    FROM purchase_analytics_gold
-                    WHERE ("ItemName", "StoreName") IN %s
-                    AND "CanonicalItemId" IS NOT NULL
-                '''
-                
-                execute_values(cur, query, lookup_keys, template='(%s, %s)', page_size=1000)
-                results = cur.fetchall()
-                
-                for row in results:
-                    key = f"{row['ItemName']}|{row['StoreName']}"
-                    existing_map[key] = row['CanonicalItemId']
+                # Process in batches to avoid SQL string size limits
+                batch_size = 1000
+                for batch_start in range(0, len(lookup_keys), batch_size):
+                    batch = lookup_keys[batch_start:batch_start + batch_size]
+                    
+                    # Create VALUES clause for this batch
+                    query = '''
+                        SELECT DISTINCT ON ("ItemName", "StoreName")
+                            "ItemName", "StoreName", "CanonicalItemId"
+                        FROM purchase_analytics_gold
+                        WHERE ("ItemName", "StoreName") IN (VALUES %s)
+                        AND "CanonicalItemId" IS NOT NULL
+                    '''
+                    
+                    execute_values(cur, query, batch, template='(%s, %s)')
+                    results = cur.fetchall()
+                    
+                    for row in results:
+                        key = f"{row['ItemName']}|{row['StoreName']}"
+                        existing_map[key] = row['CanonicalItemId']
                 
                 logger.info(f"Found {len(existing_map)} items already in database")
                 
@@ -167,6 +172,17 @@ class PostgresLoader:
         """
         if not records:
             return {'inserted': 0, 'skipped': 0, 'total': 0}
+        
+        # Health check before starting batch operations
+        logger.info("Performing connection health check before load...")
+        self.connect()
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT 1")
+            logger.info("✓ Connection healthy")
+        except Exception as e:
+            logger.error(f"Connection health check failed: {e}")
+            self.connect()  # Force reconnect
             
         inserted = 0
         skipped = 0
@@ -274,6 +290,18 @@ class PostgresLoader:
                     
                     # Step 4: Bulk insert new records using execute_values (MUCH faster)
                     if records_to_insert:
+                        # Verify all canonical_item_ids exist before inserting
+                        canonical_ids = [r.get('canonical_item_id') for r in records_to_insert if r.get('canonical_item_id')]
+                        if canonical_ids:
+                            cur.execute('''
+                                SELECT "Id" FROM canonical_items WHERE "Id" = ANY(%s::uuid[])
+                            ''', ([str(id) for id in canonical_ids],))
+                            existing_ids = {row[0] for row in cur.fetchall()}
+                            missing_ids = set(canonical_ids) - existing_ids
+                            if missing_ids:
+                                logger.error(f"Missing canonical_item_ids: {missing_ids}")
+                                raise ValueError(f"{len(missing_ids)} canonical items not found in database. First missing: {list(missing_ids)[0]}")
+                        
                         self._bulk_insert_records(cur, records_to_insert)
                     
                     self.conn.commit()

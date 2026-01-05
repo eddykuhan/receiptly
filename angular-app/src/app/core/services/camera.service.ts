@@ -49,10 +49,12 @@ export class CameraService {
     const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
     
     const image = await Camera.getPhoto({
-      quality: 90,
+      quality: 95,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
-      source: CameraSource.Camera
+      source: CameraSource.Camera,
+      width: 1920,
+      correctOrientation: true
     });
     
     return this.processPhoto(image);
@@ -65,10 +67,12 @@ export class CameraService {
     const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
     
     const image = await Camera.getPhoto({
-      quality: 90,
+      quality: 95,
       allowEditing: false,
       resultType: CameraResultType.DataUrl,
-      source: CameraSource.Photos
+      source: CameraSource.Photos,
+      width: 1920,
+      correctOrientation: true
     });
     
     return this.processPhoto(image);
@@ -109,7 +113,7 @@ export class CameraService {
               const convertedBlob = await heic2any({
                 blob: file,
                 toType: 'image/jpeg',
-                quality: 0.9
+                quality: 0.95
               });
               
               blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
@@ -154,7 +158,7 @@ export class CameraService {
         const convertedBlob = await heic2any({
           blob: blob,
           toType: 'image/jpeg',
-          quality: 0.9
+          quality: 0.95
         });
         
         // heic2any can return Blob or Blob[]

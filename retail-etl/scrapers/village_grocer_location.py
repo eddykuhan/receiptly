@@ -23,6 +23,7 @@ from datetime import datetime
 import aiohttp
 
 from scrapers.base_scraper import BaseScraper
+from etl_transformers.category_normalizer import normalize_category
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +108,7 @@ class VillageGrocerLocationProductParser:
             return {
                 'item_name': product['title'].strip(),
                 'unit_price': float(variant.get('price', 0) or 0),
-                'category': product.get('product_type', 'Uncategorized').strip(),
+                'category': normalize_category(product.get('product_type', 'Uncategorized').strip()),  # Normalize category
                 'brand': product.get('vendor', '').strip() or 'Unbranded',
                 'sku': variant.get('sku', ''),
                 'available': variant.get('available', True),
