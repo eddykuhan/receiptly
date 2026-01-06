@@ -21,8 +21,8 @@ WORKDIR /app
 # Copy Python dependencies from builder
 COPY --from=builder /root/.local /root/.local
 
-# Copy application code
-COPY llm_service/ .
+# Copy application code (current directory contains all llm_service code)
+COPY . .
 
 # Make sure scripts in .local are usable
 ENV PATH=/root/.local/bin:$PATH

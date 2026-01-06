@@ -8,6 +8,7 @@ from services.location_selector import select_best_location
 from services.receipt_extractor import extract_merchant_from_image
 from services.receipt_enhancer import enhance_receipt_data
 from services.chat_service import answer_price_question, extract_item_keywords
+from cache.memory_cache import clear_cache, get_cache_stats
 import json
 
 app = FastAPI(
@@ -19,6 +20,24 @@ app = FastAPI(
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "llm"}
+
+@app.post("/clear_cache")
+async def api_clear_cache():
+    """Clear the canonicalization cache. Useful after database changes or for testing."""
+    clear_cache()
+    return {
+        "status": "success",
+        "message": "Cache cleared successfully"
+    }
+
+@app.get("/cache_stats")
+async def api_cache_stats():
+    """Get statistics about the current cache state."""
+    stats = get_cache_stats()
+    return {
+        "status": "success",
+        "cache": stats
+    }
 
 @app.post("/canonicalize_item")
 async def api_canonicalize_item(body: dict):
