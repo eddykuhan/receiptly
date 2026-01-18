@@ -78,7 +78,6 @@ public class ChatService : IChatService
                 _logger.LogDebug("Querying gold layer for item: {Item}", item);
                 var comparisons = await _goldLayerService.GetPriceComparisonAsync(
                     item, 
-                    days: 30, 
                     cancellationToken);
 
                 if (comparisons.Any())

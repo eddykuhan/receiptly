@@ -25,13 +25,9 @@ public class GoldLayerQueryService : IGoldLayerQueryService
 
     public async Task<CheapestStoreResult?> GetCheapestStoreForItemAsync(
         string itemName, 
-        int days = 30, 
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("[GetCheapestStoreForItemAsync] Starting search for item: {ItemName}, days: {Days}", itemName, days);
-        
-        var cutoffDate = DateTime.UtcNow.AddDays(-days);
-        _logger.LogDebug("[GetCheapestStoreForItemAsync] Using cutoff date: {CutoffDate}", cutoffDate);
+        _logger.LogInformation("[GetCheapestStoreForItemAsync] Starting search for item: {ItemName}", itemName);
 
         // Get similar canonical items using semantic search
         var similarCanonicalIds = await FindSimilarCanonicalItemsAsync(itemName, limit: 10, cancellationToken);
@@ -46,7 +42,6 @@ public class GoldLayerQueryService : IGoldLayerQueryService
         _logger.LogDebug("[GetCheapestStoreForItemAsync] Querying PurchaseAnalyticsGold for similar items: {Ids}", string.Join(", ", similarCanonicalIds));
         
         var result = await _context.PurchaseAnalyticsGold
-            .Where(p => p.PurchaseDate >= cutoffDate)
             .Where(p => p.CanonicalItemId != null && similarCanonicalIds.Contains(p.CanonicalItemId.Value))
             .GroupBy(p => p.StoreName)
             .Select(g => new
@@ -81,13 +76,9 @@ public class GoldLayerQueryService : IGoldLayerQueryService
 
     public async Task<List<StorePriceComparison>> GetPriceComparisonAsync(
         string itemName, 
-        int days = 30, 
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("[GetPriceComparisonAsync] Starting price comparison for item: {ItemName}, days: {Days}", itemName, days);
-        
-        var cutoffDate = DateTime.UtcNow.AddDays(-days);
-        _logger.LogDebug("[GetPriceComparisonAsync] Using cutoff date: {CutoffDate}", cutoffDate);
+        _logger.LogInformation("[GetPriceComparisonAsync] Starting price comparison for item: {ItemName}", itemName);
 
         // Get similar canonical items using semantic search
         var similarCanonicalIds = await FindSimilarCanonicalItemsAsync(itemName, limit: 10, cancellationToken);
@@ -102,7 +93,6 @@ public class GoldLayerQueryService : IGoldLayerQueryService
         _logger.LogDebug("[GetPriceComparisonAsync] Querying PurchaseAnalyticsGold for price comparisons: {Ids}", string.Join(", ", similarCanonicalIds));
         
         var comparisons = await _context.PurchaseAnalyticsGold
-            .Where(p => p.PurchaseDate >= cutoffDate)
             .Where(p => p.CanonicalItemId != null && similarCanonicalIds.Contains(p.CanonicalItemId.Value))
             .GroupBy(p => p.StoreName)
             .Select(g => new StorePriceComparison
@@ -131,10 +121,9 @@ public class GoldLayerQueryService : IGoldLayerQueryService
 
     public async Task<GroceryListOptimization> OptimizeGroceryListAsync(
         List<string> itemNames, 
-        int days = 30, 
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("[OptimizeGroceryListAsync] Starting optimization for {Count} items, days: {Days}", itemNames.Count, days);
+        _logger.LogInformation("[OptimizeGroceryListAsync] Starting optimization for {Count} items", itemNames.Count);
         
         var optimizedItems = new List<OptimizedItem>();
         decimal totalCost = 0;
@@ -144,8 +133,8 @@ public class GoldLayerQueryService : IGoldLayerQueryService
         {
             _logger.LogDebug("[OptimizeGroceryListAsync] Processing item: {ItemName}", itemName);
             
-            var cheapest = await GetCheapestStoreForItemAsync(itemName, days, cancellationToken);
-            var comparisons = await GetPriceComparisonAsync(itemName, days, cancellationToken);
+            var cheapest = await GetCheapestStoreForItemAsync(itemName, cancellationToken);
+            var comparisons = await GetPriceComparisonAsync(itemName, cancellationToken);
 
             if (cheapest != null && comparisons.Any())
             {
@@ -246,7 +235,7 @@ public class GoldLayerQueryService : IGoldLayerQueryService
         
         try
         {
-            _logger.LogDebug("[FindSimilarCanonicalItemsAsync] Generating embedding for: '{SearchText}'", searchText);
+            _logger.LogInformation("[FindSimilarCanonicalItemsAsync] Generating embedding for: '{SearchText}'", searchText);
             
             // Generate embedding for search text
             var embedding = await GenerateEmbeddingAsync(searchText, cancellationToken);
@@ -257,10 +246,10 @@ public class GoldLayerQueryService : IGoldLayerQueryService
                 return new List<Guid>();
             }
 
-            _logger.LogDebug("[FindSimilarCanonicalItemsAsync] Generated embedding with {Dimension} dimensions", embedding.Length);
+            _logger.LogInformation("[FindSimilarCanonicalItemsAsync] Generated embedding with {Dimension} dimensions", embedding.Length);
             
             var vector = new Vector(embedding);
-            _logger.LogDebug("[FindSimilarCanonicalItemsAsync] Created vector, querying for similar items (limit: {Limit}, min similarity: {MinSimilarity}%)", 
+            _logger.LogInformation("[FindSimilarCanonicalItemsAsync] Created vector, querying for similar items (limit: {Limit}, min similarity: {MinSimilarity}%)", 
                 limit, minSimilarityThreshold * 100);
 
             // Find similar items using cosine distance (pgvector)
