@@ -63,7 +63,7 @@ export class PriceMapService {
     /**
      * Query the analytics endpoint for a given product.
      */
-    searchProduct(query: { productName?: string, canonicalItemId?: string, userLat?: number, userLng?: number }, days: number = 7): Observable<StoreWithPrice[]> {
+    searchProduct(query: { productName?: string, canonicalItemId?: string, userLat?: number, userLng?: number }): Observable<StoreWithPrice[]> {
         let params = new HttpParams()
             .set('includeMetadata', true)
             .set('pageSize', 500)
@@ -82,7 +82,7 @@ export class PriceMapService {
         }
 
         return this.http.get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params }).pipe(
-            map(response => this.transformResponse(response, days))
+            map(response => this.transformResponse(response))
         );
     }
 
@@ -125,7 +125,7 @@ export class PriceMapService {
             .set('maxLng', bounds.maxLng);
 
         return this.http.get<PurchaseAnalyticsResponseDto>(this.analyticsUrl, { params }).pipe(
-            map(response => this.transformResponse(response, days))
+            map(response => this.transformResponse(response))
         );
     }
 
@@ -225,22 +225,18 @@ export class PriceMapService {
         }));
     }
 
-    private transformResponse(response: PurchaseAnalyticsResponseDto, days: number = 7): StoreWithPrice[] {
+    private transformResponse(response: PurchaseAnalyticsResponseDto): StoreWithPrice[] {
         const storeMap = new Map<string, StoreWithPrice>();
 
-        // Calculate cutoff date
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - days);
-
-        response.items.forEach(item => {
+        response.items.forEach(item => {    
             const metadata = item.metadata;
             const latitude = metadata?.latitude;
             const longitude = metadata?.longitude;
             const storeAddress = metadata?.storeAddress?.trim();
             const purchaseDate = new Date(item.purchaseDate);
 
-            // Filter by date and location
-            if (latitude == null || longitude == null || purchaseDate < cutoffDate) {
+            // Filter by location only
+            if (latitude == null || longitude == null) {
                 return;
             }
 
