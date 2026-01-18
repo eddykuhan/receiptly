@@ -110,14 +110,15 @@ class ETLManager:
         """
         Run a single scraper with optional local caching.
         """
-        store_name = scraper_class.__name__.replace('Scraper', '')
+        # Use pricing_zone_id for cache key to avoid collisions between same merchant's stores
+        pricing_zone_id = kwargs.get('pricing_zone_id', scraper_class.__name__.replace('Scraper', ''))
         
         if USE_LOCAL_CACHE:
-            cached_records = self.load_from_local_cache(store_name)
+            cached_records = self.load_from_local_cache(pricing_zone_id)
             if cached_records:
                 self.stats['scraped'] += len(cached_records)
                 return cached_records
-            logger.info(f"No local cache found for {store_name}, proceeding to scrape.")
+            logger.info(f"No local cache found for {pricing_zone_id}, proceeding to scrape.")
 
         try:
             scraper = scraper_class(**kwargs)
@@ -127,7 +128,7 @@ class ETLManager:
             
             # Always save to cache for future debug runs
             if records:
-                self.save_to_local_cache(records, store_name)
+                self.save_to_local_cache(records, pricing_zone_id)
                 
             return records
         except Exception as e:

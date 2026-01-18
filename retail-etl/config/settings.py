@@ -31,6 +31,11 @@ SCRAPERS = [
         'store_url': 'https://jggp.jayagrocer.com',
         'pricing_zone_id': 'JG_PENANG'
     },
+        {
+        'scraper_class': JayaGrocerScraper,
+        'store_url': 'https://klec.jayagrocer.com',
+        'pricing_zone_id': 'JG_KL'
+    },
     {
         'scraper_class': MydinScraper,
         'store_url': 'https://myapi.mydin.my/magento/products',
