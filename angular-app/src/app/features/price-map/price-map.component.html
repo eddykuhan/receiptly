@@ -154,6 +154,9 @@
                         <div class="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
                             [class.ring-2]="selectedStore() && selectedStore()!.store.id === result.store.id"
                             [class.ring-primary]="selectedStore() && selectedStore()!.store.id === result.store.id"
+                            [class.border-2]="result.status === 1"
+                            [class.border-info]="result.status === 1"
+                            [class.bg-info/5]="result.status === 1"
                             (click)="selectStore(result)">
                             <div class="card-body p-3">
                                 <div class="flex items-start justify-between gap-2">
@@ -170,7 +173,7 @@
                                         <div class="flex items-center gap-2 mb-1">
                                             <h3 class="font-bold text-sm truncate">{{ result.store.name }}</h3>
                                             @if (result.status === 1) {
-                                            <span class="badge badge-success badge-xs gap-1 flex-shrink-0 tooltip" data-tip="Verified from receipt">
+                                            <span class="badge badge-info badge-xs gap-1 flex-shrink-0 tooltip" data-tip="Verified from receipt">
                                                 <span class="material-icons" style="font-size: 10px;">verified</span>
                                             </span>
                                             }
@@ -193,7 +196,10 @@
                     </ng-template>
 
                     <ng-template #itemsList>
-                        <div *ngFor="let it of searchResults()" class="card bg-base-200 p-3">
+                        <div *ngFor="let it of searchResults()" class="card bg-base-200 p-3"
+                            [class.border-2]="it.status === 1"
+                            [class.border-info]="it.status === 1"
+                            [class.bg-info/5]="it.status === 1">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex-1 min-w-0">
                                     <div class="font-medium text-sm mb-1">{{ it.itemName || 'Item' }}</div>
@@ -201,7 +207,7 @@
                                         <div class="text-xs text-base-content/50">Updated {{
                                             getRelativeTime(it.lastPurchaseDate) }}</div>
                                         @if (it.status === 1) {
-                                        <span class="badge badge-success badge-xs gap-1 tooltip" data-tip="Verified from receipt">
+                                        <span class="badge badge-info badge-xs gap-1 tooltip" data-tip="Verified from receipt">
                                             <span class="material-icons" style="font-size: 10px;">verified</span>
                                             Verified
                                         </span>
@@ -266,6 +272,9 @@
                     @for (result of searchResults(); track result.store.id + '-' + (result.lastPurchaseDate ?
                     result.lastPurchaseDate.toString() : i); let i = $index) {
                     <div class="card bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
+                        [class.border-2]="result.status === 1"
+                        [class.border-info]="result.status === 1"
+                        [class.bg-info/5]="result.status === 1"
                         (click)="selectStore(result)">
                         <div class="card-body p-3">
                             <div class="flex items-start justify-between gap-2">
@@ -276,7 +285,7 @@
                                     <div class="flex items-center gap-2 mb-1">
                                         <h3 class="font-bold text-sm">{{ result.store.name }}</h3>
                                         @if (result.status === 1) {
-                                        <span class="badge badge-success badge-xs gap-1 flex-shrink-0 tooltip" data-tip="Verified from receipt">
+                                        <span class="badge badge-info badge-xs gap-1 flex-shrink-0 tooltip" data-tip="Verified from receipt">
                                             <span class="material-icons" style="font-size: 10px;">verified</span>
                                         </span>
                                         }
@@ -305,7 +314,10 @@
                 </ng-template>
 
                 <ng-template #mobileItemsList>
-                    <div *ngFor="let it of searchResults()" class="card bg-base-200 p-3">
+                    <div *ngFor="let it of searchResults()" class="card bg-base-200 p-3"
+                        [class.border-2]="it.status === 1"
+                        [class.border-info]="it.status === 1"
+                        [class.bg-info/5]="it.status === 1">
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex-1 min-w-0">
                                 <div class="font-medium text-sm mb-1">{{ it.itemName || 'Item' }}</div>
@@ -313,7 +325,7 @@
                                     <div class="text-xs text-base-content/50">Updated {{
                                         getRelativeTime(it.lastPurchaseDate) }}</div>
                                     @if (it.status === 1) {
-                                    <span class="badge badge-success badge-xs gap-1 tooltip" data-tip="Verified from receipt">
+                                    <span class="badge badge-info badge-xs gap-1 tooltip" data-tip="Verified from receipt">
                                         <span class="material-icons" style="font-size: 10px;">verified</span>
                                         Verified
                                     </span>
