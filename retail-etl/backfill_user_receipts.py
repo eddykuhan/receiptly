@@ -202,8 +202,8 @@ class UserReceiptBackfiller:
         self.connect()
         
         with self.conn.cursor() as cur:
-            # First try: exact match on canonical name
-            normalized_name = item_name.lower().strip()
+            # First try: exact match on canonical name (with full normalization including translation)
+            normalized_name = self.canonicalizer.normalize_text(item_name)
             cur.execute('''
                 SELECT "Id"
                 FROM canonical_items
