@@ -11,36 +11,30 @@ public interface IGoldLayerQueryService
     /// Get the cheapest store for a specific item
     /// </summary>
     /// <param name="itemName">Item name or canonical name (fuzzy match)</param>
-    /// <param name="days">Number of days to look back (default 30)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Store with cheapest average price</returns>
     Task<CheapestStoreResult?> GetCheapestStoreForItemAsync(
         string itemName, 
-        int days = 30, 
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get price comparison across all stores for an item
     /// </summary>
     /// <param name="itemName">Item name or canonical name</param>
-    /// <param name="days">Number of days to look back</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of stores with prices sorted by price</returns>
     Task<List<StorePriceComparison>> GetPriceComparisonAsync(
         string itemName, 
-        int days = 30, 
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Optimize a grocery list by finding cheapest store for each item
     /// </summary>
     /// <param name="itemNames">List of item names</param>
-    /// <param name="days">Number of days to look back</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Optimization results with per-item recommendations and totals</returns>
     Task<GroceryListOptimization> OptimizeGroceryListAsync(
         List<string> itemNames, 
-        int days = 30, 
         CancellationToken cancellationToken = default);
 
     /// <summary>

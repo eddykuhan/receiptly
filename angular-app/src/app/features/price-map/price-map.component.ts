@@ -47,7 +47,6 @@ export class PriceMapComponent implements OnInit, OnDestroy {
     errorMessage = signal<string | null>(null);
     isBottomSheetExpanded = signal(false);
     showMobileResults = signal(false);
-    daysFilter = signal(7); // Default to 7 days
 
     // Subject for map movement events to enable debouncing
     // private mapMoveSubject = new Subject<void>();
@@ -97,18 +96,6 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.destroy$.next();
         this.destroy$.complete();
     }
-
-    onDaysFilterChange(days: number) {
-        this.daysFilter.set(days);
-        // Reload results with new filter
-        if (this.searchQuery()) {
-            this.performSearch();
-        } else {
-            this.clearMarkers();
-        }
-    }
-
-
 
     private initMap() {
         // Get user location or default to Kuala Lumpur
@@ -227,7 +214,7 @@ export class PriceMapComponent implements OnInit, OnDestroy {
                 userLng: userLoc?.lon
             };
 
-            let results = await firstValueFrom(this.priceMapService.searchProduct(searchParams, this.daysFilter()));
+            let results = await firstValueFrom(this.priceMapService.searchProduct(searchParams));
 
             if (userLoc) {
                 results = this.priceMapService.addDistanceToResults(results, userLoc.lat, userLoc.lon);
