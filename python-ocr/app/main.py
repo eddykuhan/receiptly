@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import ocr
+from .routers import ocr, feedback
 from .core.config import get_settings
 
 settings = get_settings()
@@ -25,6 +25,12 @@ app.include_router(
     ocr.router,
     prefix=settings.API_PREFIX + "/ocr",
     tags=["OCR"]
+)
+
+app.include_router(
+    feedback.router,
+    prefix=settings.API_PREFIX + "/feedback",
+    tags=["Feedback"]
 )
 
 @app.get("/")

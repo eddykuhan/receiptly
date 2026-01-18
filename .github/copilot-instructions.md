@@ -27,6 +27,8 @@ Receiptly is a receipt scanning and price comparison application using a microse
    - FastAPI-based microservice
    - Azure Computer Vision integration
    - Stateless receipt processing
+   - Multi-source location extraction with LLM enhancement
+   - See [OCR Processing Pipeline](#ocr-processing-pipeline) for detailed flow
 
 ## Key Patterns and Conventions
 
@@ -119,6 +121,155 @@ async def analyze_receipt(
     vision_service: AzureVisionService = Depends(AzureVisionService)
 )
 ```
+
+## OCR Processing Pipeline
+
+The `/python-ocr/app/routers/ocr.py` endpoint implements a **9-step receipt analysis pipeline** that combines Azure Document Intelligence, LLM Vision (GPT-4), and Google Places verification.
+
+### Pipeline Steps
+
+**Step 1: Request Validation & Setup**
+- Parse `AnalyzeRequest` parameters (image_url, extract_location, auto_crop, enable_llm_enhancement)
+- Initialize `ImageDebugger` if debug mode enabled
+- Record start_time for performance metrics
+
+**Step 2: Image Download**
+- Download image from provided URL
+- Store original uncropped bytes (preserves transaction dates at image edges)
+- Debug: Save as "01_original"
+
+**Step 3: Receipt Boundary Detection (Optional)**
+- If `auto_crop=true`:
+  - Primary: Try Azure Document Intelligence Layout model for boundary detection
+  - Fallback: OpenCV-based detection if Azure fails
+- Result: Cropped image focused on receipt content
+- Debug: Save as "02_cropped_*"
+
+**Step 4: [Skipped] Image Preprocessing**
+- Currently commented out in production
+- Would normalize image for Azure processing (brightness, contrast, rotation)
+
+**Step 5: Azure Document Intelligence Analysis**
+- Send cropped image to Azure Document Intelligence service
+- Extract structured receipt data:
+  - MerchantName, MerchantAddress, MerchantPhoneNumber
+  - Items (Description, Quantity, TotalPrice per item)
+  - TransactionDate
+  - Total Amount
+  - Document confidence score
+- Debug: Save as "05_azure_result"
+
+**Step 6: [Commented Out] Merchant Data Override**
+
+**Previously:** This step called LLM Vision separately to extract merchant data.  
+**Now:** Moved into Step 7 to consolidate LLM calls and reduce costs.  
+**Reason:** Calling LLM twice (once for location, once for items) was redundant and expensive.
+
+- Debug: Step skipped
+
+**Step 7: LLM Enhancement (Optional - Fully Consolidated)**
+
+Controlled by `enable_llm_enhancement` flag. When enabled, performs **location extraction, transaction date extraction, AND item enhancement in a SINGLE LLM call** for maximum efficiency.
+
+**Single LLM Request extracts:**
+1. **Merchant Location:**
+   - Store name (prioritized over Azure)
+   - Full address
+   - Phone number
+   
+2. **Transaction Date:**
+   - More reliable than Azure (uses full uncropped image context)
+   
+3. **Item Enhancement:**
+   - Expand abbreviated item names
+   - Add missing items detected in image
+   - Remove non-product entries (subtotals, taxes, discounts)
+   - Fix quantities and validate prices
+   - Validate total against item sum
+
+**Post-LLM Processing:**
+- Apply extracted location/date to result fields
+- Run Google Places verification on LLM-extracted store name
+- If Google match confidence ≥ 80%, replace with verified address + coordinates
+- Merge enhanced items back into Azure structure
+
+**Cost Optimization Evolution:**
+- **Original:** 2 separate LLM calls (location + items) = ~$0.05/receipt
+- **Previous:** Consolidated into 1 call = ~$0.03/receipt  
+- **Current:** Single unified LLM request = ~$0.025/receipt
+- **Total Savings:** 50% reduction from original implementation
+
+- Debug: Save as "06_location_from_llm" and "06b_llm_enhancement"
+
+**Step 8: Enhanced Validation**
+
+Run `EnhancedValidationService`:
+- Validate receipt structure completeness
+- Calculate overall confidence score
+- Track which sources were used (azure, llm_vision, google_places, llm_enhancement)
+- Detect and flag issues/warnings
+- Measure total processing duration
+
+- Debug: Save as "07_validation_result"
+
+**Step 9: Return Response**
+
+Build `ProcessedReceipt` object containing:
+- `success`: bool (success/failure status)
+- `data`: Azure result with all overrides applied
+- `validation`: Confidence scores, issue flags, processing duration
+- `location`: Store location data with verification status
+- `debug_session_id`: Debug directory reference (if debug enabled)
+
+### Data Source Priority Hierarchy
+
+| Field | Source Priority | Fallback Strategy | Condition |
+|-------|-----------------|-------------------|-----------|
+| **Store Name** | LLM Vision > Azure | Google Places verification applied | Only if `enable_llm_enhancement=true` |
+| **Address** | Google Places verified > LLM Vision > Azure | Merged from best available source | Only if `enable_llm_enhancement=true` |
+| **Phone** | Google Places > LLM Vision > Azure | Skip if all unavailable | Only if `enable_llm_enhancement=true` |
+| **Transaction Date** | LLM Vision > Azure | Flag for manual review if missing | Only if `enable_llm_enhancement=true` |
+| **Items** | LLM Enhanced > Azure | Use Azure if enhancement disabled/fails | Only if `enable_llm_enhancement=true` |
+
+**Note:** When `enable_llm_enhancement=false`, the system uses **Azure-only** results for all fields.
+
+### Request Configuration Flags
+
+```python
+class AnalyzeRequest(BaseModel):
+    image_url: HttpUrl                          # Receipt image URL
+    extract_location: bool = True               # Enable store location extraction
+    auto_crop: bool = True                      # Enable receipt boundary detection
+    crop_method: Literal["opencv", "azure_layout"] = "azure_layout"  # Cropping method
+    enable_llm_enhancement: bool = False        # Enable LLM post-processing
+```
+
+### Error Handling & Fallback Strategy
+
+- **Azure Layout detection fails**: Fall back to OpenCV boundary detection
+- **LLM Vision extraction unavailable**: Continue with Azure-only data
+- **Google Places match fails**: Continue with OCR-extracted address
+- **LLM enhancement fails**: Keep Azure results unchanged
+- **Any step exception**: Capture in debug session, return HTTPException 400
+
+### Key Implementation Details
+
+1. **Original Image Preservation**: Always keeps uncropped image bytes for LLM Vision processing to preserve transaction dates printed at image edges
+2. **Confidence-Based Selection**: Candidates sorted by confidence; LLM Vision prioritized due to better full-image context
+3. **Google Places Integration**: Verifies merchant location against trusted database, replacing OCR data only when confidence ≥80%
+4. **Metadata Tracking**: Annotates each field with source origin (azure, llm_vision, google_places) for traceability
+5. **Debug Session Management**: Optional detailed image processing logs saved per request for troubleshooting
+
+### File Location
+
+Main implementation: `python-ocr/app/routers/ocr.py`
+- Key pipeline step classes: `python-ocr/app/services/pipeline_steps.py`
+- Pipeline steps:
+  - `ImageDownloadStep`: Step 1
+  - `ReceiptCropStep`: Step 2-3
+  - `AzureAnalysisStep`: Step 5
+  - `LocationCandidatesStep`: Step 6 (Commented out - kept for reference)
+  - `LLMEnhancementStep`: Step 7 (consolidated location, date, items)
 
 ## Development Workflows
 

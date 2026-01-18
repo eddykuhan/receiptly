@@ -73,7 +73,7 @@ module "database" {
   # Free Tier Configuration
   postgres_version  = "16.8"
   instance_class    = "db.t3.micro" # Free tier eligible
-  allocated_storage = 20             # Free tier: up to 20GB
+  allocated_storage = 20            # Free tier: up to 20GB
 
   # Database Configuration
   database_name   = "receiptly"
@@ -103,8 +103,8 @@ module "ocr_service" {
   vpc_id    = module.vpc.vpc_id
   subnet_id = module.vpc.public_subnet_ids[0] # Deploy to first public subnet
 
-  # Free Tier Configuration
-  instance_type = "t3.micro" # Free tier eligible (or t2.micro)
+  # Instance Configuration
+  instance_type = "t3.small" # t3.micro (1GB) insufficient for 3 Docker containers
 
   # Allow access from anywhere for staging (API calls, SSH if needed)
   allowed_cidr_blocks     = ["0.0.0.0/0"]
@@ -116,6 +116,51 @@ module "ocr_service" {
   enable_https      = var.enable_https
   domain_name       = var.domain_name
   letsencrypt_email = var.letsencrypt_email
+}
+
+# ==========================================
+# ECR Repositories for Docker Images
+# ==========================================
+module "ecr_dotnet_api" {
+  source = "../../modules/ecr"
+
+  repository_name      = "${var.project_name}-${var.environment}-dotnet-api"
+  image_tag_mutability = "MUTABLE"
+  scan_on_push         = true
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Service     = "dotnet-api"
+  }
+}
+
+module "ecr_python_ocr" {
+  source = "../../modules/ecr"
+
+  repository_name      = "${var.project_name}-${var.environment}-python-ocr"
+  image_tag_mutability = "MUTABLE"
+  scan_on_push         = true
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Service     = "python-ocr"
+  }
+}
+
+module "ecr_llm_service" {
+  source = "../../modules/ecr"
+
+  repository_name      = "${var.project_name}-${var.environment}-llm-service"
+  image_tag_mutability = "MUTABLE"
+  scan_on_push         = true
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Service     = "llm-service"
+  }
 }
 
 # ==========================================
@@ -226,8 +271,37 @@ module "secrets" {
     "receiptly/ocr/service" = {
       description = "Python OCR service configuration for Receiptly ${var.environment}"
       value = jsonencode({
-        base_url = "http://localhost:8000"
+        base_url         = "http://localhost:8000"
         health_check_url = "http://localhost:8000/health"
+        llm_service_url  = "http://localhost:8500"
+      })
+    }
+    "receiptly/llm/service" = {
+      description = "LLM service configuration for Receiptly ${var.environment}"
+      value = jsonencode({
+        base_url         = "http://localhost:8500"
+        health_check_url = "http://localhost:8500/health"
+        openai_api_key   = var.openai_api_key
+        groq_api_key     = var.groq_api_key
+        use_groq         = var.use_groq
+        model_name       = var.model_name
+      })
+    }
+    "receiptly/ecr/repositories" = {
+      description = "ECR repository information for Receiptly ${var.environment}"
+      value = jsonencode({
+        dotnet_api_repository  = module.ecr_dotnet_api.repository_url
+        python_ocr_repository  = module.ecr_python_ocr.repository_url
+        llm_service_repository = module.ecr_llm_service.repository_url
+        registry_id            = module.ecr_dotnet_api.registry_id
+        region                 = var.aws_region
+      })
+    }
+    "receiptly/google/credentials" = {
+      description = "Google Places API credentials for Receiptly ${var.environment}"
+      value = jsonencode({
+        api_key = var.google_places_api_key
+        enabled = var.google_places_enabled
       })
     }
   }

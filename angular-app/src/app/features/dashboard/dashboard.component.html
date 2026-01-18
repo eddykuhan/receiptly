@@ -1,38 +1,57 @@
-<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pb-24 lg:pb-4">
-  <!-- Hero Section with Search -->
-  <div class="bg-gradient-to-r from-primary to-secondary p-6 pb-12 shadow-lg relative overflow-hidden">
-    <!-- Animated background pattern -->
-    <div class="absolute inset-0 opacity-10">
-      <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
-      </div>
-      <div class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2">
-      </div>
-    </div>
-
-    <div class="relative z-10 max-w-4xl mx-auto text-center space-y-6">
-      <h1 class="text-3xl md:text-4xl font-bold text-white">Find the Best Deals Near You</h1>
-      <p class="text-white/90 text-lg">Compare prices from thousands of crowdsourced receipts</p>
-
-      <!-- Search Bar -->
-      <div class="relative max-w-2xl mx-auto mt-8">
-        <div class="relative">
-          <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-base-content/50">search</span>
-          <input type="text" placeholder="Search for products (e.g., 'Milo', 'Milk', 'Rice')..."
-            class="input input-lg w-full pl-12 pr-32 shadow-xl bg-white/95 backdrop-blur text-base-content border-0 focus:ring-2 ring-white/50"
-            (keyup.enter)="onSearch($any($event.target).value)" />
-          <button class="btn btn-primary absolute right-2 top-2 bottom-2 shadow-md">
-            Search
-          </button>
+<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pb-24 lg:pb-4"
+  style="padding-bottom: max(6rem, calc(6rem + env(safe-area-inset-bottom)))">
+  
+  <app-pull-to-refresh (refresh)="onRefresh()">
+    <!-- Hero Section with Search -->
+    <div class="bg-gradient-to-r from-primary to-secondary p-6 pb-12 shadow-lg relative overflow-hidden">
+      <!-- Animated background pattern -->
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
+        </div>
+        <div class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2">
         </div>
       </div>
+
+      <div class="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+        <h1 class="text-3xl md:text-4xl font-bold text-white">Find the Best Deals Near You</h1>
+        <p class="text-white/90 text-lg">Compare prices from thousands of crowdsourced receipts</p>
+
+        <!-- Search Bar -->
+        <!-- <div class="relative max-w-2xl mx-auto mt-8">
+          <div class="relative">
+            <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-base-content/50">search</span>
+            <input type="text" placeholder="Search for products (e.g., 'Milo', 'Milk', 'Rice')..."
+              class="input input-lg w-full pl-12 pr-32 shadow-xl bg-white/95 backdrop-blur text-base-content border-0 focus:ring-2 ring-white/50"
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="onSearch()" />
+            <button class="btn btn-primary absolute right-2 top-2 bottom-2 shadow-md" (click)="onSearch()">
+              Search
+            </button>
+          </div>
+        </div> -->
+      </div>
     </div>
-  </div>
 
-  <!-- Main Content -->
-  <div class="max-w-6xl mx-auto p-4 -mt-8 relative z-20 space-y-8">
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto p-4 -mt-8 relative z-20 space-y-8">
 
-    <!-- Quick Actions -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <!-- Location Permission Prompt -->
+      <div *ngIf="!userLocation()" class="alert alert-info shadow-lg">
+        <div>
+          <span class="material-icons">location_on</span>
+          <div>
+            <h3 class="font-bold">Enable Location for Better Deals</h3>
+            <div class="text-sm">Get personalized deals within 10km of your location</div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-primary" (click)="retryLocation()">
+          <span class="material-icons text-sm">my_location</span>
+          Enable Location
+        </button>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <button class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
         (click)="navigateToMap()">
         <div class="card-body p-4 items-center text-center">
@@ -72,14 +91,24 @@
           <h3 class="font-bold text-sm">My Profile</h3>
         </div>
       </button>
+
+      <!-- <button class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer"
+        (click)="navigateToChallenges()">
+        <div class="card-body p-4 items-center text-center">
+          <div class="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mb-2">
+            <span class="material-icons text-warning text-2xl">star</span>
+          </div>
+          <h3 class="font-bold text-sm">Challenges</h3>
+        </div>
+      </button> -->
     </div>
 
-    <!-- Hot Deals Carousel -->
+    <!-- Deals Near You -->
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-xl font-bold flex items-center gap-2">
-          <span class="material-icons text-error">local_fire_department</span>
-          Hot Deals Nearby
+          <span class="material-icons text-error">location_on</span>
+          Deals Near You
         </h2>
         <button class="btn btn-ghost btn-sm text-primary" (click)="navigateToMap()">View All</button>
       </div>
@@ -89,53 +118,75 @@
         <span class="loading loading-spinner loading-lg text-primary"></span>
       </div>
       } @else if (deals().length > 0) {
-      <div class="carousel carousel-center w-full p-4 space-x-4 bg-base-100 rounded-box shadow-sm">
-        @for (deal of deals(); track deal.id) {
-        <div class="carousel-item">
-          <div class="card w-64 bg-base-200 shadow-md hover:shadow-xl transition-shadow">
-            <figure class="px-4 pt-4">
-              <img [src]="deal.imageUrl" [alt]="deal.productName" class="w-full h-32 object-cover rounded-xl bg-white"
-                (error)="$any($event.target).src='https://via.placeholder.com/400x300?text=Product'" />
-            </figure>
-            <div class="card-body p-4">
-              <h3 class="card-title text-base truncate">{{ deal.productName }}</h3>
-              <div class="flex items-baseline gap-2 mb-1">
-                <span class="text-2xl font-bold text-primary">{{ deal.lowestPrice | myr }}</span>
-                <span class="text-xs text-base-content/50">lowest</span>
+      <!-- Single rotating card -->
+      <div class="relative min-h-[280px]">
+        @for (deal of deals(); track deal.id; let i = $index) {
+          @if (i === currentDealIndex()) {
+          <div class="card bg-base-100 shadow-xl transition-opacity duration-500 animate-fade-in">
+            <div class="card-body">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 class="card-title text-lg mb-2">{{ deal.productName }}</h3>
+                  
+                  <div class="mb-3">
+                    <span class="text-3xl font-bold text-primary">{{ deal.lowestPrice | myr }}</span>
+                  </div>
+
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-sm">
+                      <span class="material-icons text-sm text-primary">store</span>
+                      <span class="font-medium">{{ deal.storeName }}</span>
+                    </div>
+                    <div class="flex items-start gap-2 text-xs text-base-content/60">
+                      <span class="material-icons text-xs mt-0.5 flex-shrink-0">location_on</span>
+                      <span class="line-clamp-2">{{ deal.storeAddress }}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-base-content/50">
+                      <span class="material-icons text-xs">schedule</span>
+                      <span>{{ deal.lastSeenDate | timeAgo }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <figure class="w-24 h-24 flex-shrink-0">
+                  <img [src]="deal.imageUrl" [alt]="deal.productName" 
+                    class="w-full h-full object-cover rounded-lg bg-base-200"
+                    (error)="$any($event.target).src='https://via.placeholder.com/400x300?text=Product'" />
+                </figure>
               </div>
-              <div class="flex items-center gap-1 text-xs text-base-content/60 mb-2">
-                <span>Avg: {{ deal.averagePrice | myr }}</span>
-                <span class="badge badge-success badge-xs">Save {{ getSavingsAmount(deal) | myr }}</span>
-              </div>
-              <div class="flex items-center gap-1 text-xs text-base-content/60">
-                <span class="material-icons text-sm">store</span>
-                <span class="truncate">{{ deal.storeName }}</span>
-              </div>
-              <div class="flex items-center gap-1 text-xs text-base-content/60">
-                <span class="material-icons text-sm">location_on</span>
-                <span>{{ deal.distance }} km away</span>
-              </div>
-              <div class="flex items-center gap-1 text-xs text-base-content/50 mt-1">
-                <span class="material-icons text-xs">schedule</span>
-                <span>{{ deal.lastSeenDate | date:'MMM d' }}</span>
+
+              <!-- Pagination dots -->
+              <div class="flex justify-center gap-2 mt-4">
+                @for (d of deals(); track d.id; let idx = $index) {
+                  <div class="w-2 h-2 rounded-full transition-colors"
+                    [class.bg-primary]="idx === currentDealIndex()"
+                    [class.bg-base-300]="idx !== currentDealIndex()"></div>
+                }
               </div>
             </div>
           </div>
-        </div>
+          }
         }
       </div>
       } @else {
       <div class="card bg-base-100 shadow-sm">
-        <div class="card-body text-center py-8">
-          <span class="material-icons text-4xl text-base-content/20 mb-2">local_offer</span>
-          <p class="text-base-content/60">No deals available at the moment</p>
+        <div class="card-body text-center py-8 space-y-4">
+          <span class="material-icons text-4xl text-base-content/20">local_offer</span>
+          <div class="space-y-2">
+            <p class="font-semibold text-base-content">No deals found nearby</p>
+            <p class="text-sm text-base-content/60">Try increasing your search distance in your profile settings to see more deals from stores further away.</p>
+          </div>
+          <button class="btn btn-sm btn-outline btn-primary" (click)="navigateToProfile()">
+            <span class="material-icons text-sm">settings</span>
+            Update Profile Settings
+          </button>
         </div>
       </div>
       }
     </div>
 
     <!-- Recent Community Activity -->
-    <div class="space-y-4">
+    <!-- <div class="space-y-4">
       <h2 class="text-xl font-bold flex items-center gap-2">
         <span class="material-icons text-info">public</span>
         Community Activity
@@ -175,6 +226,8 @@
           </ul>
         </div>
       </div>
+    </div> -->
+    
     </div>
-  </div>
+  </app-pull-to-refresh>
 </div>

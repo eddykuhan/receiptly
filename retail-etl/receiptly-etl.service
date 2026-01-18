@@ -1,0 +1,17 @@
+[Unit]
+Description=Receiptly Retail ETL Automation
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=kuhan
+WorkingDirectory=/Users/kuhan/Projects/receiptly/retail-etl
+EnvironmentFile=/Users/kuhan/Projects/receiptly/retail-etl/.env
+ExecStart=/Users/kuhan/Projects/receiptly/retail-etl/venv/bin/python scheduler.py
+Restart=always
+RestartSec=60
+StandardOutput=append:/var/log/receiptly/etl-scheduler.log
+StandardError=append:/var/log/receiptly/etl-scheduler.error.log
+
+[Install]
+WantedBy=multi-user.target

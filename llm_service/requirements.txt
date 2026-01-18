@@ -3,3 +3,8 @@ uvicorn
 openai
 groq
 python-dotenv
+pydantic-settings
+python-multipart
+httpx
+psycopg2-binary
+numpy

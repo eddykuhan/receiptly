@@ -1,12 +1,16 @@
-import { Component, signal, ViewChild, ElementRef, inject, AfterViewInit, computed } from '@angular/core';
+import { Component, signal, ViewChild, inject, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { Chart, registerables } from 'chart.js';
+import { Router, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ReceiptService } from '../../core/services/receipt.service';
+import { ClerkAuthService } from '../../core/services/clerk-auth.service';
+import { ThemeService } from '../../core/services/theme.service';
+import { PointsService, UserPoints } from '../../core/services/points.service';
+import { UserPreferencesService } from '../../core/services/user-preferences.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
-
-Chart.register(...registerables);
+import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
+import { Receipt } from '../../core/models/receipt.model';
 
 interface UserProfile {
     id: string;
@@ -39,6 +43,7 @@ interface UserProfile {
         language: string;
         currency: string;
         dateFormat: string;
+        searchRadiusKm: number;
     };
     notifications: {
         email: boolean;
@@ -54,28 +59,25 @@ interface UserProfile {
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, MyrPipe],
+    imports: [CommonModule, FormsModule, RouterModule, MyrPipe, PullToRefreshComponent],
     templateUrl: './profile.component.html',
-    styleUrl: './profile.component.scss'
+    styleUrl: './profile.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
+    @ViewChild(PullToRefreshComponent) pullToRefresh?: PullToRefreshComponent;
+
     // State
-    receipts = signal<any[]>([]);
+    receipts = signal<Receipt[]>([]);
     isLoading = signal(true);
-
-    // Computed Stats
-    totalReceipts = computed(() => this.receipts().length);
-    totalSpent = computed(() => this.receipts().reduce((sum, r) => sum + (r.totalAmount || 0), 0));
-    uniqueStores = computed(() => new Set(this.receipts().map(r => r.storeName)).size);
-
-    topStore = computed(() => {
-        const stores: Record<string, number> = {};
-        this.receipts().forEach(r => {
-            stores[r.storeName] = (stores[r.storeName] || 0) + 1;
-        });
-        const sorted = Object.entries(stores).sort((a, b) => b[1] - a[1]);
-        return sorted.length > 0 ? `${sorted[0][0]} (${sorted[0][1]} visits)` : 'None yet';
-    });
+    userPoints = signal<UserPoints | null>(null);
+    totalSpent = computed(() => this.receipts().reduce((sum, receipt) => sum + receipt.totalAmount, 0));
+    private receiptService = inject(ReceiptService);
+    private authService = inject(ClerkAuthService);
+    private themeService = inject(ThemeService);
+    private pointsService = inject(PointsService);
+    private userPreferencesService = inject(UserPreferencesService);
+    private router = inject(Router);
 
     // Mock user profile data
     profile = signal<UserProfile>({
@@ -103,7 +105,8 @@ export class ProfileComponent {
             theme: 'light',
             language: 'en',
             currency: 'MYR',
-            dateFormat: 'DD/MM/YYYY'
+            dateFormat: 'DD/MM/YYYY',
+            searchRadiusKm: 10
         },
         notifications: {
             email: true,
@@ -131,20 +134,59 @@ export class ProfileComponent {
     }
 
     toggleTheme() {
-        const current = this.profile();
-        const newTheme = current.preferences.theme === 'light' ? 'dark' : 'light';
+        // Toggle theme using the theme service
+        this.themeService.toggleTheme();
+
+        // Update profile to match
+        const newTheme = this.themeService.getCurrentTheme();
         this.profile.update(p => ({
             ...p,
             preferences: { ...p.preferences, theme: newTheme }
         }));
-        // In production, apply theme to document and save to backend
+
+        // Update preferences service
+        this.userPreferencesService.updateTheme(newTheme);
     }
 
-    signOut() {
-        if (confirm('Are you sure you want to sign out?')) {
-            // In production, clear auth tokens and redirect to login
-            alert('Signed out successfully');
+    updateSearchRadius(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const radiusKm = parseFloat(input.value);
+        
+        if (radiusKm >= 10 && radiusKm <= 100) {
+            // Check if value actually changed to avoid unnecessary updates
+            const currentRadius = this.profile().preferences.searchRadiusKm;
+            if (currentRadius !== radiusKm) {
+                // Update profile
+                this.profile.update(p => ({
+                    ...p,
+                    preferences: { ...p.preferences, searchRadiusKm: radiusKm }
+                }));
+                
+                // Update preferences service - this will save to localStorage and make it available immediately
+                this.userPreferencesService.updateSearchRadius(radiusKm);
+                
+                console.log(`Search radius updated to ${radiusKm}km`);
+            }
         }
+    }
+
+    async signOut() {
+        if (confirm('Are you sure you want to sign out?')) {
+            try {
+                await this.authService.signOut();
+                console.log('User signed out successfully');
+                this.router.navigate(['/sign-in']);
+            } catch (error) {
+                console.error('Error signing out:', error);
+                alert('Failed to sign out. Please try again.');
+            }
+        }
+    }
+
+    navigateToPurchasedItems(event: Event) {
+        event.stopPropagation(); // Prevent navigation to receipt detail
+        event.preventDefault(); // Prevent default link behavior
+        this.router.navigate(['/purchased-items']);
     }
 
     onAvatarChange(event: Event) {
@@ -158,17 +200,73 @@ export class ProfileComponent {
         }
     }
 
-    // Chart references
-    @ViewChild('spendingChart') spendingChartRef!: ElementRef;
-
-    private receiptService = inject(ReceiptService);
-
-    // Chart instances
-    spendingChart: Chart | null = null;
-
-    constructor() {
-        // Load data on init
+    ngOnInit() {
+        this.initializeUserProfile();
         this.loadData();
+        this.loadPointsData();
+        this.syncThemeWithProfile();
+        this.syncSearchRadiusWithProfile();
+        
+        // Subscribe to points updates
+        this.pointsService.points$.subscribe(points => {
+            if (points) {
+                this.userPoints.set(points);
+            }
+        });
+    }
+
+    /**
+     * Load user points data from backend
+     */
+    private loadPointsData() {
+        this.pointsService.getBalance().subscribe({
+            next: (points) => {
+                this.userPoints.set(points);
+            },
+            error: (error) => {
+                console.error('Error loading points data:', error);
+            }
+        });
+    }
+
+    /**
+     * Sync theme service with profile preferences
+     */
+    private syncThemeWithProfile() {
+        const currentTheme = this.themeService.getCurrentTheme();
+        this.profile.update(p => ({
+            ...p,
+            preferences: { ...p.preferences, theme: currentTheme }
+        }));
+    }
+
+    /**
+     * Sync search radius from preferences service
+     */
+    private syncSearchRadiusWithProfile() {
+        const searchRadiusKm = this.userPreferencesService.getSearchRadius();
+        this.profile.update(p => ({
+            ...p,
+            preferences: { ...p.preferences, searchRadiusKm }
+        }));
+    }
+
+    /**
+     * Initialize user profile from Clerk auth service
+     */
+    private initializeUserProfile() {
+        this.authService.user$.subscribe((clerkUser) => {
+            if (clerkUser) {
+                this.profile.update(p => ({
+                    ...p,
+                    id: clerkUser.id,
+                    name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'User',
+                    email: clerkUser.email || p.email,
+                    avatar: clerkUser.imageUrl || undefined,
+                    memberSince: clerkUser.createdAt ? new Date(clerkUser.createdAt) : p.memberSince
+                }));
+            }
+        });
     }
 
     loadData() {
@@ -179,12 +277,14 @@ export class ProfileComponent {
         // Subscribe to cache
         this.receiptService.receipts$.subscribe({
             next: (data: any[]) => {
-                this.receipts.set(data);
+                // Sort receipts by purchase date, newest first
+                const sortedReceipts = [...data].sort((a, b) => {
+                    const dateA = new Date(a.purchaseDate).getTime();
+                    const dateB = new Date(b.purchaseDate).getTime();
+                    return dateB - dateA; // Descending order (newest first)
+                });
+                this.receipts.set(sortedReceipts);
                 this.isLoading.set(false);
-                // Initialize charts if data is available and view is ready
-                if (data.length > 0) {
-                    setTimeout(() => this.initCharts(), 0);
-                }
             },
             error: (err: any) => {
                 console.error('Failed to load receipts', err);
@@ -193,71 +293,76 @@ export class ProfileComponent {
         });
     }
 
-    initCharts() {
-        if (this.receipts().length > 0) {
-            this.initSpendingChart();
-        }
+    onRefresh() {
+        // Refresh receipts data
+        this.receiptService.loadReceipts();
+
+        // Complete the pull-to-refresh animation after data loads
+        setTimeout(() => {
+            this.pullToRefresh?.completeRefresh();
+        }, 1000);
     }
 
-    initSpendingChart() {
-        if (!this.spendingChartRef) return;
-
-        if (this.spendingChart) this.spendingChart.destroy();
-
-        const ctx = this.spendingChartRef.nativeElement.getContext('2d');
-
-        // Group by month for the last 6 months
-        const monthlySpending = new Map<string, number>();
-        const now = new Date();
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            monthlySpending.set(d.toLocaleDateString('en-US', { month: 'short' }), 0);
+    async deleteReceipt(receipt: any, event?: Event) {
+        // Prevent navigation if it was a click on the swipe action
+        if (event) {
+            event.stopPropagation();
         }
 
-        this.receipts().forEach(r => {
-            const d = new Date(r.purchaseDate);
-            const key = d.toLocaleDateString('en-US', { month: 'short' });
-            if (monthlySpending.has(key)) {
-                monthlySpending.set(key, (monthlySpending.get(key) || 0) + r.totalAmount);
-            }
-        });
+        if (!confirm('Are you sure you want to delete this receipt?')) {
+            // Reset swipe state if we implemented it via JS, 
+            // but with CSS scroll snap, the user just scrolls back.
+            // If we want to force close, we can use ViewChild references, 
+            // but for now simple confirm is fine.
+            return;
+        }
 
-        this.spendingChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: Array.from(monthlySpending.keys()),
-                datasets: [{
-                    label: 'Spending',
-                    data: Array.from(monthlySpending.values()),
-                    backgroundColor: '#570df8',
-                    borderRadius: 4,
-                    barThickness: 12
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { display: false },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
+        try {
+            // Optimistic update
+            const oldReceipts = this.receipts();
+            this.receipts.update(current => current.filter(r => r.id !== receipt.id));
+
+            await firstValueFrom(this.receiptService.deleteReceipt(receipt.id));
+
+            // Recalculate stats
+            // Note: Computed signals update automatically when receipts signal changes
+            console.log('Receipt deleted successfully');
+        } catch (error) {
+            console.error('Error deleting receipt:', error);
+            // Revert on error
+            // This is a bit complex with signals without storing 'oldReceipts' in a wider scope 
+            // or reloading. For now simple reload on error.
+            this.receiptService.loadReceipts();
+            alert('Failed to delete receipt. Please try again.');
+        }
     }
 
     getMemberDuration(): string {
-        // Mock member since date for now
-        const memberSince = new Date('2024-01-01');
-        const months = Math.floor(
-            (new Date().getTime() - memberSince.getTime()) / (1000 * 60 * 60 * 24 * 30)
-        );
-        if (months < 1) return 'Less than a month';
-        if (months === 1) return '1 month';
-        if (months < 12) return `${months} months`;
+        const memberSince = this.profile().memberSince;
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - memberSince.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 1) return 'today';
+        if (diffDays === 1) return '1 day';
+        if (diffDays < 7) return `${diffDays} days`;
+        if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            return weeks === 1 ? '1 week' : `${weeks} weeks`;
+        }
+
+        const months = Math.floor(diffDays / 30);
+        if (months < 12) return months === 1 ? '1 month' : `${months} months`;
+
         const years = Math.floor(months / 12);
-        return years === 1 ? '1 year' : `${years} years`;
+        const remainingMonths = months % 12;
+
+        if (remainingMonths === 0) {
+            return years === 1 ? '1 year' : `${years} years`;
+        } else {
+            const yearText = years === 1 ? '1 year' : `${years} years`;
+            const monthText = remainingMonths === 1 ? '1 month' : `${remainingMonths} months`;
+            return `${yearText}, ${monthText}`;
+        }
     }
 }

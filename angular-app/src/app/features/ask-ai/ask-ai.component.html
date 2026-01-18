@@ -1,216 +1,175 @@
-<div class="flex flex-col h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pb-16 lg:pb-0">
-  <!-- Gradient Header with Glass Effect -->
-  <header class="flex-none bg-gradient-to-r from-primary to-secondary p-6 shadow-lg relative overflow-hidden">
-    <!-- Animated background pattern -->
-    <div class="absolute inset-0 opacity-10">
-      <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
+<div class="flex flex-col h-full bg-base-200 relative overflow-hidden">
+  
+  <!-- Header -->
+  <div class="navbar bg-primary text-primary-content shadow-md z-20 absolute top-0 left-0 right-0">
+    <div class="flex-1 gap-3">
+      <div class="w-10 h-10 rounded-full bg-white/20 p-0.5 shadow-lg">
+        <div class="w-full h-full bg-white rounded-full flex items-center justify-center">
+          <span class="material-icons text-primary">auto_awesome</span>
+        </div>
       </div>
-      <div class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2">
+      <div class="flex flex-col">
+        <h1 class="font-bold text-lg leading-tight text-white">Cheapsy AI</h1>
+        <span class="text-[10px] font-medium text-white/80 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+          Online
+        </span>
       </div>
     </div>
-
-    <div class="relative flex items-center gap-4">
-      <div class="p-4 bg-white/20 backdrop-blur-sm rounded-2xl shadow-xl">
-        <span class="material-icons text-4xl text-white">auto_awesome</span>
-      </div>
-      <div class="flex-1">
-        <h1 class="text-3xl font-bold text-white mb-1">Cheapsy AI</h1>
-        <p class="text-white/90 text-sm">Your intelligent shopping assistant</p>
-      </div>
-      <button class="btn btn-circle btn-ghost text-white lg:hidden" (click)="clearChat()">
-        <span class="material-icons">refresh</span>
+    <div class="flex-none">
+      <button class="btn btn-ghost btn-circle btn-sm text-white/80" (click)="clearChat()" title="Clear Chat">
+        <span class="material-icons">delete_outline</span>
       </button>
     </div>
-  </header>
+  </div>
 
-  <!-- Chat Messages Container -->
-  <div class="flex-1 overflow-y-auto p-4 space-y-6" #chatContainer>
-    <!-- Welcome Message (Only show when no messages) -->
+  <!-- Chat Area -->
+  <div class="flex-1 overflow-y-auto pt-20 pb-4 px-4 space-y-6 scroll-smooth" #chatContainer
+       style="padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));">
+    
+    <!-- Welcome State -->
     @if (messages.length === 0 && !isTyping) {
-    <div class="flex flex-col items-center justify-center h-full text-center px-4 animate-fade-in">
-      <!-- Animated AI Icon -->
-      <div class="relative mb-6">
-        <div class="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse"></div>
-        <div class="relative p-8 bg-gradient-to-br from-primary to-secondary rounded-full shadow-2xl">
-          <span class="material-icons text-6xl text-white">psychology</span>
+    <div class="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
+      
+      <!-- Hero Icon -->
+      <div class="relative mb-6 group">
+        <div class="absolute inset-0 bg-primary/20 blur-2xl rounded-full group-hover:bg-primary/30 transition-all duration-500"></div>
+        <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-base-100 to-base-200 shadow-xl flex items-center justify-center relative z-10 border border-white/20">
+          <span class="material-icons text-5xl text-primary">psychology_alt</span>
+        </div>
+        <!-- Floating badges -->
+        <div class="absolute -top-2 -right-2 bg-accent text-accent-content text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-bounce delay-700 z-20">
+          BETA
         </div>
       </div>
 
-      <h2 class="text-2xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-        How can I help you today?
-      </h2>
-      <p class="text-base-content/60 max-w-md mb-8">
-        I can analyze your spending, find the best deals, and answer questions about your receipts.
+      <h2 class="text-2xl font-bold mb-2 text-center">Hi, I'm Cheapsy!</h2>
+      <p class="text-base-content/60 text-center max-w-xs mb-8 text-sm">
+        I can help you find the cheapest prices, analyze your spending, and optimize your grocery list.
       </p>
-
-      <!-- Quick Action Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
-        <button
-          class="group card bg-base-100 hover:bg-primary/5 border-2 border-base-200 hover:border-primary transition-all duration-300 cursor-pointer"
-          (click)="quickQuestion('How much did I spend this month?')">
-          <div class="card-body p-4 flex-row items-center gap-3">
-            <div class="p-3 bg-success/10 rounded-xl group-hover:bg-success/20 transition-colors">
-              <span class="material-icons text-success">account_balance_wallet</span>
-            </div>
-            <div class="text-left flex-1">
-              <div class="font-semibold text-sm">Monthly Spending</div>
-              <div class="text-xs text-base-content/60">View your expenses</div>
-            </div>
-            <span
-              class="material-icons text-base-content/30 group-hover:text-primary transition-colors">arrow_forward</span>
-          </div>
+      
+      <!-- Quick Actions Grid -->
+      <div class="grid grid-cols-2 gap-3 w-full max-w-md">
+        <button class="btn btn-outline btn-neutral h-auto py-3 flex flex-col gap-2 border-base-300 hover:border-primary hover:bg-primary/5 transition-all group"
+          (click)="quickQuestion('Where is the cheapest place to buy milk?')">
+          <span class="material-icons text-2xl text-primary group-hover:scale-110 transition-transform">local_offer</span>
+          <span class="text-xs font-normal">Cheapest Item</span>
         </button>
 
-        <button
-          class="group card bg-base-100 hover:bg-primary/5 border-2 border-base-200 hover:border-primary transition-all duration-300 cursor-pointer"
-          (click)="quickQuestion('Which store is cheapest for milk?')">
-          <div class="card-body p-4 flex-row items-center gap-3">
-            <div class="p-3 bg-warning/10 rounded-xl group-hover:bg-warning/20 transition-colors">
-              <span class="material-icons text-warning">local_offer</span>
-            </div>
-            <div class="text-left flex-1">
-              <div class="font-semibold text-sm">Best Prices</div>
-              <div class="text-xs text-base-content/60">Find cheapest stores</div>
-            </div>
-            <span
-              class="material-icons text-base-content/30 group-hover:text-primary transition-colors">arrow_forward</span>
-          </div>
+        <button class="btn btn-outline btn-neutral h-auto py-3 flex flex-col gap-2 border-base-300 hover:border-secondary hover:bg-secondary/5 transition-all group"
+          (click)="quickQuestion('Analyze my grocery spending')">
+          <span class="material-icons text-2xl text-secondary group-hover:scale-110 transition-transform">pie_chart</span>
+          <span class="text-xs font-normal">Spending Analysis</span>
         </button>
 
-        <button
-          class="group card bg-base-100 hover:bg-primary/5 border-2 border-base-200 hover:border-primary transition-all duration-300 cursor-pointer"
-          (click)="quickQuestion('Show my recent receipts')">
-          <div class="card-body p-4 flex-row items-center gap-3">
-            <div class="p-3 bg-info/10 rounded-xl group-hover:bg-info/20 transition-colors">
-              <span class="material-icons text-info">receipt_long</span>
-            </div>
-            <div class="text-left flex-1">
-              <div class="font-semibold text-sm">Recent Receipts</div>
-              <div class="text-xs text-base-content/60">View your history</div>
-            </div>
-            <span
-              class="material-icons text-base-content/30 group-hover:text-primary transition-colors">arrow_forward</span>
-          </div>
+        <button class="btn btn-outline btn-neutral h-auto py-3 flex flex-col gap-2 border-base-300 hover:border-accent hover:bg-accent/5 transition-all group"
+          (click)="quickQuestion('Create a grocery list for me')">
+          <span class="material-icons text-2xl text-accent group-hover:scale-110 transition-transform">list_alt</span>
+          <span class="text-xs font-normal">Grocery List</span>
         </button>
 
-        <button
-          class="group card bg-base-100 hover:bg-primary/5 border-2 border-base-200 hover:border-primary transition-all duration-300 cursor-pointer"
+        <button class="btn btn-outline btn-neutral h-auto py-3 flex flex-col gap-2 border-base-300 hover:border-success hover:bg-success/5 transition-all group"
           (click)="quickQuestion('How can I save more money?')">
-          <div class="card-body p-4 flex-row items-center gap-3">
-            <div class="p-3 bg-error/10 rounded-xl group-hover:bg-error/20 transition-colors">
-              <span class="material-icons text-error">savings</span>
-            </div>
-            <div class="text-left flex-1">
-              <div class="font-semibold text-sm">Savings Tips</div>
-              <div class="text-xs text-base-content/60">Get recommendations</div>
-            </div>
-            <span
-              class="material-icons text-base-content/30 group-hover:text-primary transition-colors">arrow_forward</span>
-          </div>
+          <span class="material-icons text-2xl text-success group-hover:scale-110 transition-transform">savings</span>
+          <span class="text-xs font-normal">Savings Tips</span>
         </button>
       </div>
     </div>
     }
 
-    <!-- Chat Messages -->
+    <!-- Messages -->
     @for (message of messages; track message.timestamp) {
-    <div class="flex gap-3 animate-slide-up" [class.flex-row-reverse]="message.isUser">
-      <!-- Avatar -->
-      <div class="flex-none">
-        <div class="avatar">
-          <div class="w-10 h-10 rounded-full" [class.bg-gradient-to-br]="!message.isUser"
-            [class.from-primary]="!message.isUser" [class.to-secondary]="!message.isUser"
-            [class.bg-base-300]="message.isUser">
-            <div class="flex items-center justify-center w-full h-full">
-              <span class="material-icons text-white" [class.text-base-content]="message.isUser">
-                {{ message.isUser ? 'person' : 'psychology' }}
-              </span>
-            </div>
+      <div class="chat animate-slide-up group" [class.chat-start]="!message.isUser" [class.chat-end]="message.isUser">
+        <div class="chat-image avatar placeholder">
+          <div class="w-8 rounded-full shadow-sm ring-1 ring-base-300 ring-offset-1 ring-offset-base-100">
+            @if (message.isUser) {
+              <div class="bg-neutral text-neutral-content w-full h-full flex items-center justify-center">
+                <span class="material-icons text-sm">person</span>
+              </div>
+            } @else {
+              <div class="bg-gradient-to-br from-primary to-secondary text-white w-full h-full flex items-center justify-center">
+                <span class="material-icons text-sm">auto_awesome</span>
+              </div>
+            }
           </div>
         </div>
-      </div>
-
-      <!-- Message Bubble -->
-      <div class="flex-1 max-w-[85%] lg:max-w-[70%]">
-        <div class="flex items-center gap-2 mb-1" [class.justify-end]="message.isUser">
-          <span class="text-xs font-medium text-base-content/60">
-            {{ message.isUser ? 'You' : 'Cheapsy AI' }}
-          </span>
-          <span class="text-xs text-base-content/40">
-            {{ message.timestamp | date:'shortTime' }}
-          </span>
+        
+        <div class="chat-header mb-1 text-xs opacity-50 flex items-center gap-1">
+          {{ message.isUser ? 'You' : 'Cheapsy' }}
+          <time class="hidden group-hover:inline-block transition-opacity">{{ message.timestamp | date:'shortTime' }}</time>
         </div>
-
-        <div class="rounded-2xl px-4 py-3 shadow-sm" [class.bg-gradient-to-br]="message.isUser"
-          [class.from-primary]="message.isUser" [class.to-secondary]="message.isUser"
-          [class.text-white]="message.isUser" [class.bg-base-100]="!message.isUser" [class.border]="!message.isUser"
-          [class.border-base-200]="!message.isUser">
-          <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ message.text }}</p>
+        
+        <div class="chat-bubble shadow-sm text-sm leading-relaxed whitespace-pre-line" 
+             [class.chat-bubble-primary]="message.isUser" 
+             [class.bg-white]="!message.isUser"
+             [class.text-base-content]="!message.isUser"
+             [class.rounded-tr-none]="message.isUser"
+             [class.rounded-tl-none]="!message.isUser">
+          {{ message.text }}
         </div>
       </div>
-    </div>
     }
 
     <!-- Typing Indicator -->
     @if (isTyping) {
-    <div class="flex gap-3 animate-slide-up">
-      <div class="flex-none">
-        <div class="avatar">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary">
-            <div class="flex items-center justify-center w-full h-full">
-              <span class="material-icons text-white">psychology</span>
-            </div>
+      <div class="chat chat-start animate-fade-in">
+        <div class="chat-image avatar">
+          <div class="w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-sm">
+            <span class="material-icons text-white text-[10px]">auto_awesome</span>
           </div>
         </div>
-      </div>
-      <div class="bg-base-100 border border-base-200 rounded-2xl px-6 py-4 shadow-sm">
-        <div class="flex gap-1">
-          <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-          <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-          <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+        <div class="chat-bubble bg-white text-base-content shadow-sm rounded-tl-none p-3 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"></span>
+          <span class="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce delay-100"></span>
+          <span class="w-1.5 h-1.5 bg-primary rounded-full animate-bounce delay-200"></span>
         </div>
       </div>
-    </div>
     }
+    
+    <!-- Spacer for bottom input -->
+    <div class="h-24"></div>
   </div>
 
-  <!-- Input Area - Sticky at bottom with glass effect -->
-  <div
-    class="flex-none p-4 pr-20 lg:pr-4 bg-base-100/80 backdrop-blur-lg border-t border-base-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-    <div class="max-w-4xl mx-auto">
-      <div class="flex gap-2">
-        <div class="relative flex-1">
-          <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40">chat_bubble</span>
-          <input type="text"
-            class="input input-bordered w-full pl-12 pr-4 h-12 rounded-full focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
-            [(ngModel)]="userInput" (keypress)="handleKeyPress($event)"
-            placeholder="Ask me anything about your receipts..." autocomplete="off" />
-        </div>
-        <button class="btn btn-primary btn-circle h-12 w-12 shadow-lg hover:shadow-xl transition-shadow"
-          (click)="sendMessage()" [disabled]="!userInput.trim()">
-          <span class="material-icons">send</span>
-        </button>
-      </div>
-
-      <!-- Suggested Questions (show when input is empty) -->
+  <!-- Input Area -->
+  <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-base-100 via-base-100 to-transparent pt-6 pb-6 px-4 z-20"
+       style="padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));">
+    <div class="max-w-4xl mx-auto w-full space-y-3">
+      
+      <!-- Suggestion Chips -->
       @if (!userInput && messages.length > 0) {
-      <div class="flex gap-2 mt-3 overflow-x-auto pb-2">
-        <button class="btn btn-sm btn-outline rounded-full whitespace-nowrap"
-          (click)="quickQuestion('Show spending trends')">
-          <span class="material-icons text-sm">trending_up</span>
-          Spending trends
-        </button>
-        <button class="btn btn-sm btn-outline rounded-full whitespace-nowrap"
-          (click)="quickQuestion('Compare store prices')">
-          <span class="material-icons text-sm">compare_arrows</span>
-          Compare prices
-        </button>
-        <button class="btn btn-sm btn-outline rounded-full whitespace-nowrap" (click)="quickQuestion('Budget tips')">
-          <span class="material-icons text-sm">lightbulb</span>
-          Budget tips
-        </button>
-      </div>
+        <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar mask-fade-right">
+          <button class="btn btn-xs btn-neutral btn-outline rounded-full whitespace-nowrap" (click)="quickQuestion('Show spending trends')">
+            Spending trends
+          </button>
+          <button class="btn btn-xs btn-neutral btn-outline rounded-full whitespace-nowrap" (click)="quickQuestion('Compare store prices')">
+            Compare prices
+          </button>
+          <button class="btn btn-xs btn-neutral btn-outline rounded-full whitespace-nowrap" (click)="quickQuestion('Budget tips')">
+            Budget tips
+          </button>
+        </div>
       }
+
+      <!-- Input Bar -->
+      <div class="relative group">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+        <div class="join w-full shadow-lg rounded-full bg-base-100 border border-base-200 relative">
+          <input type="text" 
+                 class="input input-ghost join-item w-full focus:bg-transparent focus:outline-none pl-6 rounded-l-full" 
+                 placeholder="Ask anything..." 
+                 [(ngModel)]="userInput" 
+                 (keypress)="handleKeyPress($event)"
+                 [disabled]="isTyping"/>
+          <button class="btn btn-ghost join-item rounded-r-full pr-4 hover:bg-transparent" 
+                  (click)="sendMessage()" 
+                  [disabled]="!userInput.trim() || isTyping">
+            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+                 [class.bg-base-300]="!userInput.trim()">
+              <span class="material-icons text-white text-sm">arrow_upward</span>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

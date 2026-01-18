@@ -1,0 +1,1634 @@
+[
+  {
+    "categoryId": 2730,
+    "name": "Grocery",
+    "level": 2,
+    "urlKey": "grocery",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2733,
+    "name": "Baking Ingredients",
+    "level": 3,
+    "urlKey": "baking-ingredients",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2751,
+    "name": "Biscuits & Cakes",
+    "level": 3,
+    "urlKey": "biscuits-cakes",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2766,
+    "name": "Canned Food",
+    "level": 3,
+    "urlKey": "canned-food",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2784,
+    "name": "Cereals",
+    "level": 3,
+    "urlKey": "cereals",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2793,
+    "name": "Chocolates, Sweets & Jelly",
+    "level": 3,
+    "urlKey": "chocolates-sweets-jelly",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2808,
+    "name": "Commodities",
+    "level": 3,
+    "urlKey": "commodities",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2823,
+    "name": "Jams, Spreads & Honey",
+    "level": 3,
+    "urlKey": "jams-spreads-honey",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49056,
+    "name": "Organic Food",
+    "level": 3,
+    "urlKey": "organic-food",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49080,
+    "name": "Pasta & Instant Food",
+    "level": 3,
+    "urlKey": "pasta-instant-food",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49095,
+    "name": "Sauce, Spice & Seasoning",
+    "level": 3,
+    "urlKey": "sauce-spice-seasoning",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49107,
+    "name": "Snacks",
+    "level": 3,
+    "urlKey": "snacks",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49131,
+    "name": "Sundry",
+    "level": 3,
+    "urlKey": "sundry",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 60345,
+    "name": "Chocolates",
+    "level": 3,
+    "urlKey": "chocolates",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 60354,
+    "name": "Sauce",
+    "level": 3,
+    "urlKey": "sauce",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2736,
+    "name": "Baking Accessories",
+    "level": 4,
+    "urlKey": "baking-accessories",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2739,
+    "name": "Cake Mix",
+    "level": 4,
+    "urlKey": "cake-mix",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2742,
+    "name": "Crystalised Fruits & Nuts",
+    "level": 4,
+    "urlKey": "crystalised-fruits-nuts",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2745,
+    "name": "Flavouring & Colouring",
+    "level": 4,
+    "urlKey": "flavouring-colouring",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2748,
+    "name": "Sprinkles, Syrup & Other Ingredients",
+    "level": 4,
+    "urlKey": "sprinkles-syrup-other-ingredients",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2754,
+    "name": "Cakes & Pies",
+    "level": 4,
+    "urlKey": "cakes-pies",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2757,
+    "name": "Healthy Biscuits",
+    "level": 4,
+    "urlKey": "healthy-biscuits",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2760,
+    "name": "Savoury Crackers",
+    "level": 4,
+    "urlKey": "savoury-crackers",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2763,
+    "name": "Sweet Biscuits & Wafer",
+    "level": 4,
+    "urlKey": "sweet-biscuits-wafer",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2769,
+    "name": "Canned Fish & Seafood",
+    "level": 4,
+    "urlKey": "canned-fish-seafood",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2772,
+    "name": "Canned Fruits",
+    "level": 4,
+    "urlKey": "canned-fruits",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2775,
+    "name": "Canned Meat",
+    "level": 4,
+    "urlKey": "canned-meat",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2778,
+    "name": "Canned Vegetables",
+    "level": 4,
+    "urlKey": "canned-vegetables",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2781,
+    "name": "Pickles & Relish",
+    "level": 4,
+    "urlKey": "pickles-relish",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2787,
+    "name": "Cereals",
+    "level": 4,
+    "urlKey": "cereals",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2796,
+    "name": "Chocolates",
+    "level": 4,
+    "urlKey": "chocolates",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2799,
+    "name": "Jelly & Pudding",
+    "level": 4,
+    "urlKey": "jelly-pudding",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2802,
+    "name": "Other Desserts",
+    "level": 4,
+    "urlKey": "other-desserts",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2805,
+    "name": "Sweets",
+    "level": 4,
+    "urlKey": "sweets",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2811,
+    "name": "Flour",
+    "level": 4,
+    "urlKey": "flour",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2814,
+    "name": "Oil",
+    "level": 4,
+    "urlKey": "oil",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2817,
+    "name": "Rice",
+    "level": 4,
+    "urlKey": "rice",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2820,
+    "name": "Sugar",
+    "level": 4,
+    "urlKey": "sugar",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2826,
+    "name": "Honey",
+    "level": 4,
+    "urlKey": "honey",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2829,
+    "name": "Jam & Kaya",
+    "level": 4,
+    "urlKey": "jam-kaya",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2832,
+    "name": "Margarine & Ghee",
+    "level": 4,
+    "urlKey": "margarine-ghee",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 2835,
+    "name": "Peanut Butter & Spreads",
+    "level": 4,
+    "urlKey": "peanut-butter-spreads",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49059,
+    "name": "Confectionary",
+    "level": 4,
+    "urlKey": "confectionary",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49062,
+    "name": "Drinks",
+    "level": 4,
+    "urlKey": "drinks",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49065,
+    "name": "Pasta & Instant Food",
+    "level": 4,
+    "urlKey": "pasta-instant-food",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49068,
+    "name": "Rice & Agriculture",
+    "level": 4,
+    "urlKey": "rice-agriculture",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49071,
+    "name": "Sauce & Spices",
+    "level": 4,
+    "urlKey": "sauce-spices",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49074,
+    "name": "Spreads & Baking ",
+    "level": 4,
+    "urlKey": "spreads-baking",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49077,
+    "name": "Sugar, Flour & Oil",
+    "level": 4,
+    "urlKey": "sugar-flour-oil",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49083,
+    "name": "Instant Porridge & Rice",
+    "level": 4,
+    "urlKey": "instant-porridge-rice",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49086,
+    "name": "Instant Soup",
+    "level": 4,
+    "urlKey": "instant-soup",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49089,
+    "name": "Packet & Cup Noodles",
+    "level": 4,
+    "urlKey": "packet-cup-noodles",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49092,
+    "name": "Pasta",
+    "level": 4,
+    "urlKey": "pasta",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49098,
+    "name": "Sauce & Dressing",
+    "level": 4,
+    "urlKey": "sauce-dressing",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49101,
+    "name": "Spice & Seasoning",
+    "level": 4,
+    "urlKey": "spice-seasoning",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49104,
+    "name": "Stock",
+    "level": 4,
+    "urlKey": "stock",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49110,
+    "name": "Canister Snacks",
+    "level": 4,
+    "urlKey": "canister-snacks",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49113,
+    "name": "Crisps & Chips",
+    "level": 4,
+    "urlKey": "crisps-chips",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49116,
+    "name": "Fruits, Seeds & Nuts",
+    "level": 4,
+    "urlKey": "fruits-seeds-nuts",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49119,
+    "name": "Local Snacks",
+    "level": 4,
+    "urlKey": "local-snacks",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49122,
+    "name": "Other Snacks",
+    "level": 4,
+    "urlKey": "other-snacks",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49125,
+    "name": "Ring & Twisted Snacks",
+    "level": 4,
+    "urlKey": "ring-twisted-snacks",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49128,
+    "name": "Seaweed",
+    "level": 4,
+    "urlKey": "seaweed",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49134,
+    "name": "Chinese Soups & Herbs",
+    "level": 4,
+    "urlKey": "chinese-soups-herbs",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49137,
+    "name": "Fruits, Beans, Nuts & Seeds",
+    "level": 4,
+    "urlKey": "fruits-beans-nuts-seeds",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49140,
+    "name": "Mushrooms",
+    "level": 4,
+    "urlKey": "mushrooms",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 49143,
+    "name": "Other Sundry",
+    "level": 4,
+    "urlKey": "other-sundry",
+    "departmentId": 2730,
+    "departmentName": "Grocery"
+  },
+  {
+    "categoryId": 3189,
+    "name": "Fresh Produce",
+    "level": 2,
+    "urlKey": "fresh-produce",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3402,
+    "name": "Fish & Seafood",
+    "level": 3,
+    "urlKey": "fish-seafood",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3771,
+    "name": "Noodles, Tofu & Condiments",
+    "level": 3,
+    "urlKey": "noodles-tofu-condiments",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3777,
+    "name": "Desserts",
+    "level": 3,
+    "urlKey": "desserts",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3783,
+    "name": "Fruits",
+    "level": 3,
+    "urlKey": "fruits",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3792,
+    "name": "Organic",
+    "level": 3,
+    "urlKey": "organic",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3798,
+    "name": "Eggs",
+    "level": 3,
+    "urlKey": "eggs",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3840,
+    "name": "Ready To Cook",
+    "level": 3,
+    "urlKey": "ready-to-cook",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3858,
+    "name": "Vegetables",
+    "level": 3,
+    "urlKey": "vegetables",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3405,
+    "name": "Fish",
+    "level": 4,
+    "urlKey": "fish",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3774,
+    "name": "Tofu & Beancurd",
+    "level": 4,
+    "urlKey": "tofu-beancurd",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3780,
+    "name": "Desserts",
+    "level": 4,
+    "urlKey": "desserts",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3786,
+    "name": "Tropical Fruits",
+    "level": 4,
+    "urlKey": "tropical-fruits",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3801,
+    "name": "Chicken Eggs",
+    "level": 4,
+    "urlKey": "chicken-eggs",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3804,
+    "name": "Premium Eggs",
+    "level": 4,
+    "urlKey": "premium-eggs",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3807,
+    "name": "Preserved & Quail Eggs",
+    "level": 4,
+    "urlKey": "preserved-quail-eggs",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3813,
+    "name": "Salted & Duck Eggs",
+    "level": 4,
+    "urlKey": "salted-duck-eggs",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3819,
+    "name": "Crab",
+    "level": 4,
+    "urlKey": "crab",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3822,
+    "name": "Noodles & Tofu",
+    "level": 4,
+    "urlKey": "noodles-tofu",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3825,
+    "name": "Vegetables",
+    "level": 4,
+    "urlKey": "organic-vegetables",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3828,
+    "name": "Prawns",
+    "level": 4,
+    "urlKey": "prawns",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3834,
+    "name": "Processed Seafood",
+    "level": 4,
+    "urlKey": "processed-seafood",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3837,
+    "name": "Seasonal Seafood",
+    "level": 4,
+    "urlKey": "seasonal-seafood",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3843,
+    "name": "Shellfish",
+    "level": 4,
+    "urlKey": "shellfish",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3846,
+    "name": "Ready To Cook",
+    "level": 4,
+    "urlKey": "ready-to-cook",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3849,
+    "name": "Squid",
+    "level": 4,
+    "urlKey": "squid",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3861,
+    "name": "Apples",
+    "level": 4,
+    "urlKey": "apples",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3864,
+    "name": "Beans, Legumes & Seeds",
+    "level": 4,
+    "urlKey": "beans-legumes-seeds",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3867,
+    "name": "Bananas",
+    "level": 4,
+    "urlKey": "bananas",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 3963,
+    "name": "Bulbs",
+    "level": 4,
+    "urlKey": "bulbs",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4029,
+    "name": "Flower & Fruit",
+    "level": 4,
+    "urlKey": "flower-fruit",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4065,
+    "name": "Leafy Green & Stems",
+    "level": 4,
+    "urlKey": "leafy-green-stems",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4068,
+    "name": "Mushrooms",
+    "level": 4,
+    "urlKey": "vagetables-mushrooms",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4071,
+    "name": "Preserved Vegetables",
+    "level": 4,
+    "urlKey": "preserved-vegetables",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4074,
+    "name": "Salad\u00a0",
+    "level": 4,
+    "urlKey": "salad",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4077,
+    "name": "Shoots & Roots",
+    "level": 4,
+    "urlKey": "shoots-roots",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4233,
+    "name": "Berries & Grapes",
+    "level": 4,
+    "urlKey": "berries-grapes",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4236,
+    "name": "Citrus & Oranges",
+    "level": 4,
+    "urlKey": "citrus-oranges",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4239,
+    "name": "Mango & Melons",
+    "level": 4,
+    "urlKey": "mango-melons",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4242,
+    "name": "Pears",
+    "level": 4,
+    "urlKey": "pear",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4245,
+    "name": "Stone Fruits",
+    "level": 4,
+    "urlKey": "stone-fruits",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4251,
+    "name": "Condiments",
+    "level": 4,
+    "urlKey": "condiments",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 4254,
+    "name": "Noodles",
+    "level": 4,
+    "urlKey": "noodles",
+    "departmentId": 3189,
+    "departmentName": "Fresh Produce"
+  },
+  {
+    "categoryId": 5304,
+    "name": "Meat & Poultry",
+    "level": 2,
+    "urlKey": "meat-poultry",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5307,
+    "name": "Meat",
+    "level": 3,
+    "urlKey": "meat",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5316,
+    "name": "Offals",
+    "level": 3,
+    "urlKey": "offals",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5328,
+    "name": "Poultry",
+    "level": 3,
+    "urlKey": "poultry",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5346,
+    "name": "Pre-Packed",
+    "level": 3,
+    "urlKey": "pre-packed",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5310,
+    "name": "Parts & Weighted",
+    "level": 4,
+    "urlKey": "parts-weighted",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5313,
+    "name": "Pre-Packed",
+    "level": 4,
+    "urlKey": "pre-packed",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5319,
+    "name": "Offals",
+    "level": 4,
+    "urlKey": "offals",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5322,
+    "name": "Parts & Weighted",
+    "level": 4,
+    "urlKey": "parts-weighted",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5325,
+    "name": "Pre-Packed",
+    "level": 4,
+    "urlKey": "pre-packed",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5331,
+    "name": "Marinated",
+    "level": 4,
+    "urlKey": "marinated",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5334,
+    "name": "Parts & Weighted",
+    "level": 4,
+    "urlKey": "parts-weighted",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5337,
+    "name": "Pre-Packed",
+    "level": 4,
+    "urlKey": "pre-packed",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5340,
+    "name": "Whole",
+    "level": 4,
+    "urlKey": "whole",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 5352,
+    "name": "Pre-Packed",
+    "level": 4,
+    "urlKey": "pre-packed",
+    "departmentId": 5304,
+    "departmentName": "Meat & Poultry"
+  },
+  {
+    "categoryId": 6504,
+    "name": "Bakery",
+    "level": 2,
+    "urlKey": "bakery",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 6591,
+    "name": "Bread",
+    "level": 3,
+    "urlKey": "bread",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 7401,
+    "name": "Bun ",
+    "level": 3,
+    "urlKey": "bun",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 7707,
+    "name": "Cakes & Donuts",
+    "level": 3,
+    "urlKey": "cakes-donuts",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 8472,
+    "name": "Jams & Spreads",
+    "level": 3,
+    "urlKey": "jams-spreads",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 6777,
+    "name": "Flat Bread",
+    "level": 4,
+    "urlKey": "flat-bread",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 6999,
+    "name": "Loaves & Rolls Bread",
+    "level": 4,
+    "urlKey": "loaves-rolls-bread",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 7395,
+    "name": "Pastry",
+    "level": 4,
+    "urlKey": "pastry",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 7398,
+    "name": "Specialty, Healthy Loaves & Rolls",
+    "level": 4,
+    "urlKey": "specialty-healthy-loaves-rolls",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 7404,
+    "name": "Savoury Buns",
+    "level": 4,
+    "urlKey": "savoury-buns",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 7500,
+    "name": "Sweet Buns",
+    "level": 4,
+    "urlKey": "sweet-buns",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 7899,
+    "name": "Cakes",
+    "level": 4,
+    "urlKey": "cakes",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 8160,
+    "name": "Donuts",
+    "level": 4,
+    "urlKey": "donuts",
+    "departmentId": 6504,
+    "departmentName": "Bakery"
+  },
+  {
+    "categoryId": 9405,
+    "name": "Beverages",
+    "level": 2,
+    "urlKey": "beverages",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 9576,
+    "name": "Asian Drinks",
+    "level": 3,
+    "urlKey": "asian-drinks",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 13881,
+    "name": "Carbonated Drinks",
+    "level": 3,
+    "urlKey": "carbonated-drinks",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 14538,
+    "name": "Coffee & Tea",
+    "level": 3,
+    "urlKey": "coffee-tea",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 15561,
+    "name": "Cordials & Concentrates",
+    "level": 3,
+    "urlKey": "cordials-concentrates",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 16212,
+    "name": "Creamers",
+    "level": 3,
+    "urlKey": "creamers",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 17190,
+    "name": "Energy & Sports Drinks",
+    "level": 3,
+    "urlKey": "energy-sports-drinks",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 17874,
+    "name": "Flavoured Beverage",
+    "level": 3,
+    "urlKey": "flavoured-beverage",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 18948,
+    "name": "Fruit & Vegetable Juice",
+    "level": 3,
+    "urlKey": "fruit-vegetable-juice",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 19608,
+    "name": "Milk Powder",
+    "level": 3,
+    "urlKey": "milk-powder",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 19965,
+    "name": "Ready to Drink Milk",
+    "level": 3,
+    "urlKey": "ready-to-drink-milk",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 20586,
+    "name": "Water",
+    "level": 3,
+    "urlKey": "water",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 9780,
+    "name": "Bottle Drinks",
+    "level": 4,
+    "urlKey": "bottle-drinks",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 13143,
+    "name": "Can Drinks",
+    "level": 4,
+    "urlKey": "can-drinks",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 13542,
+    "name": "Packet Drinks",
+    "level": 4,
+    "urlKey": "packet-drinks",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 14076,
+    "name": "Cola",
+    "level": 4,
+    "urlKey": "cola",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 14325,
+    "name": "Fruity & Others",
+    "level": 4,
+    "urlKey": "fruity-others",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 14535,
+    "name": "Mixers & Soda",
+    "level": 4,
+    "urlKey": "mixers-soda",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 14541,
+    "name": "Coffee Beans & Accessories",
+    "level": 4,
+    "urlKey": "coffee-beans-accessories",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 14544,
+    "name": "Instant Coffee",
+    "level": 4,
+    "urlKey": "instant-coffee",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 14640,
+    "name": "Local Coffee",
+    "level": 4,
+    "urlKey": "local-coffee",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 14877,
+    "name": "Ready To Drink Coffee",
+    "level": 4,
+    "urlKey": "ready-to-drink-coffee",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 15099,
+    "name": "Ready To Drink Tea",
+    "level": 4,
+    "urlKey": "ready-to-drink-tea",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 15354,
+    "name": "Tea",
+    "level": 4,
+    "urlKey": "tea",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 15756,
+    "name": "Fruit Flavours",
+    "level": 4,
+    "urlKey": "fruit-flavours",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 15948,
+    "name": "Other Flavours",
+    "level": 4,
+    "urlKey": "other-flavours",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 16398,
+    "name": "Creamers & Condensed Milk",
+    "level": 4,
+    "urlKey": "creamers-condensed-milk",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 16737,
+    "name": "Evaporated Milk",
+    "level": 4,
+    "urlKey": "evaporated-milk",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 17361,
+    "name": "Energy Drinks",
+    "level": 4,
+    "urlKey": "energy-drinks",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 17580,
+    "name": "Sports Drinks",
+    "level": 4,
+    "urlKey": "sports-drinks",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 18024,
+    "name": "Brewed Drink",
+    "level": 4,
+    "urlKey": "brewed-drink",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 18234,
+    "name": "Chocolate Based",
+    "level": 4,
+    "urlKey": "chocolate-based",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 18465,
+    "name": "Malt Based",
+    "level": 4,
+    "urlKey": "malt-based",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 18681,
+    "name": "Soy Based & Others",
+    "level": 4,
+    "urlKey": "soy-based-others",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 19107,
+    "name": "Fruit Juice",
+    "level": 4,
+    "urlKey": "fruit-juice",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 19320,
+    "name": "Vegetable Juice",
+    "level": 4,
+    "urlKey": "vegetable-juice",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 19767,
+    "name": "Adult Milk ",
+    "level": 4,
+    "urlKey": "adult-milk",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 20118,
+    "name": "Flavoured UHT Milk",
+    "level": 4,
+    "urlKey": "flavoured-uht-milk",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 20385,
+    "name": "UHT Milk ",
+    "level": 4,
+    "urlKey": "uht-milk",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 20748,
+    "name": "Mineral & Drinking Water",
+    "level": 4,
+    "urlKey": "mineral-drinking-water",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 21213,
+    "name": "Sparkling Water",
+    "level": 4,
+    "urlKey": "sparkling-water",
+    "departmentId": 9405,
+    "departmentName": "Beverages"
+  },
+  {
+    "categoryId": 23946,
+    "name": "Chilled & Frozen",
+    "level": 2,
+    "urlKey": "chilled-frozen",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 24105,
+    "name": "Dairy",
+    "level": 3,
+    "urlKey": "dairy",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 25371,
+    "name": "Desserts",
+    "level": 3,
+    "urlKey": "chilled-frozen-desserts",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 25857,
+    "name": "Frozen Food",
+    "level": 3,
+    "urlKey": "frozen-food",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 29481,
+    "name": "Ice Cream",
+    "level": 3,
+    "urlKey": "ice-cream",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 30675,
+    "name": "Juice & Drinks",
+    "level": 3,
+    "urlKey": "juice-drinks",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 24264,
+    "name": "Butter & Margarine",
+    "level": 4,
+    "urlKey": "butter-margarine",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 24513,
+    "name": "Cheese",
+    "level": 4,
+    "urlKey": "cheese",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 24729,
+    "name": "Cream",
+    "level": 4,
+    "urlKey": "cream",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 24942,
+    "name": "Milk",
+    "level": 4,
+    "urlKey": "milk",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 25173,
+    "name": "Yoghurt",
+    "level": 4,
+    "urlKey": "yoghurt",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 25524,
+    "name": "Chilled Desserts",
+    "level": 4,
+    "urlKey": "chilled-desserts",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 26307,
+    "name": "Bread & Pastry",
+    "level": 4,
+    "urlKey": "bread-pastry",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 26553,
+    "name": "Burgers & Frankfurters ",
+    "level": 4,
+    "urlKey": "burgers-frankfurters",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 27177,
+    "name": "Fish & Seafood",
+    "level": 4,
+    "urlKey": "forzen-fish-seafood",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 27501,
+    "name": "Fried Chicken",
+    "level": 4,
+    "urlKey": "fried-chicken",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 27834,
+    "name": "Meat & Poultry",
+    "level": 4,
+    "urlKey": "frozen-meat-poultry",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 28560,
+    "name": "Nuggets & Meatballs",
+    "level": 4,
+    "urlKey": "nuggets-meatballs",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 28917,
+    "name": "Vege & Potato",
+    "level": 4,
+    "urlKey": "vege-potato",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 29136,
+    "name": "Vegetarian",
+    "level": 4,
+    "urlKey": "vegetarian",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 29865,
+    "name": "Lollies & Ice Cream Bars",
+    "level": 4,
+    "urlKey": "lollies-ice-cream-bars",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 30396,
+    "name": "Tub",
+    "level": 4,
+    "urlKey": "tub",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 30849,
+    "name": "Orange",
+    "level": 4,
+    "urlKey": "orange",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 31086,
+    "name": "Other Fruit Juices",
+    "level": 4,
+    "urlKey": "other-fruit-juices",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  },
+  {
+    "categoryId": 31326,
+    "name": "Soy",
+    "level": 4,
+    "urlKey": "soy",
+    "departmentId": 23946,
+    "departmentName": "Chilled & Frozen"
+  }
+]

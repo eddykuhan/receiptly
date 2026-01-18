@@ -1,37 +1,62 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject, firstValueFrom } from 'rxjs';
+import { catchError, map, tap, switchMap, filter, take } from 'rxjs/operators';
 import { Receipt, UploadReceiptResponse } from '../models/receipt.model';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
+import { ClerkAuthService } from './clerk-auth.service';
+import { CloudWatchLoggerService } from './cloudwatch-logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReceiptService {
   private http = inject(HttpClient);
+  private authService = inject(ClerkAuthService);
+  private logger = inject(CloudWatchLoggerService);
   private readonly API_URL = `${environment.apiUrl}/receipts`;
-  private readonly USER_ID = 'default-user'; // TODO: Replace with actual user management
 
   // In-memory cache for current session
   private receiptsCache$ = new BehaviorSubject<Receipt[]>([]);
   public receipts$ = this.receiptsCache$.asObservable();
 
   constructor() {
-    this.loadReceipts();
+    // Wait for user authentication before loading receipts
+    this.authService.isAuthenticated$
+      .pipe(
+        filter(isAuth => isAuth === true),
+        take(1)
+      )
+      .subscribe(() => {
+        this.loadReceipts();
+      });
   }
 
   /**
    * Load all receipts for the current user
    */
   loadReceipts(): void {
-    this.http.get<Receipt[]>(`${this.API_URL}/user/${this.USER_ID}`)
+    this.logger.info('Loading receipts');
+    this.authService.user$
       .pipe(
+        switchMap(user => {
+          if (!user) {
+            return throwError(() => new Error('User not authenticated'));
+          }
+          return this.http.get<Receipt[]>(`${this.API_URL}/user/${user.id}`);
+        }),
         map(receipts => receipts.map(r => this.parseReceiptDates(r))),
         catchError(this.handleError)
       )
-      .subscribe(receipts => {
-        this.receiptsCache$.next(receipts);
+      .subscribe({
+        next: (receipts) => {
+          this.receiptsCache$.next(receipts);
+          this.logger.info('Receipts loaded successfully', { count: receipts.length });
+        },
+        error: (error) => {
+          console.error('Error loading receipts:', error);
+          this.logger.error('Failed to load receipts', { error: error.message });
+        }
       });
   }
 
@@ -40,8 +65,12 @@ export class ReceiptService {
    */
   uploadReceipt(imageFile: File | Blob, filename: string): Observable<UploadReceiptResponse> {
     const formData = new FormData();
-    formData.append('file', imageFile, filename);
+    // Sanitize filename to ensure it only contains ASCII characters (prevents Kestrel header errors)
+    // Replace non-ASCII chars with underscores
+    const safeFilename = filename.replace(/[^\x00-\x7F]/g, '_');
+    formData.append('file', imageFile, safeFilename);
     const apiUrl = `${this.API_URL}/upload`;
+    this.logger.info('Uploading receipt', { filename, size: imageFile.size });
     return this.http.post<Receipt>(apiUrl, formData).pipe(
       map(receipt => ({
         success: true,
@@ -52,17 +81,20 @@ export class ReceiptService {
           // Add to cache
           const currentReceipts = this.receiptsCache$.value;
           this.receiptsCache$.next([response.receipt, ...currentReceipts]);
+          this.logger.info('Receipt uploaded successfully', { receiptId: response.receipt.id });
         }
       }),
       catchError((error: HttpErrorResponse) => {
         if (error.status === 409) {
           // Duplicate receipt
+          this.logger.warn('Duplicate receipt detected', { filename });
           return throwError(() => ({
             success: false,
             error: 'Duplicate receipt detected',
             existingReceiptId: error.error?.existingReceiptId
           }));
         }
+        this.logger.error('Receipt upload failed', { filename, error: error.message });
         return throwError(() => ({
           success: false,
           error: error.error?.message || 'Failed to upload receipt'
@@ -123,6 +155,20 @@ export class ReceiptService {
   }
 
   /**
+   * Update a receipt in the local cache without an API call
+   * Useful for immediate UI updates after corrections
+   */
+  updateLocalReceipt(receipt: Receipt): void {
+    const currentReceipts = this.receiptsCache$.value;
+    const index = currentReceipts.findIndex(r => r.id === receipt.id);
+    if (index !== -1) {
+      const updatedReceipts = [...currentReceipts];
+      updatedReceipts[index] = receipt;
+      this.receiptsCache$.next(updatedReceipts);
+    }
+  }
+
+  /**
    * Parse date strings to Date objects
    */
   private parseReceiptDates(receipt: any): Receipt {
@@ -141,5 +187,12 @@ export class ReceiptService {
   private handleError(error: HttpErrorResponse) {
     console.error('API Error:', error);
     return throwError(() => new Error(error.error?.message || 'An error occurred'));
+  }
+
+  /**
+   * Get current user ID synchronously from Clerk
+   */
+  getCurrentUserId(): string | null {
+    return this.authService.getCurrentUser()?.id || null;
   }
 }

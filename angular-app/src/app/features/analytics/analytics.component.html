@@ -1,0 +1,352 @@
+<div class="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 pb-24 lg:pb-4"
+    style="padding-bottom: max(6rem, calc(6rem + env(safe-area-inset-bottom, 0px)))">
+    
+    <!-- Gradient Header with Glass Effect -->
+    <header class="bg-gradient-to-r from-primary to-secondary p-6 shadow-lg relative overflow-hidden">
+        <!-- Animated background pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+            <div class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        </div>
+
+        <div class="relative flex items-center gap-4">
+            <button class="p-2 bg-white/20 backdrop-blur-sm rounded-xl shadow-xl hover:bg-white/30 transition-colors" 
+                    routerLink="/profile">
+                <span class="material-icons text-2xl text-white">arrow_back</span>
+            </button>
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-1">Analytics</h1>
+                <p class="text-white/90 text-sm">Spending insights and trends</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        
+        @if (isLoading()) {
+        <div class="flex justify-center py-8">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+        </div>
+        } @else {
+        
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 gap-4">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-4 items-center text-center">
+                    <div class="text-2xl font-bold text-secondary">{{ totalSpent() | myr }}</div>
+                    <div class="text-xs text-base-content/60 mt-1">Total Spent</div>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-4 items-center text-center">
+                    <div class="text-lg font-bold text-accent truncate px-2" [title]="topStore()">
+                        {{ topStore().split('(')[0] }}
+                    </div>
+                    <div class="text-xs text-base-content/60 mt-1">Top Store</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Month-over-Month Comparison -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-6">
+                <h2 class="card-title text-lg mb-4 flex items-center gap-2">
+                    <span class="material-icons text-primary">trending_up</span>
+                    Monthly Comparison
+                </h2>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <div class="text-xs text-base-content/60 mb-1">This Month</div>
+                        <div class="text-2xl font-bold text-primary">{{ monthlyComparison().current | myr }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-base-content/60 mb-1">Last Month</div>
+                        <div class="text-2xl font-bold text-base-content/70">{{ monthlyComparison().previous | myr }}</div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-base-200">
+                    <div class="flex items-center gap-2">
+                        @if (monthlyComparison().isIncrease) {
+                            <span class="material-icons text-error text-xl">arrow_upward</span>
+                            <span class="text-error font-semibold">{{ monthlyComparison().percentChange | number:'1.1-1' }}%</span>
+                        } @else {
+                            <span class="material-icons text-success text-xl">arrow_downward</span>
+                            <span class="text-success font-semibold">{{ monthlyComparison().percentChange | number:'1.1-1' }}%</span>
+                        }
+                        <span class="text-sm text-base-content/60">vs last month</span>
+                        <span class="text-sm font-medium ml-auto">
+                            {{ monthlyComparison().change | myr }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="card-title text-lg flex items-center gap-2">
+                        <span class="material-icons text-primary">donut_large</span>
+                        Spending by Category
+                    </h2>
+                    <select class="select select-bordered select-sm w-48" 
+                            [(ngModel)]="selectedCategoryMonth"
+                            (ngModelChange)="onCategoryMonthChange($event)">
+                        <option value="all">All Time</option>
+                        @for (month of monthOptions(); track month) {
+                            <option [value]="month">{{ getMonthLabel(month) }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="h-80 w-full relative">
+                    <canvas #categoryChart></canvas>
+                    @if (categoryChartData().labels.length === 0) {
+                        <div class="absolute inset-0 flex items-center justify-center bg-base-100/50 backdrop-blur-sm z-10">
+                            <span class="text-base-content/50 text-sm">No category data available</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Spending Chart -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-6">
+                <h2 class="card-title text-lg mb-4 flex items-center gap-2">
+                    <span class="material-icons text-primary">bar_chart</span>
+                    6-Month Spending Trend
+                </h2>
+                <div class="h-64 w-full relative">
+                    <canvas #spendingChart></canvas>
+                    @if (receipts().length === 0) {
+                        <div class="absolute inset-0 flex items-center justify-center bg-base-100/50 backdrop-blur-sm z-10">
+                            <span class="text-base-content/50 text-sm">No spending data available</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Price History Chart -->
+        <!-- Temporarily hidden
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="card-title text-lg flex items-center gap-2">
+                        <span class="material-icons text-primary">show_chart</span>
+                        Price History
+                    </h2>
+                    <div class="flex gap-2">
+                        <select class="select select-bordered select-sm w-32" 
+                                [(ngModel)]="priceHistoryDays"
+                                (ngModelChange)="onPriceHistoryDaysChange($event)">
+                            <option [value]="7">7 Days</option>
+                            <option [value]="15">15 Days</option>
+                            <option [value]="30" selected>30 Days</option>
+                            <option [value]="60">60 Days</option>
+                            <option [value]="90">90 Days</option>
+                        </select>
+                    </div>
+                </div>
+                <select class="select select-bordered w-full mb-4" 
+                        [value]="selectedProductForPriceHistory()"
+                        (change)="onProductChange($any($event.target).value)">
+                    <option value="">Select a product...</option>
+                    @for (product of availableProducts(); track product) {
+                        <option [value]="product">{{ product }}</option>
+                    }
+                </select>
+                @if (priceHistoryLoading()) {
+                    <div class="flex justify-center py-8">
+                        <span class="loading loading-spinner loading-md text-primary"></span>
+                    </div>
+                } @else if (priceHistoryData()) {
+                    <div class="grid grid-cols-3 gap-4 mb-4 p-4 bg-base-200 rounded-lg">
+                        <div class="text-center">
+                            <div class="text-xs text-base-content/60 mb-1">Min</div>
+                            <div class="text-lg font-bold text-success">{{ priceHistoryData()!.statistics.minPrice | myr }}</div>
+                            <div class="text-xs text-base-content/60 mt-1">{{ priceHistoryData()!.statistics.cheapestStore }}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs text-base-content/60 mb-1">Average</div>
+                            <div class="text-lg font-bold text-info">{{ priceHistoryData()!.statistics.averagePrice | myr }}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs text-base-content/60 mb-1">Max</div>
+                            <div class="text-lg font-bold text-error">{{ priceHistoryData()!.statistics.maxPrice | myr }}</div>
+                            <div class="text-xs text-base-content/60 mt-1">{{ priceHistoryData()!.statistics.mostExpensiveStore }}</div>
+                        </div>
+                    </div>
+                    <div class="h-64 w-full">
+                        <canvas #priceHistoryChart></canvas>
+                    </div>
+                } @else {
+                    <div class="flex items-center justify-center h-64 bg-base-100/50 backdrop-blur-sm">
+                        <span class="text-base-content/50 text-sm">Select a product to view price history</span>
+                    </div>
+                }
+            </div>
+        </div>
+        -->
+
+        <!-- Savings Report -->
+        <!-- Temporarily hidden
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="card-title text-lg flex items-center gap-2">
+                        <span class="material-icons text-success">savings</span>
+                        Savings Report
+                    </h2>
+                    <select class="select select-bordered select-sm w-32" 
+                            [(ngModel)]="savingsReportDays"
+                            (ngModelChange)="onSavingsReportDaysChange($event)">
+                        <option [value]="1">Today</option>
+                        <option [value]="7" selected>7 Days</option>
+                        <option [value]="15">15 Days</option>
+                        <option [value]="30">30 Days</option>
+                    </select>
+                </div>
+                @if (savingsReportLoading()) {
+                    <div class="flex justify-center py-8">
+                        <span class="loading loading-spinner loading-md text-primary"></span>
+                    </div>
+                } @else if (savingsReport()) {
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="p-4 bg-base-200 rounded-lg text-center">
+                            <div class="text-xs text-base-content/60 mb-1">Total Spent</div>
+                            <div class="text-2xl font-bold text-primary">{{ savingsReport()!.totalSpent | myr }}</div>
+                        </div>
+                        <div class="p-4 bg-success/10 rounded-lg text-center">
+                            <div class="text-xs text-success mb-1">Potential Savings</div>
+                            <div class="text-2xl font-bold text-success">{{ savingsReport()!.potentialSavings | myr }}</div>
+                            <div class="text-xs text-success mt-1">{{ savingsReport()!.savingsPercentage | number:'1.1-1' }}%</div>
+                        </div>
+                    </div>
+                    @if (savingsReport()!.opportunities.length > 0) {
+                        <div class="space-y-2">
+                            <h3 class="font-semibold text-sm text-base-content/70 mb-2">Savings Opportunities:</h3>
+                            @for (opp of savingsReport()!.opportunities.slice(0, 5); track opp.canonicalName) {
+                                <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                                    <div class="flex-1">
+                                        <div class="font-medium text-sm">{{ opp.canonicalName }}</div>
+                                        <div class="text-xs text-base-content/60 mt-1">
+                                            Paid {{ opp.paidPrice | myr }} at {{ opp.purchasedAt }}
+                                        </div>
+                                        <div class="text-xs text-success mt-1">
+                                            Could save {{ opp.potentialSaving | myr }} at {{ opp.cheaperAt }}
+                                        </div>
+                                    </div>
+                                    <div class="text-right ml-4">
+                                        <div class="text-lg font-bold text-success">-{{ opp.potentialSaving | myr }}</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    } @else {
+                        <div class="alert alert-success">
+                            <span class="material-icons">check_circle</span>
+                            <span>Great job! You're already shopping at the best prices!</span>
+                        </div>
+                    }
+                } @else {
+                    <div class="flex items-center justify-center h-32 bg-base-100/50">
+                        <span class="text-base-content/50 text-sm">Loading savings report...</span>
+                    </div>
+                }
+            </div>
+        </div>
+        -->
+
+        <!-- Store Comparison -->
+        <!-- Temporarily hidden
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="card-title text-lg flex items-center gap-2">
+                        <span class="material-icons text-primary">store</span>
+                        Store Comparison
+                    </h2>
+                    <select class="select select-bordered select-sm w-32" 
+                            [(ngModel)]="storeComparisonDays"
+                            (ngModelChange)="onStoreComparisonDaysChange($event)">
+                        <option [value]="7">7 Days</option>
+                        <option [value]="15">15 Days</option>
+                        <option [value]="30" selected>30 Days</option>
+                        <option [value]="60">60 Days</option>
+                        <option [value]="90">90 Days</option>
+                    </select>
+                </div>
+                @if (storeComparisonLoading()) {
+                    <div class="flex justify-center py-8">
+                        <span class="loading loading-spinner loading-md text-primary"></span>
+                    </div>
+                } @else if (storeComparison()) {
+                    <div class="grid grid-cols-2 gap-4 mb-4 p-4 bg-base-200 rounded-lg">
+                        <div class="text-center">
+                            <div class="text-xs text-base-content/60 mb-1">Total Spent</div>
+                            <div class="text-lg font-bold text-primary">{{ storeComparison()!.totalSpent | myr }}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs text-base-content/60 mb-1">Total Purchases</div>
+                            <div class="text-lg font-bold text-accent">{{ storeComparison()!.totalPurchases }}</div>
+                        </div>
+                    </div>
+                    @if (storeComparison()!.stores.length > 0) {
+                        <div class="space-y-3">
+                            @for (store of storeComparison()!.stores; track store.storeName) {
+                                <div class="p-4 bg-base-200 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="font-semibold">{{ store.storeName }}</div>
+                                        <div class="flex items-center gap-2">
+                                            @if (store.priceIndex > 0) {
+                                                <div class="badge badge-error badge-sm">+{{ store.priceIndex | number:'1.0-0' }}%</div>
+                                            } @else if (store.priceIndex < 0) {
+                                                <div class="badge badge-success badge-sm">{{ store.priceIndex | number:'1.0-0' }}%</div>
+                                            } @else {
+                                                <div class="badge badge-ghost badge-sm">0%</div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 text-xs">
+                                        <div>
+                                            <div class="text-base-content/60">Spent</div>
+                                            <div class="font-medium">{{ store.totalSpent | myr }}</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-base-content/60">Visits</div>
+                                            <div class="font-medium">{{ store.purchaseCount }}</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-base-content/60">Avg/Visit</div>
+                                            <div class="font-medium">{{ store.averageTransactionValue | myr }}</div>
+                                        </div>
+                                    </div>
+                                    @if (store.topItems.length > 0) {
+                                        <div class="mt-2 flex flex-wrap gap-1">
+                                            @for (item of store.topItems.slice(0, 3); track item) {
+                                                <div class="badge badge-ghost badge-sm">{{ item }}</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    } @else {
+                        <div class="flex items-center justify-center h-32 bg-base-100/50">
+                            <span class="text-base-content/50 text-sm">No store data available</span>
+                        </div>
+                    }
+                } @else {
+                    <div class="flex items-center justify-center h-32 bg-base-100/50">
+                        <span class="text-base-content/50 text-sm">Loading store comparison...</span>
+                    </div>
+                }
+            </div>
+        </div>
+        -->
+        
+        }
+    </div>
+</div>

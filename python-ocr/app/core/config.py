@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: str
     AZURE_DOCUMENT_INTELLIGENCE_KEY: str
     
+    # LLM Service Settings
+    LLM_SERVICE_URL: str = "http://localhost:8500"
+    
     # API Settings
     API_PREFIX: str = "/api/v1"
     

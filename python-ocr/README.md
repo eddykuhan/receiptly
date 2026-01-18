@@ -1,10 +1,76 @@
 # Python OCR Service
 
-FastAPI-based microservice for receipt OCR processing using Azure Computer Vision and Tesseract.
+FastAPI-based microservice for receipt OCR processing using Azure Computer Vision and GPT-4 Vision.
+
+## Architecture Overview
+
+```mermaid
+graph TD
+    A[Receipt Image] -->|Download| B[Python OCR Service]
+    B -->|Auto-crop| C{Crop Method}
+    C -->|Azure Layout| D[Azure Document Intelligence]
+    C -->|OpenCV| E[OpenCV Detector]
+    D -->|Process| F[Azure Receipt Analysis]
+    E -->|Process| F
+    F -->|Merchant Data| G[Collect Candidates]
+    G -->|Azure Candidate| H{Merchant Detection}
+    G -->|LLM Vision| I[GPT-4 Vision<br/>LLM Service]
+    I -->|Extract| J[LLM Candidate]
+    H -->|Compare| K[Confidence-based<br/>Selection]
+    K -->|Best Candidate| L[Fuzzy Match<br/>Correction]
+    L -->|Known Chains| M[Google Places<br/>Validation]
+    M -->|Verified Data| N[Final Receipt Data]
+    N -->|Return| O[API Response]
+    
+    style B fill:#4A90E2
+    style I fill:#FF6B6B
+    style K fill:#50C878
+    style L fill:#FFD700
+    style M fill:#9B59B6
+```
+
+## Merchant Detection Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant OCR as Python OCR
+    participant Azure as Azure Intelligence
+    participant LLM as LLM Service
+    participant Extractor as Receipt Extractor
+    
+    Client->>OCR: POST /analyze with receipt image
+    OCR->>Azure: Send cropped image for analysis
+    Azure-->>OCR: Receipt data with merchant info
+    
+    par Parallel Extraction
+        OCR->>OCR: Collect Azure merchant candidate
+        OCR->>LLM: Call extract_merchant endpoint
+        LLM->>Extractor: Extract from image bytes
+        Extractor->>Extractor: Call GPT-4 Vision API
+        Extractor-->>LLM: Return merchant & address
+        LLM-->>OCR: Return LLM Vision candidate
+    end
+    
+    OCR->>OCR: Compare candidates by confidence
+    OCR->>OCR: Select best candidate (prefer LLM Vision)
+    OCR->>OCR: Apply fuzzy matching against known chains
+    OCR->>OCR: Validate with Google Places
+    
+    OCR-->>Client: Return enriched receipt data
+```
 
 ## Overview
 
-The Python OCR service handles receipt image processing, text extraction, and data structuring. It uses a multi-layered approach combining Azure Document Intelligence and Tesseract OCR with custom fallback strategies.
+The Python OCR service handles receipt image processing, text extraction, and data structuring. It uses a multi-layered approach combining Azure Document Intelligence and GPT-4 Vision with custom fallback strategies.
+
+## Key Components
+
+- **Azure Document Intelligence**: Structured receipt analysis
+- **GPT-4 Vision**: Intelligent merchant name/address extraction via LLM Service
+- **Fuzzy Matching**: Corrects against known merchant chains
+- **Google Places**: Validates and enriches location data
+- **Confidence-based Selection**: Automatically selects the best extracted data
 
 ## Directory Structure
 
@@ -14,20 +80,14 @@ python-ocr/
 │   ├── main.py            # FastAPI application entry point
 │   ├── core/              # Core functionality
 │   ├── routers/           # API route handlers
-│   ├── services/          # Business logic (Azure, Tesseract, extractors)
+│   ├── services/          # Business logic (Azure, LLM, extractors)
 │   └── utils/             # Utility functions
 ├── docs/                   # Documentation
 │   ├── README.md          # Documentation index
 │   ├── API_REFERENCE.md   # API documentation
 │   └── [feature docs]     # Feature-specific documentation
 ├── scripts/               # Utility scripts
-│   ├── README.md          # Script documentation
-│   ├── enable-tesseract-debug.sh
-│   └── disable-tesseract-debug.sh
 ├── tests/                 # Test files
-│   ├── test_azure_detection.py
-│   ├── test_integration_override.py
-│   └── [other tests]
 ├── debug_ocr/            # Debug output (gitignored)
 ├── output/               # Processing output (gitignored)
 ├── venv/                 # Virtual environment (gitignored)
@@ -42,6 +102,7 @@ python-ocr/
 
 - Python 3.9+
 - Azure Computer Vision API key
+- OpenAI API key (for GPT-4 Vision)
 - Virtual environment support
 
 ### Installation
@@ -60,7 +121,9 @@ python-ocr/
 3. **Configure environment:**
    ```bash
    cp .env.example .env
-   # Edit .env with your Azure credentials
+   # Edit .env with your credentials:
+   # - Azure Document Intelligence endpoint & key
+   # - LLM Service URL (http://localhost:8500)
    ```
 
 4. **Start the service:**
@@ -71,24 +134,22 @@ python-ocr/
    The service will be available at:
    - API: http://localhost:8000
    - Interactive docs: http://localhost:8000/docs
-   - Alternative docs: http://localhost:8000/redoc
 
 ## Features
 
 ### OCR Processing
 
-- **Azure Document Intelligence**: Primary OCR engine using Layout and Receipt models
-- **Tesseract OCR**: Fallback OCR engine for when Azure fails
+- **Azure Document Intelligence**: Primary OCR engine using Receipt model
+- **GPT-4 Vision**: Advanced merchant extraction via LLM Service
 - **OpenCV Preprocessing**: Image enhancement and receipt detection
-- **Multi-strategy Detection**: Combines multiple detection methods with confidence scoring
+- **Confidence-based Selection**: Automatically selects best candidate
 
 ### Data Extraction
 
-- **Store Name Extraction**: 4-layer fallback system
-  1. Azure Document Intelligence
-  2. Tesseract OCR
-  3. Custom extraction (known chains, position-based, patterns)
-  4. "Unknown Store" placeholder with manual review flag
+- **Store Name Extraction**: Multi-source detection with confidence scoring
+  1. Azure Document Intelligence (structured data)
+  2. GPT-4 Vision (intelligent extraction)
+  3. Fuzzy matching against known merchant chains
 
 - **Item Extraction**: Line item detection with quantity and price
 - **Total Extraction**: Receipt total amount detection
@@ -97,10 +158,10 @@ python-ocr/
 
 ### Data Quality
 
-- **Gibberish Filtering**: Detects and filters invalid text
 - **Confidence Scoring**: Validates extraction quality
+- **Fuzzy Matching**: Corrects against known chains
+- **Google Places Validation**: Enriches location data
 - **Manual Review Flagging**: Marks low-confidence extractions
-- **Validation Rules**: Ensures data integrity
 
 ## API Endpoints
 

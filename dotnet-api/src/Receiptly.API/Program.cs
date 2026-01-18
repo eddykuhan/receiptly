@@ -39,6 +39,8 @@ try
             // Prevent circular reference errors when serializing Receipt <-> Items
             options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
             options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+            // Use camelCase for JSON property names to match JavaScript conventions
+            options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         });
 
     // Configure Database (with AWS Secrets Manager)
@@ -49,6 +51,12 @@ try
 
     // Configure OCR Service
     await builder.Services.AddOcrService(builder.Configuration, builder.Environment);
+
+    // Configure LLM Service
+    await builder.Services.AddLlmService(builder.Configuration, builder.Environment);
+
+    // Configure Google Places Service
+    await builder.Services.AddGooglePlacesService(builder.Configuration, builder.Environment);
 
     // Add Application Services
     builder.Services.AddApplicationServices();

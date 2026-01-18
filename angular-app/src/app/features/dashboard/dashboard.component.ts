@@ -1,25 +1,38 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, ViewChild, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DealService, Deal } from '../../core/services/deal.service';
+import { LocationService } from '../../core/services/location.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
+import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
+import { PullToRefreshComponent } from '../../shared/components/pull-to-refresh/pull-to-refresh.component';
+import { ReceiptService } from '../../core/services/receipt.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, MyrPipe],
+  imports: [CommonModule, FormsModule, MyrPipe, TimeAgoPipe, PullToRefreshComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
+  @ViewChild(PullToRefreshComponent) pullToRefresh?: PullToRefreshComponent;
+
   private router = inject(Router);
   private dealService = inject(DealService);
+  private receiptService = inject(ReceiptService);
+  private locationService = inject(LocationService);
 
   // State
   isLoading = signal(false);
   deals = signal<Deal[]>([]);
   dealsLoading = signal(false);
+  searchQuery = signal('');
+  currentDealIndex = signal(0);
+  userLocation = computed(() => this.locationService.userLocation());
+
+  private rotationInterval?: number;
 
   // Mock data for summary stats (optional, can be removed if not needed)
   receiptCount = signal(0);
@@ -36,15 +49,37 @@ export class DashboardComponent implements OnInit {
   ];
 
   ngOnInit() {
+    // Location is already requested during splash screen
     this.loadHotDeals();
+    this.startDealRotation();
+  }
+
+  ngOnDestroy() {
+    if (this.rotationInterval) {
+      clearInterval(this.rotationInterval);
+    }
+  }
+
+  startDealRotation() {
+    this.rotationInterval = window.setInterval(() => {
+      const dealsCount = this.deals().length;
+      if (dealsCount > 0) {
+        this.currentDealIndex.set((this.currentDealIndex() + 1) % dealsCount);
+      }
+    }, 4000); // Change every 4 seconds
   }
 
   loadHotDeals() {
     this.dealsLoading.set(true);
-    this.dealService.getHotDeals().subscribe({
+    const location = this.userLocation();
+
+    this.dealService.getHotDeals(location?.lat, location?.lon).subscribe({
       next: (deals) => {
+        console.log('Hot deals loaded:', deals.length, deals);
         this.deals.set(deals);
         this.dealsLoading.set(false);
+        // Reset to first deal when new deals load
+        this.currentDealIndex.set(0);
       },
       error: (err) => {
         console.error('Failed to load deals:', err);
@@ -53,18 +88,30 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  onRefresh() {
+    // Refresh both deals and receipts
+    this.loadHotDeals();
+    this.receiptService.loadReceipts();
+
+    // Complete the pull-to-refresh animation after data loads
+    setTimeout(() => {
+      this.pullToRefresh?.completeRefresh();
+    }, 1000);
+  }
+
   getSavingsAmount(deal: Deal): number {
     return this.dealService.getSavingsAmount(deal);
   }
 
-  onSearch(query: string) {
-    if (query && query.trim()) {
+  onSearch() {
+    const query = this.searchQuery().trim();
+    if (query) {
       this.router.navigate(['/price-map'], { queryParams: { q: query } });
     }
   }
 
   navigateToMap() {
-    this.router.navigate(['/price-map']);
+    this.router.navigate(['/nearby-deals']);
   }
 
   navigateToScan() {
@@ -77,6 +124,15 @@ export class DashboardComponent implements OnInit {
 
   navigateToProfile() {
     this.router.navigate(['/profile']);
+  }
+
+  navigateToChallenges() {
+    this.router.navigate(['/challenges']);
+  }
+
+  async retryLocation() {
+    await this.locationService.retryLocation();
+    this.loadHotDeals(); // Reload deals with new location
   }
 
   onPeriodChange(period: string) {

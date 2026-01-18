@@ -30,7 +30,11 @@ public static class ServiceCollectionExtensions
                         "capacitor://localhost",  // Capacitor iOS
                         "ionic://localhost",      // Capacitor Android
                         "http://localhost",        // Generic localhost
-                        "https://d3c72tjxsq9089.cloudfront.net"
+                        "https://d3c72tjxsq9089.cloudfront.net",
+                        "https://cheap-sy.com",    // Production domain
+                        "https://api.cheap-sy.com", // API subdomain
+                        "https://ocr.cheap-sy.com", // OCR subdomain
+                        "https://llm.cheap-sy.com"  // LLM subdomain
                     )
                     .AllowAnyMethod()
                     .AllowAnyHeader()
@@ -95,6 +99,7 @@ public static class ServiceCollectionExtensions
                     maxRetryCount: 3,
                     maxRetryDelay: TimeSpan.FromSeconds(5),
                     errorCodesToAdd: null);
+                npgsqlOptions.UseVector(); // Enable pgvector support
             });
 
             if (environment.IsDevelopment())
@@ -242,16 +247,185 @@ public static class ServiceCollectionExtensions
         // Repository
         services.AddScoped<IReceiptRepository, ReceiptRepository>();
 
+        // Feedback repositories
+        services.AddScoped<IUserCorrectionRepository, UserCorrectionRepository>();
+        services.AddScoped<IUserDebugSessionRepository, UserDebugSessionRepository>();
+
         // Business services
         services.AddScoped<IReceiptProcessingService, ReceiptProcessingService>();
         services.AddScoped<IPurchaseAnalyticsService, PurchaseAnalyticsService>();
+        services.AddScoped<IFeedbackService, FeedbackService>();
+        
+        // Points and Rewards services
+        services.AddScoped<IPointsService, PointsService>();
+        
+        // Receipt services (with automatic correction application)
+        services.AddScoped<IReceiptCorrectionService, ReceiptCorrectionService>();
+        services.AddScoped<IReceiptService, ReceiptService>();
 
-        // LLM Services
-        services.AddHttpClient<LlmServiceClient>();
+        // Gold layer service (append-only analytics)
+        services.AddScoped<IGoldLayerService, GoldLayerService>();
+        services.AddScoped<IGoldLayerQueryService, GoldLayerQueryService>();
+
+        // LLM Services - configuration added via AddLlmService method
         services.AddScoped<CanonicalizationService>();
+        services.AddScoped<CategoryNormalizationService>();
+        services.AddScoped<IChatService, ChatService>();
 
         // AutoMapper
         services.AddAutoMapper(typeof(Program).Assembly);
+
+        return services;
+    }
+
+    public static async Task<IServiceCollection> AddLlmService(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
+    {
+        LlmServiceSecretsConfig llmConfig;
+
+        // In Development mode, prioritize appsettings configuration
+        if (environment.IsDevelopment())
+        {
+            var configuredBaseUrl = configuration["LlmService:BaseUrl"];
+            
+            if (!string.IsNullOrEmpty(configuredBaseUrl))
+            {
+                Log.Information("Development mode: Using LLM service URL from configuration: {BaseUrl}", configuredBaseUrl);
+                
+                llmConfig = new LlmServiceSecretsConfig
+                {
+                    BaseUrl = configuredBaseUrl,
+                    HealthCheckUrl = configuration["LlmService:HealthCheckUrl"] ?? $"{configuredBaseUrl}/health"
+                };
+                
+                services.AddSingleton(llmConfig);
+                services.AddHttpClient<LlmServiceClient>()
+                    .ConfigureHttpClient(client =>
+                    {
+                        client.Timeout = TimeSpan.FromMinutes(2); // LLM processing timeout
+                    })
+                    .AddPolicyHandler(GetRetryPolicy());
+
+                return services;
+            }
+        }
+
+        // Retrieve LLM service configuration from AWS Secrets Manager (Production)
+        try
+        {
+            var secretId = configuration["AWS:LlmSecretId"] ?? "receiptly/llm/service";
+            var region = configuration["AWS:Region"] ?? "ap-southeast-1";
+
+            Log.Information("Retrieving LLM service configuration from Secrets Manager: {SecretId}", secretId);
+
+            using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
+            var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+            {
+                SecretId = secretId
+            });
+
+            llmConfig = JsonSerializer.Deserialize<LlmServiceSecretsConfig>(secretResponse.SecretString)
+                ?? throw new InvalidOperationException("Failed to deserialize LLM service configuration from Secrets Manager");
+
+            Log.Information("Successfully retrieved LLM service configuration: {BaseUrl}", llmConfig.BaseUrl);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to retrieve LLM service configuration from Secrets Manager. Falling back to configuration.");
+
+            // Fallback to appsettings.json/user secrets for local development
+            llmConfig = new LlmServiceSecretsConfig
+            {
+                BaseUrl = configuration["LlmService:BaseUrl"] ?? "http://localhost:8500",
+                HealthCheckUrl = configuration["LlmService:HealthCheckUrl"] ?? "http://localhost:8500/health"
+            };
+        }
+
+        services.AddSingleton(llmConfig);
+        services.AddHttpClient<LlmServiceClient>()
+            .ConfigureHttpClient(client =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(2); // LLM processing timeout
+            })
+            .AddPolicyHandler(GetRetryPolicy());
+
+        return services;
+    }
+
+    public static async Task<IServiceCollection> AddGooglePlacesService(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
+    {
+        GooglePlacesSecretsConfig googleConfig;
+
+        // In Development mode, prioritize appsettings configuration
+        if (environment.IsDevelopment())
+        {
+            var configuredApiKey = configuration["GooglePlaces:ApiKey"];
+            
+            if (!string.IsNullOrEmpty(configuredApiKey))
+            {
+                Log.Information("Development mode: Using Google Places API key from configuration");
+                
+                googleConfig = new GooglePlacesSecretsConfig
+                {
+                    ApiKey = configuredApiKey,
+                    Enabled = bool.Parse(configuration["GooglePlaces:Enabled"] ?? "true")
+                };
+                
+                services.AddSingleton(googleConfig);
+                services.AddHttpClient<GooglePlacesClient>()
+                    .ConfigureHttpClient(client =>
+                    {
+                        client.Timeout = TimeSpan.FromSeconds(10); // Quick autocomplete timeout
+                    })
+                    .AddPolicyHandler(GetRetryPolicy());
+
+                return services;
+            }
+        }
+
+        // Retrieve Google Places configuration from AWS Secrets Manager (Production)
+        try
+        {
+            var secretId = configuration["AWS:GooglePlacesSecretId"] ?? "receiptly/google/credentials";
+            var region = configuration["AWS:Region"] ?? "ap-southeast-1";
+
+            Log.Information("Retrieving Google Places configuration from Secrets Manager: {SecretId}", secretId);
+
+            using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
+            var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
+            {
+                SecretId = secretId
+            });
+
+            googleConfig = JsonSerializer.Deserialize<GooglePlacesSecretsConfig>(secretResponse.SecretString)
+                ?? throw new InvalidOperationException("Failed to deserialize Google Places configuration from Secrets Manager");
+
+            Log.Information("Successfully retrieved Google Places configuration");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to retrieve Google Places configuration from Secrets Manager. Service will be disabled.");
+
+            // Disable service if credentials not available
+            googleConfig = new GooglePlacesSecretsConfig
+            {
+                ApiKey = string.Empty,
+                Enabled = false
+            };
+        }
+
+        services.AddSingleton(googleConfig);
+        services.AddHttpClient<GooglePlacesClient>()
+            .ConfigureHttpClient(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(10); // Quick autocomplete timeout
+            })
+            .AddPolicyHandler(GetRetryPolicy());
 
         return services;
     }
@@ -267,7 +441,7 @@ public static class ServiceCollectionExtensions
                 onRetry: (outcome, timespan, retryCount, context) =>
                 {
                     Log.Warning(
-                        "Python OCR request failed. Retry {RetryCount}/3. Waiting {Delay}s before next attempt. Reason: {Reason}",
+                        "Retry {RetryCount}/3. Waiting {Delay}s before next attempt. Reason: {Reason}",
                         retryCount,
                         timespan.TotalSeconds,
                         outcome.Exception?.Message ?? outcome.Result?.StatusCode.ToString() ?? "Unknown");

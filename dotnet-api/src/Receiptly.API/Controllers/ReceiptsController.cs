@@ -5,6 +5,7 @@ using Receiptly.Core.Interfaces;
 using Receiptly.Domain.Models;
 using Receiptly.API.DTOs;
 using Receiptly.Infrastructure.Services;
+using System.Security.Claims;
 
 namespace Receiptly.API.Controllers;
 
@@ -13,21 +14,24 @@ namespace Receiptly.API.Controllers;
 public class ReceiptsController : ControllerBase
 {
     private readonly IReceiptProcessingService _receiptProcessingService;
-    private readonly IReceiptRepository _receiptRepository;
+    private readonly IReceiptService _receiptService;
     private readonly FileValidationService _fileValidationService;
+    private readonly IPointsService _pointsService;
     private readonly IMapper _mapper;
     private readonly ILogger<ReceiptsController> _logger;
 
     public ReceiptsController(
         IReceiptProcessingService receiptProcessingService,
-        IReceiptRepository receiptRepository,
+        IReceiptService receiptService,
         FileValidationService fileValidationService,
+        IPointsService pointsService,
         IMapper mapper,
         ILogger<ReceiptsController> logger)
     {
         _receiptProcessingService = receiptProcessingService;
-        _receiptRepository = receiptRepository;
+        _receiptService = receiptService;
         _fileValidationService = fileValidationService;
+        _pointsService = pointsService;
         _mapper = mapper;
         _logger = logger;
     }
@@ -69,8 +73,8 @@ public class ReceiptsController : ControllerBase
             _logger.LogInformation("File validation passed. Type: {FileType}, Size: {Size} bytes", 
                 validationResult.DetectedFileType, validationResult.FileSize);
 
-            // Use a default user ID for now (since authentication is removed)
-            var userId = "default-user";
+            // Get authenticated user ID from Clerk token or fall back to default
+            var userId = GetAuthenticatedUserId();
             _logger.LogInformation("Processing receipt for user: {UserId}", userId);
 
             // Process receipt through the orchestration service
@@ -86,6 +90,47 @@ public class ReceiptsController : ControllerBase
 
             _logger.LogInformation("Receipt processed successfully. ReceiptId: {ReceiptId}, StoreName: {StoreName}, Total: {Total}", 
                 receipt.Id, receipt.StoreName, receipt.TotalAmount);
+
+            // Award points for receipt upload
+            try
+            {
+                // Base points for receipt upload
+                int pointsAwarded = 10;
+                string pointsDescription = "Receipt uploaded";
+
+                // Bonus for providing location data
+                if (!string.IsNullOrEmpty(receipt.StoreAddress))
+                {
+                    pointsAwarded += 5;
+                    pointsDescription += " + location bonus";
+                }
+
+                _logger.LogInformation("Attempting to award {Points} points to user {UserId}", pointsAwarded, userId);
+
+                await _pointsService.AwardPointsAsync(
+                    userId, 
+                    pointsAwarded, 
+                    "receipt_upload", 
+                    pointsDescription,
+                    receipt.Id,
+                    cancellationToken);
+
+                _logger.LogInformation("Successfully awarded {Points} points to user {UserId}", pointsAwarded, userId);
+
+                // Check for new achievements (first_upload achievement will award 50 bonus points)
+                var newAchievements = await _pointsService.CheckAndAwardAchievementsAsync(userId, cancellationToken);
+                
+                if (newAchievements.Any())
+                {
+                    _logger.LogInformation("User {UserId} unlocked {Count} achievements", userId, newAchievements.Count);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log with full details
+                _logger.LogError(ex, "POINTS ERROR - ReceiptId: {ReceiptId}, UserId: {UserId}, Message: {Message}, StackTrace: {StackTrace}", 
+                    receipt.Id, userId, ex.Message, ex.StackTrace);
+            }
 
             // Map to DTO
             var receiptDto = _mapper.Map<ReceiptDto>(receipt);
@@ -116,15 +161,44 @@ public class ReceiptsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all receipts for a user
+    /// Get all receipts for the authenticated user
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<List<ReceiptDto>>> GetUserReceipts(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var userId = GetAuthenticatedUserId();
+            _logger.LogInformation("Retrieving receipts for authenticated user: {UserId}", userId);
+            var receipts = await _receiptService.GetReceiptsByUserIdAsync(userId, cancellationToken);
+            _logger.LogInformation("Found {Count} receipts for user: {UserId}", receipts.Count, userId);
+            
+            // Map to DTOs
+            var receiptDtos = _mapper.Map<List<ReceiptDto>>(receipts);
+            return Ok(receiptDtos);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Request cancelled while retrieving receipts for authenticated user");
+            return StatusCode(499, new { error = "Request cancelled" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving receipts for authenticated user");
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get all receipts for a specific user (admin endpoint)
     /// </summary>
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<List<ReceiptDto>>> GetUserReceipts(string userId, CancellationToken cancellationToken)
+    public async Task<ActionResult<List<ReceiptDto>>> GetUserReceiptsByUserId(string userId, CancellationToken cancellationToken)
     {
         try
         {
             _logger.LogInformation("Retrieving receipts for user: {UserId}", userId);
-            var receipts = await _receiptRepository.GetByUserIdAsync(userId, cancellationToken);
+            var receipts = await _receiptService.GetReceiptsByUserIdAsync(userId, cancellationToken);
             _logger.LogInformation("Found {Count} receipts for user: {UserId}", receipts.Count, userId);
             
             // Map to DTOs
@@ -152,7 +226,7 @@ public class ReceiptsController : ControllerBase
         try
         {
             _logger.LogInformation("Retrieving receipt: {ReceiptId}", id);
-            var receipt = await _receiptRepository.GetByIdAsync(id, cancellationToken);
+            var receipt = await _receiptService.GetReceiptByIdAsync(id, cancellationToken);
             
             if (receipt == null)
             {
@@ -194,7 +268,7 @@ public class ReceiptsController : ControllerBase
             _logger.LogInformation("Updating receipt: {ReceiptId}", id);
             
             // Verify existence and get the tracked entity
-            var existingReceipt = await _receiptRepository.GetByIdAsync(id, cancellationToken);
+            var existingReceipt = await _receiptService.GetReceiptByIdAsync(id, cancellationToken);
             if (existingReceipt == null)
             {
                 return NotFound(new { error = "Receipt not found" });
@@ -218,7 +292,7 @@ public class ReceiptsController : ControllerBase
                 existingReceipt.Items = _mapper.Map<List<Item>>(receiptDto.Items);
             }
 
-            var result = await _receiptRepository.UpdateAsync(existingReceipt, cancellationToken);
+            var result = await _receiptService.UpdateReceiptAsync(existingReceipt, cancellationToken);
             
             _logger.LogInformation("Receipt updated: {ReceiptId}", id);
             
@@ -247,14 +321,47 @@ public class ReceiptsController : ControllerBase
         try
         {
             _logger.LogInformation("Deleting receipt: {ReceiptId}", id);
-            var deleted = await _receiptRepository.DeleteAsync(id, cancellationToken);
             
-            if (!deleted)
+            // Get receipt details before deletion to deduct points
+            var receipt = await _receiptService.GetReceiptByIdAsync(id, cancellationToken);
+            if (receipt == null)
             {
-                _logger.LogWarning("Receipt not found for deletion: {ReceiptId}", id);
                 return NotFound(new { error = "Receipt not found" });
             }
-
+            
+            var userId = GetAuthenticatedUserId();
+            
+            // Deduct points that were awarded for this receipt
+            try
+            {
+                // Find the original point transaction for this receipt
+                var transactions = await _pointsService.GetUserTransactionsAsync(userId, 1000, cancellationToken);
+                var receiptTransaction = transactions.FirstOrDefault(t => t.ReferenceId == id && t.TransactionType == "receipt_upload");
+                
+                if (receiptTransaction != null && receiptTransaction.Points > 0)
+                {
+                    // Deduct the points that were awarded
+                    var deducted = await _pointsService.DeductPointsAsync(
+                        userId, 
+                        receiptTransaction.Points, 
+                        $"Receipt deleted: {receipt.StoreName}",
+                        cancellationToken);
+                    
+                    if (deducted)
+                    {
+                        _logger.LogInformation("Deducted {Points} points from user {UserId} for deleted receipt", 
+                            receiptTransaction.Points, userId);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't fail the deletion if point deduction fails
+                _logger.LogError(ex, "Error deducting points for deleted receipt: {ReceiptId}", id);
+            }
+            
+            await _receiptService.DeleteReceiptAsync(id, cancellationToken);
+            
             _logger.LogInformation("Receipt deleted: {ReceiptId}", id);
             return NoContent();
         }
@@ -268,5 +375,31 @@ public class ReceiptsController : ControllerBase
             _logger.LogError(ex, "Error deleting receipt: {ReceiptId}", id);
             return StatusCode(500, new { error = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Get the authenticated user ID from the current HTTP context
+    /// </summary>
+    private string GetAuthenticatedUserId()
+    {
+        // Log all claims for debugging
+        var allClaims = User.Claims.Select(c => $"{c.Type}={c.Value}").ToList();
+        _logger.LogInformation("All claims: {Claims}", string.Join(", ", allClaims));
+
+        // Try to get from Clerk token first
+        var clerkId = User.FindFirst("clerk_id")?.Value;
+        _logger.LogInformation("clerk_id claim value: {ClerkId}", clerkId ?? "(not found)");
+        if (!string.IsNullOrEmpty(clerkId))
+            return clerkId;
+
+        // Fall back to NameIdentifier claim
+        var nameId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        _logger.LogInformation("NameIdentifier claim value: {NameId}", nameId ?? "(not found)");
+        if (!string.IsNullOrEmpty(nameId))
+            return nameId;
+
+        // Fall back to default for development
+        _logger.LogWarning("No authenticated user found, using default user ID");
+        return "default-user";
     }
 }

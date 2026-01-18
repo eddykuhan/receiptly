@@ -2,6 +2,8 @@ using Receiptly.Core.Services;
 using Receiptly.Core.Interfaces;
 using Receiptly.Domain.Models;
 using Receiptly.Infrastructure.Services;
+using Receiptly.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -15,6 +17,8 @@ public class ReceiptProcessingService : IReceiptProcessingService
     private readonly IImageHashService _imageHashService;
     private readonly ILogger<ReceiptProcessingService> _logger;
     private readonly CanonicalizationService _canonicalizationService;
+    private readonly IGoldLayerService _goldLayerService;
+    private readonly ApplicationDbContext _context;
 
     public ReceiptProcessingService(
         S3StorageService s3Storage, 
@@ -22,6 +26,8 @@ public class ReceiptProcessingService : IReceiptProcessingService
         IReceiptRepository receiptRepository,
         IImageHashService imageHashService,
         CanonicalizationService canonicalizationService,
+        IGoldLayerService goldLayerService,
+        ApplicationDbContext context,
         ILogger<ReceiptProcessingService> logger)
     {
         _s3Storage = s3Storage;
@@ -29,6 +35,8 @@ public class ReceiptProcessingService : IReceiptProcessingService
         _receiptRepository = receiptRepository;
         _imageHashService = imageHashService;
         _canonicalizationService = canonicalizationService;
+        _goldLayerService = goldLayerService;
+        _context = context;
         _logger = logger;
     }
 
@@ -100,12 +108,14 @@ public class ReceiptProcessingService : IReceiptProcessingService
             cancellationToken.ThrowIfCancellationRequested();
 
             // Step 4: Call Python OCR service with the image URL
-            _logger.LogInformation("Step 4/9: Calling Python OCR service. ReceiptId: {ReceiptId}", receiptId);
+            _logger.LogInformation("Step 4/9: Calling Python OCR service with LLM enhancement enabled. ReceiptId: {ReceiptId}", receiptId);
             OcrApiResponse ocrResult;
             
             try
             {
-                ocrResult = await _ocrClient.AnalyzeReceiptAsync(imageUrl);
+                // Enable LLM enhancement for better accuracy
+                // LLM will improve: truncated names, missing items, remove non-products, fix prices
+                ocrResult = await _ocrClient.AnalyzeReceiptAsync(imageUrl, enableLlmEnhancement: true);
             }
             catch (Exception ex)
             {
@@ -173,6 +183,38 @@ public class ReceiptProcessingService : IReceiptProcessingService
             _logger.LogInformation("Data extracted. MerchantName: {MerchantName}, Items: {ItemCount}, Total: {Total}, Status: {Status}, ReceiptId: {ReceiptId}", 
                 receipt.StoreName, receipt.Items.Count, receipt.TotalAmount, receipt.Status, receiptId);
 
+            // Content-based duplicate check (same store, same date, same amount)
+            if (!string.IsNullOrEmpty(receipt.StoreName) && receipt.TotalAmount > 0)
+            {
+                _logger.LogInformation("Checking for content-based duplicates (Store: {Store}, Date: {Date}, Total: {Total})", 
+                    receipt.StoreName, receipt.PurchaseDate.Date, receipt.TotalAmount);
+                    
+                var existingContentReceipt = await _receiptRepository.FindPotentialDuplicateAsync(
+                    userId, 
+                    receipt.PurchaseDate, 
+                    receipt.TotalAmount, 
+                    receipt.StoreName, 
+                    cancellationToken);
+
+                if (existingContentReceipt != null)
+                {
+                    _logger.LogWarning("Content-based duplicate detected. Existing ID: {ExistingId}. ReceiptId: {ReceiptId}", 
+                        existingContentReceipt.Id, receiptId);
+                    
+                    // Cleanup S3 before throwing
+                    try 
+                    {
+                        await _s3Storage.DeleteReceiptAsync(userId, receiptId);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "Failed to cleanup S3 after content duplicate detection. ReceiptId: {ReceiptId}", receiptId);
+                    }
+
+                    throw new Receiptly.Domain.Exceptions.DuplicateReceiptException(existingContentReceipt.Id, "Duplicate content detected");
+                }
+            }
+
             // Step 8: Save extracted data to S3
             _logger.LogInformation("Step 8/9: Saving extracted data to S3. ReceiptId: {ReceiptId}", receiptId);
             await _s3Storage.SaveExtractedDataAsync(userId, receiptId, receipt);
@@ -185,6 +227,10 @@ public class ReceiptProcessingService : IReceiptProcessingService
             receipt.ProcessedAt = DateTime.UtcNow;
             await _receiptRepository.CreateAsync(receipt, cancellationToken);
             _logger.LogInformation("Receipt saved to database. ReceiptId: {ReceiptId}", receiptId);
+
+            // Step 10: Append to gold layer for analytics (items already have CanonicalName populated)
+            _logger.LogInformation("Appending {Count} items to gold layer. ReceiptId: {ReceiptId}", receipt.Items.Count, receiptId);
+            await _goldLayerService.AppendItemsAsync(receipt.Items, receipt, cancellationToken);
 
             _logger.LogInformation("Receipt processing completed successfully. ReceiptId: {ReceiptId}", receiptId);
             return receipt;
@@ -294,14 +340,15 @@ public class ReceiptProcessingService : IReceiptProcessingService
     /// </summary>
     private async Task<Receipt> ExtractReceiptData(Guid receiptId, string userId, string imageUrl, string filename, OcrResponse ocrResponse, OcrValidation? validation)
     {
+        var now = DateTime.UtcNow;
         var receipt = new Receipt
         {
             Id = receiptId,
             UserId = userId,
             ImageUrl = imageUrl,
             OriginalFileName = filename,
-            S3Key = $"{userId}/receipts/{receiptId}/original",
-            OcrProvider = "Azure Document Intelligence + Tesseract",
+            S3Key = $"users/{userId}/receipts/{now:yyyy}/{now:MM}/{now:dd}/{receiptId}/{filename}",
+            OcrProvider = "Azure Document Intelligence + GPT-4.1 Vision",
             OcrConfidence = ocrResponse.Confidence,
             CreatedAt = DateTime.UtcNow,
             Status = Receiptly.Domain.Enums.ReceiptStatus.PendingValidation
@@ -403,6 +450,12 @@ public class ReceiptProcessingService : IReceiptProcessingService
         // Extract Google Places metadata
         if (ocrResponse.Metadata != null)
         {
+            // Extract Branch Name
+            if (ocrResponse.Metadata.TryGetValue("matched_branch", out var branchName))
+            {
+                receipt.BranchName = branchName?.ToString();
+            }
+            
             // Extract Latitude
             if (ocrResponse.Metadata.TryGetValue("latitude", out var lat) && 
                 double.TryParse(lat?.ToString(), out var latitude))
@@ -439,10 +492,11 @@ public class ReceiptProcessingService : IReceiptProcessingService
         {
             if (DateTime.TryParse(transactionDate.Value?.ToString(), out var parsedDate))
             {
-                // Ensure the date is in UTC for PostgreSQL
-                receipt.PurchaseDate = parsedDate.Kind == DateTimeKind.Utc 
-                    ? parsedDate 
-                    : DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
+                // OCR extracts dates from Malaysian receipts (UTC+8)
+                // Convert Malaysia time to UTC for storage
+                var malaysiaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Kuala_Lumpur");
+                var malaysiaTime = DateTime.SpecifyKind(parsedDate, DateTimeKind.Unspecified);
+                receipt.PurchaseDate = TimeZoneInfo.ConvertTimeToUtc(malaysiaTime, malaysiaTimeZone);
             }
         }
 
@@ -480,6 +534,14 @@ public class ReceiptProcessingService : IReceiptProcessingService
             {
                 receipt.TipAmount = tipAmount;
             }
+        }
+
+        // Fallback: If TotalAmount is 0 but SubtotalAmount exists, calculate Total
+        if (receipt.TotalAmount == 0 && receipt.SubtotalAmount.HasValue)
+        {
+            receipt.TotalAmount = receipt.SubtotalAmount.Value + (receipt.TaxAmount ?? 0) + (receipt.TipAmount ?? 0);
+            _logger.LogInformation("TotalAmount fallback triggered. Calculated from Subtotal ({Subtotal}) + Tax ({Tax}) + Tip ({Tip}) = {Total}. ReceiptId: {ReceiptId}", 
+                receipt.SubtotalAmount, receipt.TaxAmount, receipt.TipAmount, receipt.TotalAmount, receiptId);
         }
 
         // Extract receipt type
@@ -626,10 +688,39 @@ public class ReceiptProcessingService : IReceiptProcessingService
 
                 item.Price = price;
 
-                // Canonicalize name
+                // Canonicalize name and verify canonical item exists
                 if (!string.IsNullOrWhiteSpace(item.Name))
                 {
-                    item.CanonicalName = await _canonicalizationService.GetCanonicalNameAsync(item.Name);
+                    try
+                    {
+                        var canonResult = await _canonicalizationService.GetCanonicalNameAsync(item.Name);
+                        item.CanonicalName = canonResult.CanonicalName;
+                        
+                        // Only set CanonicalItemId if it exists and is valid
+                        // Note: LLM service should create the canonical_item record, but verify it exists
+                        if (canonResult.CanonicalItemId.HasValue && canonResult.CanonicalItemId.Value != Guid.Empty)
+                        {
+                            // Verify the canonical item exists in the database before assigning
+                            var exists = await _context.Set<CanonicalItem>()
+                                .AnyAsync(c => c.Id == canonResult.CanonicalItemId.Value);
+                            
+                            if (exists)
+                            {
+                                item.CanonicalItemId = canonResult.CanonicalItemId.Value;
+                            }
+                            else
+                            {
+                                _logger.LogWarning(
+                                    "Canonical item {CanonicalItemId} returned by LLM service does not exist in database. Item: {ItemName}",
+                                    canonResult.CanonicalItemId.Value, item.Name);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error canonicalizing item: {ItemName}", item.Name);
+                        // Continue without canonical data rather than failing the whole receipt
+                    }
                 }
 
                 items.Add(item);

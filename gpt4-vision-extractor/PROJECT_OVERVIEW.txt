@@ -1,0 +1,301 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   RECEIPT MERCHANT EXTRACTOR PROJECT                         ║
+║                    Using GPT-4 Vision (GPT-4.1)                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📋 PROJECT OVERVIEW
+═══════════════════════════════════════════════════════════════════════════════
+
+This Python project uses OpenAI's GPT-4 Vision API to automatically extract
+merchant name and address information from receipt images.
+
+🎯 WHAT IT DOES:
+   • Uploads receipt images to GPT-4 Vision
+   • Extracts merchant name from receipt header
+   • Extracts merchant address from receipt header
+   • Returns structured JSON output
+   • Supports batch processing of multiple receipts
+
+📁 PROJECT FILES
+═══════════════════════════════════════════════════════════════════════════════
+
+Core Modules:
+   receipt_extractor.py     Main extraction module with GPT-4 Vision integration
+   batch_processor.py       Process multiple receipts in a directory
+   example_usage.py         Comprehensive usage examples
+
+Setup & Testing:
+   quickstart.sh           Automated setup script (run this first!)
+   test_setup.py           Verify installation and configuration
+   requirements.txt        Python package dependencies
+
+Configuration:
+   .env.example            Template for environment variables
+   .env                    Your API key (create from .env.example)
+   config.json            Project configuration settings
+
+Documentation:
+   README.md              Complete project documentation
+   GETTING_STARTED.md     Step-by-step setup guide
+   QUICKREF.md            Quick command reference
+   PROJECT_OVERVIEW.txt   This file
+
+Directories:
+   receipts/              Place your receipt images here
+   output/                Extraction results saved here
+
+🚀 QUICK START GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+Step 1: Navigate to Directory
+   $ cd /Users/kuhan/Projects/receiptly/gpt4-vision-extractor
+
+Step 2: Run Automated Setup
+   $ ./quickstart.sh
+
+Step 3: Configure API Key
+   $ cp .env.example .env
+   $ nano .env
+   # Add: OPENAI_API_KEY=sk-your-actual-api-key-here
+
+Step 4: Activate Virtual Environment
+   $ source venv/bin/activate
+
+Step 5: Verify Setup
+   $ python test_setup.py
+
+Step 6: Add Receipt Images
+   $ cp ~/Downloads/receipt.jpg receipts/
+
+Step 7: Process Your First Receipt
+   $ python receipt_extractor.py receipts/receipt.jpg
+
+💻 USAGE EXAMPLES
+═══════════════════════════════════════════════════════════════════════════════
+
+Single Receipt Processing:
+   $ python receipt_extractor.py receipts/receipt1.jpg
+   $ python receipt_extractor.py receipts/receipt1.jpg output/result.json
+
+Batch Processing:
+   $ python batch_processor.py receipts/
+   $ python batch_processor.py receipts/ output/batch_results/
+
+Run Examples:
+   $ python example_usage.py
+
+📊 OUTPUT FORMAT
+═══════════════════════════════════════════════════════════════════════════════
+
+The extractor returns JSON with the following structure:
+
+{
+  "merchant_name": "ABC Supermarket",
+  "merchant_address": "123 Main Street, City, State 12345",
+  "raw_response": "..."
+}
+
+Fields:
+   merchant_name      The business/store name from receipt header
+   merchant_address   Complete address (multi-line addresses combined)
+   raw_response       Full GPT-4 Vision API response
+
+🔧 TECHNICAL DETAILS
+═══════════════════════════════════════════════════════════════════════════════
+
+API:
+   Provider:    OpenAI
+   Model:       gpt-4o (GPT-4 with vision capabilities)
+   Max Tokens:  500
+   Temperature: 0.2 (for consistent extraction)
+
+Supported Image Formats:
+   • JPG/JPEG
+   • PNG
+   • BMP
+   • TIFF
+   • WebP
+
+Dependencies:
+   • openai >= 1.0.0
+   • python-dotenv >= 1.0.0
+   • Pillow >= 10.0.0
+
+Requirements:
+   • Python 3.8 or higher
+   • OpenAI API key with GPT-4 Vision access
+   • Internet connection for API calls
+
+💰 COST INFORMATION
+═══════════════════════════════════════════════════════════════════════════════
+
+GPT-4 Vision API Pricing (approximate):
+   • $0.01 - $0.03 per image (varies by image size)
+   • 100 receipts ≈ $1-3
+   • 1000 receipts ≈ $10-30
+
+Tips to Manage Costs:
+   1. Test with 1-2 images first
+   2. Monitor usage at: https://platform.openai.com/usage
+   3. Set spending limits in OpenAI dashboard
+   4. Use lower resolution images when possible
+
+Current pricing: https://openai.com/pricing
+
+🎓 HOW IT WORKS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Image Encoding
+   Receipt image is read and encoded to base64 format
+
+2. API Request
+   Encoded image + specialized prompt sent to GPT-4 Vision API
+
+3. AI Analysis
+   GPT-4 Vision analyzes the receipt image and identifies:
+   - Merchant name (from header)
+   - Merchant address (from header)
+
+4. Response Parsing
+   JSON response is parsed and validated
+
+5. Output
+   Results displayed and optionally saved to file
+
+🔍 EXTRACTION GUIDELINES
+═══════════════════════════════════════════════════════════════════════════════
+
+The prompt instructs GPT-4 Vision to:
+   ✓ Extract ONLY from the TOP portion of the receipt
+   ✓ Focus on merchant name and address
+   ✗ Exclude invoice numbers, dates, cashier IDs
+   ✗ Exclude phone numbers
+   • Combine multi-line addresses into single string
+   • Return "Not found" if information is missing
+
+📝 BEST PRACTICES
+═══════════════════════════════════════════════════════════════════════════════
+
+Image Quality:
+   • Use clear, well-lit photos
+   • Ensure text is readable
+   • Avoid heavy shadows or glare
+   • Higher resolution generally works better
+
+Receipt Position:
+   • Ensure merchant info at top is visible
+   • Avoid cutting off the header
+   • Straight-on photos work best
+
+Testing:
+   • Start with 1-2 test images
+   • Verify output quality
+   • Adjust image quality if needed
+
+Cost Management:
+   • Monitor API usage regularly
+   • Set spending limits
+   • Use batch processing efficiently
+
+🐛 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+Problem: "OpenAI API key not found"
+Solution: Create .env file and add your API key
+   $ cp .env.example .env
+   $ nano .env
+
+Problem: "Image file not found"
+Solution: Check file path and ensure image exists
+   $ ls receipts/
+
+Problem: "Module not found"
+Solution: Install dependencies
+   $ source venv/bin/activate
+   $ pip install -r requirements.txt
+
+Problem: Permission denied on quickstart.sh
+Solution: Make script executable
+   $ chmod +x quickstart.sh
+
+Problem: Poor extraction quality
+Solution: 
+   • Use higher quality images
+   • Ensure receipt header is visible
+   • Try different lighting/angle
+
+🔗 USEFUL LINKS
+═══════════════════════════════════════════════════════════════════════════════
+
+OpenAI Platform:        https://platform.openai.com
+Get API Key:            https://platform.openai.com/api-keys
+API Documentation:      https://platform.openai.com/docs
+Usage Dashboard:        https://platform.openai.com/usage
+Pricing Information:    https://openai.com/pricing
+
+📚 DOCUMENTATION FILES
+═══════════════════════════════════════════════════════════════════════════════
+
+Start Here:
+   GETTING_STARTED.md   Complete setup walkthrough for beginners
+
+Reference:
+   README.md           Full project documentation
+   QUICKREF.md         Quick command reference
+   PROJECT_OVERVIEW.txt This comprehensive overview
+
+Code Examples:
+   example_usage.py    Practical usage examples
+   receipt_extractor.py Well-documented source code
+
+🎯 INTEGRATION WITH RECEIPTLY
+═══════════════════════════════════════════════════════════════════════════════
+
+This module can be integrated into the main Receiptly project:
+
+1. As a Fallback Service
+   Use when Azure OCR fails to extract merchant information
+
+2. For Validation
+   Compare GPT-4 Vision results with existing OCR methods
+
+3. Enhanced Accuracy
+   Use for critical merchant data extraction
+
+4. Hybrid Approach
+   Combine multiple extraction methods for best results
+
+Example Integration:
+   ```python
+   from gpt4_vision_extractor.receipt_extractor import ReceiptExtractor
+   
+   def extract_merchant_info(image_path):
+       # Try Azure first
+       azure_result = azure_ocr(image_path)
+       
+       # Fallback to GPT-4 Vision if needed
+       if not azure_result.get('merchant_name'):
+           extractor = ReceiptExtractor()
+           return extractor.extract_merchant_info(image_path)
+       
+       return azure_result
+   ```
+
+📞 SUPPORT
+═══════════════════════════════════════════════════════════════════════════════
+
+For issues or questions:
+   1. Check GETTING_STARTED.md for setup help
+   2. Review troubleshooting section above
+   3. Run test_setup.py to diagnose issues
+   4. Check OpenAI API documentation
+   5. Review example_usage.py for code patterns
+
+📄 LICENSE
+═══════════════════════════════════════════════════════════════════════════════
+
+This project is provided as-is for educational and commercial use.
+
+═══════════════════════════════════════════════════════════════════════════════
+                           Happy Extracting! 🎉
+═══════════════════════════════════════════════════════════════════════════════

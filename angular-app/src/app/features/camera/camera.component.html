@@ -10,6 +10,74 @@
     </div>
   </header>
 
+  @if (hasActiveUploads()) {
+  <div class="card bg-base-100 shadow-xl border-t-4 border-primary mt-8 animate-fade-in">
+    <div class="card-body items-center text-center py-12">
+      <!-- Animated Icon -->
+      <div class="relative w-24 h-24 mb-6">
+        @if (hasOngoingUploads()) {
+        <div class="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+        <div class="absolute inset-2 bg-primary/30 rounded-full animate-pulse"></div>
+        }
+        <div class="absolute inset-0 flex items-center justify-center bg-base-100 rounded-full m-1">
+          <span class="material-icons text-5xl" [class.text-primary]="hasOngoingUploads()"
+            [class.text-error]="!hasOngoingUploads()">
+            {{ hasOngoingUploads() ? 'receipt_long' : 'error_outline' }}
+          </span>
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-bold mb-2">
+        {{ hasOngoingUploads() ? 'Processing Receipt' : 'Attention Needed' }}
+      </h2>
+      <p class="text-base-content/60 max-w-xs mx-auto">
+        {{ hasOngoingUploads() ? "We're extracting the details from your receipt. This keeps your spending history
+        accurate!" : "Some uploads could not be processed. Please review the errors below." }}
+      </p>
+
+      <!-- Active Uploads List -->
+      <div class="w-full max-w-sm mt-8 space-y-3">
+        @for (upload of activeUploads(); track upload.id) {
+        @if (upload.status === 'error') {
+        <!-- Error State (DaisyUI enhanced) -->
+        <div class="alert alert-error shadow-lg animate-in slide-in-from-top-2 fade-in">
+          <span class="material-icons text-2xl">error_outline</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-error-content text-sm mb-1">Upload Failed</div>
+            <div class="text-xs text-error-content/80 break-words mb-3">{{ upload.error || 'Unknown error occurred' }}</div>
+            <div class="flex gap-2 mt-2">
+              <button class="btn btn-xs btn-error gap-1 hover:btn-error-focus transition-colors" (click)="retryUpload(upload.id)">
+                <span class="material-icons text-xs">refresh</span>
+                Retry
+              </button>
+              <button class="btn btn-xs btn-ghost gap-1 text-error-content/70 hover:bg-error-content/10 transition-colors" (click)="dismissUpload(upload.id)">
+                <span class="material-icons text-xs">close</span>
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+        } @else {
+        <!-- Processing State -->
+        <div class="flex items-center gap-3 bg-base-200/50 p-3 rounded-lg border border-base-300 animate-pulse">
+          <span class="loading loading-spinner loading-sm text-primary"></span>
+          <div class="flex-1 text-left overflow-hidden">
+            <div class="font-medium text-sm truncate">{{ upload.filename }}</div>
+            <div class="text-xs text-base-content/60 font-semibold text-primary/80">{{ getFunnyMessage() }}</div>
+          </div>
+        </div>
+        }
+        }
+      </div>
+
+      @if (hasOngoingUploads()) {
+      <div class="mt-8 text-xs text-base-content/40">
+        You can navigate away, we'll notify you when it's done.
+      </div>
+      }
+    </div>
+  </div>
+  } @else {
   <!-- Camera Actions (when no image captured) -->
   @if (!capturedImage()) {
   <div class="space-y-6">
@@ -18,11 +86,11 @@
     <div class="relative rounded-xl overflow-hidden shadow-lg bg-black aspect-[3/4] max-h-[70vh]">
       <video #videoElement autoplay playsinline muted class="w-full h-full object-cover"></video>
 
-      <app-camera-overlay [isScanning]="isValidating()" [instructionText]="validationInstruction()">
+      <app-camera-overlay>
 
         <button
           class="btn btn-circle btn-lg btn-white border-4 border-primary/50 hover:border-primary hover:scale-105 transition-all shadow-lg"
-          (click)="capturePhoto()" [disabled]="isValidating()">
+          (click)="capturePhoto()">
           <div class="w-16 h-16 rounded-full bg-white border-4 border-transparent"></div>
         </button>
       </app-camera-overlay>
@@ -45,27 +113,16 @@
     }
 
     <!-- Processing Options -->
-    @if (opencvLoaded()) {
+    <!-- @if (opencvLoaded()) {
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
         <h2 class="card-title flex items-center gap-2 text-base">
           <span class="material-icons">tune</span>
           Image Processing
         </h2>
-
-        <div class="form-control">
-          <label class="label cursor-pointer">
-            <span class="label-text flex flex-col">
-              <span class="font-medium">Auto-Crop Receipt</span>
-              <span class="text-xs text-base-content/60">Automatically detect and crop receipt boundaries</span>
-            </span>
-            <input type="checkbox" class="toggle toggle-primary" [checked]="autoCrop()"
-              (change)="autoCrop.set($any($event.target).checked)" />
-          </label>
-        </div>
       </div>
     </div>
-    }
+    } -->
 
     <div class="flex flex-col gap-4">
       <button class="btn btn-primary btn-lg w-full shadow-lg gap-2" (click)="startCamera()">
@@ -78,10 +135,10 @@
         Upload from Gallery
       </button>
 
-      <button class="btn btn-ghost btn-sm w-full gap-2 text-base-content/60" (click)="takePhotoNative()">
+      <!-- <button class="btn btn-ghost btn-sm w-full gap-2 text-base-content/60" (click)="takePhotoNative()">
         <span class="material-icons text-sm">camera</span>
         Use Native Camera
-      </button>
+      </button> -->
     </div>
 
     <div class="alert bg-base-200 border-none">
@@ -274,45 +331,6 @@
     }
   </div>
   }
-
-  <!-- Validation Feedback Modal -->
-  @if (validationResult() && !validationResult()?.isValid) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="card bg-base-100 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
-      <div class="card-body">
-        <h3 class="card-title text-warning flex items-center gap-2">
-          <span class="material-icons">warning</span>
-          Receipt Quality Check
-        </h3>
-
-        <p class="py-2">We had trouble reading some details. For best results:</p>
-
-        <ul class="space-y-2 my-4">
-          @for (suggestion of validationResult()?.suggestions; track suggestion) {
-          <li class="flex items-start gap-2 text-sm">
-            <span class="material-icons text-error text-sm mt-0.5">close</span>
-            <span>{{ suggestion }}</span>
-          </li>
-          }
-        </ul>
-
-        <div class="alert bg-base-200 text-xs">
-          <span class="material-icons text-info text-sm">info</span>
-          <span>Confidence Score: {{ (validationResult()?.confidence || 0).toFixed(0) }}%</span>
-        </div>
-
-        <div class="card-actions justify-end mt-6">
-          <button class="btn btn-ghost" (click)="proceedAnyway()">
-            Proceed Anyway
-          </button>
-          <button class="btn btn-primary" (click)="retakePhoto()">
-            <span class="material-icons">camera_alt</span>
-            Retake Photo
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
   }
 
   <!-- Toast Notification -->

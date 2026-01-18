@@ -19,9 +19,9 @@ variable "subnet_id" {
 }
 
 variable "instance_type" {
-  description = "EC2 instance type (Free tier: t2.micro or t3.micro)"
+  description = "EC2 instance type (Minimum t3.small for 3 containers)"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 variable "allowed_cidr_blocks" {

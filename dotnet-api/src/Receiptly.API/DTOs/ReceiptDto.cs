@@ -13,6 +13,7 @@ public class ReceiptDto
     
     // Store information
     public string StoreName { get; set; } = string.Empty;
+    public string? BranchName { get; set; }
     public string StoreAddress { get; set; } = string.Empty;
     public string? StorePhoneNumber { get; set; }
     public string? PostalCode { get; set; }

@@ -19,9 +19,13 @@ public class PythonOcrClient
     /// <summary>
     /// Send image URL to Python OCR service for analysis
     /// </summary>
-    public async Task<OcrApiResponse> AnalyzeReceiptAsync(string imageUrl)
+    public async Task<OcrApiResponse> AnalyzeReceiptAsync(string imageUrl, bool enableLlmEnhancement = true)
     {
-        var request = new OcrRequest { ImageUrl = imageUrl };
+        var request = new OcrRequest 
+        { 
+            ImageUrl = imageUrl,
+            EnableLlmEnhancement = enableLlmEnhancement
+        };
         
         var response = await _httpClient.PostAsJsonAsync(
             $"{_ocrServiceUrl}/api/v1/ocr/analyze",
@@ -49,6 +53,9 @@ public class OcrRequest
 {
     [JsonPropertyName("image_url")]
     public string ImageUrl { get; set; } = string.Empty;
+    
+    [JsonPropertyName("enable_llm_enhancement")]
+    public bool EnableLlmEnhancement { get; set; } = true;
 }
 
 public class OcrApiResponse
@@ -68,14 +75,27 @@ public class OcrValidation
     [JsonPropertyName("is_valid_receipt")]
     public bool IsValidReceipt { get; set; }
     
-    [JsonPropertyName("confidence")]
+    [JsonPropertyName("overall_confidence")]
     public float Confidence { get; set; }
     
-    [JsonPropertyName("message")]
+    [JsonPropertyName("confidence_message")]
     public string Message { get; set; } = string.Empty;
     
     [JsonPropertyName("doc_type")]
     public string DocType { get; set; } = string.Empty;
+    
+    // Additional fields from enhanced validation
+    [JsonPropertyName("merchant_confidence")]
+    public float MerchantConfidence { get; set; }
+    
+    [JsonPropertyName("items_confidence")]
+    public float ItemsConfidence { get; set; }
+    
+    [JsonPropertyName("total_confidence")]
+    public float TotalConfidence { get; set; }
+    
+    [JsonPropertyName("requires_manual_review")]
+    public bool RequiresManualReview { get; set; }
 }
 
 public class OcrResponse

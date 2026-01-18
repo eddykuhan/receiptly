@@ -28,6 +28,19 @@ resource "aws_cloudwatch_log_group" "api_service" {
   }
 }
 
+# CloudWatch Log Group for LLM Service
+resource "aws_cloudwatch_log_group" "llm_service" {
+  name              = "/receiptly/${var.environment}/llm"
+  retention_in_days = var.log_retention_days
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-llm-logs"
+    Environment = var.environment
+    Project     = var.project_name
+    Service     = "llm-service"
+  }
+}
+
 # CloudWatch Log Group for System Logs
 resource "aws_cloudwatch_log_group" "system" {
   name              = "/receiptly/${var.environment}/system"
@@ -60,6 +73,7 @@ resource "aws_iam_role_policy" "cloudwatch_logs" {
         Resource = [
           "${aws_cloudwatch_log_group.ocr_service.arn}:*",
           "${aws_cloudwatch_log_group.api_service.arn}:*",
+          "${aws_cloudwatch_log_group.llm_service.arn}:*",
           "${aws_cloudwatch_log_group.system.arn}:*"
         ]
       }

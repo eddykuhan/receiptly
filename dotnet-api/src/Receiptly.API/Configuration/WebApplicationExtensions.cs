@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Receiptly.API.Middleware;
 using Receiptly.Infrastructure.Data;
 using Serilog;
 
@@ -40,15 +41,10 @@ public static class WebApplicationExtensions
         // app.UseHttpsRedirection();
 
         // CORS
-           app.UseCors("AllowAngularApp");
-        // if (app.Environment.IsDevelopment())
-        // {
-        //     app.UseCors("AllowAngularApp");
-        // }
-        // else
-        // {
-        //     app.UseCors("Production");
-        // }
+        app.UseCors("AllowAngularApp");
+
+        // Clerk JWT authentication middleware
+        app.UseMiddleware<ClerkJwtMiddleware>();
 
         // Request logging
         app.UseSerilogRequestLogging();
@@ -58,13 +54,14 @@ public static class WebApplicationExtensions
 
     public static WebApplication MapEndpoints(this WebApplication app)
     {
-        // Health check endpoint
+        // Health check endpoint (public - no authentication required)
         app.MapGet("/health", () => Results.Ok(new
         {
             status = "healthy",
             service = "receiptly-api",
             timestamp = DateTime.UtcNow
-        }));
+        }))
+        .AllowAnonymous(); // Allow health checks without authentication
 
         // Controllers
         app.MapControllers();

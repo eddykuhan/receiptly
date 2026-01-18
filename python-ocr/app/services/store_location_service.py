@@ -37,9 +37,32 @@ class StoreLocationService:
                           If None, will look for 'store-scraper/data' relative to project root.
         """
         if data_directory is None:
-            # Default to store-scraper/data directory
-            current_dir = Path(__file__).parent.parent.parent  # python-ocr/
-            data_directory = current_dir.parent / "store-scraper" / "data"
+            # Try multiple locations for store data
+            # 1. Docker container location (production)
+            docker_path = Path("/app/store-scraper-data")
+            # 2. Local development location - use absolute path resolution
+            current_file = Path(__file__).resolve()  # Resolve to absolute path
+            local_path = current_file.parent.parent.parent.parent / "store-scraper" / "data"
+            
+            # Debug logging
+            logger.info(f"🔍 __file__ location: {current_file}")
+            logger.info(f"🔍 Calculated local_path: {local_path}")
+            logger.info(f"🔍 local_path.exists(): {local_path.exists()}")
+            logger.info(f"🔍 docker_path.exists(): {docker_path.exists()}")
+            
+            if docker_path.exists():
+                data_directory = docker_path
+                logger.info(f"✅ Using Docker container store data: {docker_path}")
+            elif local_path.exists():
+                data_directory = local_path
+                logger.info(f"✅ Using local development store data: {local_path}")
+            else:
+                # Fallback - will trigger warning in _load_all_locations
+                logger.warning(f"⚠️ Store location data not found!")
+                logger.warning(f"⚠️ Docker path checked: {docker_path}")
+                logger.warning(f"⚠️ Local path checked: {local_path}")
+                logger.warning(f"⚠️ Google Places matching will be disabled - OCR-only mode")
+                data_directory = docker_path  # Use docker path as fallback (will be empty)
         
         self.data_directory = Path(data_directory)
         self.locations: List[Dict] = []
@@ -121,8 +144,11 @@ class StoreLocationService:
         candidates = self._find_candidates(store_name_clean)
         
         if not candidates:
+            print(f"  ⚠️ StoreLocationService: No candidates found for '{store_name_clean}'")
             logger.info(f"No candidates found for store: {store_name_clean}")
             return None
+        
+        print(f"  🔍 StoreLocationService: Found {len(candidates)} candidates for '{store_name_clean}'")
         
         # Score each candidate
         scored_matches = []
@@ -146,6 +172,10 @@ class StoreLocationService:
                 })
         
         if not scored_matches:
+            print(f"  ⚠️ StoreLocationService: No matches >= {min_confidence} threshold for '{store_name_clean}'")
+            print(f"     Candidates scored but all below threshold:")
+            for candidate in candidates[:3]:  # Show top 3 for debugging
+                print(f"     - {candidate.get('branch_name')} (confidence would be calculated)")
             logger.info(f"No matches above confidence threshold {min_confidence} for: {store_name_clean}")
             return None
         
@@ -153,6 +183,7 @@ class StoreLocationService:
         scored_matches.sort(key=lambda x: x['confidence'], reverse=True)
         best_match = scored_matches[0]
         
+        print(f"  ✅ StoreLocationService: Best match for '{store_name_clean}': {best_match['branch_name']} (confidence: {best_match['confidence']:.2f})")
         logger.info(
             f"Best match for '{store_name_clean}': {best_match['branch_name']} "
             f"(confidence: {best_match['confidence']:.2f}, reason: {best_match['match_reason']})"
@@ -219,8 +250,13 @@ class StoreLocationService:
         
         # Check for branch number exact match
         branch_number_match = False
+        branch_number_close = False  # Allow small differences (OCR errors)
         if ocr_branch_number and db_branch_number:
             branch_number_match = ocr_branch_number == db_branch_number
+            # Allow tolerance for common OCR errors (e.g., 2848 vs 2868)
+            if not branch_number_match and len(str(ocr_branch_number)) == len(str(db_branch_number)):
+                diff_count = sum(1 for a, b in zip(str(ocr_branch_number), str(db_branch_number)) if a != b)
+                branch_number_close = diff_count <= 1  # Allow 1 digit difference
         
         # Extract location keywords from OCR address
         ocr_location_keywords = self._extract_location_keywords(ocr_address) if ocr_address else set()
@@ -230,12 +266,74 @@ class StoreLocationService:
         location_keyword_match = bool(ocr_location_keywords & db_location_keywords)
         matched_keywords = ocr_location_keywords & db_location_keywords
         
+        # Calculate specificity score based on keyword uniqueness and length
+        # More specific/unique keywords get higher scores
+        keyword_specificity_scores = {
+            # Very specific landmarks (highest priority)
+            'gravitas': 8, 'gravitasbusinesspark': 10,
+            'sunwaycarnival': 9, 'sunwaycarnivalmall': 10,
+            'sunwaypyramid': 9, 'sunwaypyramidmall': 10,
+            'sunwayputra': 9, 'sunwayputramall': 10,
+            'sunwayvelocity': 9, 'sunwayvelocitymall': 10,
+            'midvalley': 8, 'midvalleymegamall': 10,
+            'pavilion': 8, 'klcc': 8, 'suria': 7,
+            'oneutama': 8, '1utama': 8, 'thecurve': 8,
+            'gurney': 7, 'gurneyplaza': 9, 'gurneyparagon': 10,
+            'queensbay': 8, 'queensbaymall': 10,
+            'komtar': 7, 'pranginmall': 9,
+            'ikea': 7, 'aeonmall': 9, 'ioimall': 9,
+            
+            # Business parks (medium-high priority, but specific names higher)
+            'businesspark': 4, 'commercialcentre': 4, 'commercialcenter': 4,
+            'elitebusinesspark': 7, 'elitepavilion': 7,
+            
+            # Generic locations (lower priority)
+            'mall': 2, 'plaza': 3, 'tower': 3, 'menara': 3,
+            'centre': 2, 'center': 2, 'park': 2,
+            
+            # City/area names (lowest priority for specificity)
+            'kl': 1, 'kualalumpur': 2, 'penang': 2, 'pulau': 1, 'pinang': 1,
+            'johorbahru': 3, 'jb': 1, 'ipoh': 2, 'perak': 1,
+            'shahalam': 3, 'selangor': 1, 'petalingjaya': 3, 'pj': 1,
+            'klang': 2, 'melaka': 2, 'malacca': 2, 'kuching': 2,
+            'sarawak': 1, 'kotakinabalu': 3, 'sabah': 1, 'seremban': 2,
+            'negerisembilan': 2, 'alorsetar': 3, 'kedah': 1, 'kuantan': 2,
+            'pahang': 1, 'kotabharu': 3, 'kelantan': 1, 'bukitmertajam': 4,
+            'seberangjaya': 3, 'butterworth': 3, 'cyberjaya': 3,
+            'putrajaya': 3, 'subangjaya': 3, 'damansara': 3, 'bangsar': 2,
+            'cheras': 2, 'ampang': 2, 'puchong': 2
+        }
+        
+        # Calculate total specificity score for matched keywords
+        match_specificity = 0
+        if matched_keywords:
+            for keyword in matched_keywords:
+                match_specificity += keyword_specificity_scores.get(keyword, len(keyword.split()) * 2)
+        
+        # Also consider multi-word matches as bonus (e.g., "sunway carnival" > "sunway" + "carnival")
+        multi_word_bonus = 0
+        for keyword in matched_keywords:
+            word_count = len(keyword.split())
+            if word_count > 1:
+                multi_word_bonus += word_count - 1  # Bonus for each extra word
+        
+        total_specificity = match_specificity + multi_word_bonus
+        
+        # Debug logging for location matching
+        if ocr_location_keywords:
+            logger.debug(f"OCR location keywords: {ocr_location_keywords}")
+        if matched_keywords:
+            logger.debug(f"Matched keywords: {matched_keywords} (specificity: {match_specificity})")
+        
         # 1. Store name similarity (primary signal)
         name_ratio = fuzz.ratio(ocr_store_name.lower(), db_store_name.lower())
         
         # Also check against branch name (sometimes OCR captures full branch name)
         branch_ratio = fuzz.ratio(ocr_store_name.lower(), db_branch_name.lower())
         best_name_ratio = max(name_ratio, branch_ratio)
+        
+        # Check if this is a chain store (has multiple branches)
+        is_chain_store = self._is_chain_store(db_store_name)
         
         # 2. Phone number match (strong signal)
         phone_match = False
@@ -256,13 +354,32 @@ class StoreLocationService:
         # ========== PRIORITY MATCHING ==========
         
         # Highest priority: Branch number + name match
-        if branch_number_match and best_name_ratio >= 80:
-            return (0.98, f"Branch number match ({ocr_branch_number}) + name match")
+        if (branch_number_match or (branch_number_close and total_specificity >= 10)) and best_name_ratio >= 65:
+            match_type = "exact" if branch_number_match else "close"
+            return (0.98, f"Branch number match ({ocr_branch_number} → {db_branch_number}, {match_type}) + name match")
         
-        # Very high: Branch number OR strong location keyword match with good name
+        # Very high: High-specificity location match (e.g., "gravitas business park" not just "business park")
+        # Even with weaker name match, strong location match is highly reliable
+        if total_specificity >= 15 and best_name_ratio >= 60:
+            keywords_str = ", ".join(list(matched_keywords)[:3])
+            return (0.98, f"Name + very high-specificity location match ({keywords_str})")
+        elif total_specificity >= 10 and best_name_ratio >= 60:
+            keywords_str = ", ".join(list(matched_keywords)[:3])
+            return (0.97, f"Name + high-specificity location match ({keywords_str})")
+        elif total_specificity >= 8 and best_name_ratio >= 60:
+            keywords_str = ", ".join(list(matched_keywords)[:3])
+            return (0.96, f"Name + specific location match ({keywords_str})")
+        
+        # Very high: Multi-word location match (e.g., "sunway carnival" not just "sunway")
+        # Even with weaker name match, strong location match is highly reliable
+        if total_specificity >= 5 and best_name_ratio >= 60:
+            keywords_str = ", ".join(list(matched_keywords)[:3])
+            return (0.95, f"Name + specific location match ({keywords_str})")
+        
+        # Very high: Multiple single-word location keywords with good name match
         if best_name_ratio >= 80 and location_keyword_match and len(matched_keywords) >= 2:
             keywords_str = ", ".join(list(matched_keywords)[:3])
-            return (0.95, f"Name + location match ({keywords_str})")
+            return (0.93, f"Name + location match ({keywords_str})")
         
         # High: Exact name + phone
         if best_name_ratio >= 90 and phone_match:
@@ -272,10 +389,11 @@ class StoreLocationService:
         if best_name_ratio >= 90 and postal_match:
             return (0.92, "Exact name + postal code match")
         
-        # High: Name + single strong location keyword
-        if best_name_ratio >= 85 and location_keyword_match:
+        # High: Name + single location keyword (could be ambiguous)
+        if best_name_ratio >= 85 and location_keyword_match and match_specificity == 1:
             keywords_str = ", ".join(list(matched_keywords)[:2])
-            return (0.90, f"Name + location keyword ({keywords_str})")
+            # Lower confidence for single-word generic matches
+            return (0.85, f"Name + location keyword ({keywords_str})")
         
         # Good: Name + city
         if best_name_ratio >= 90 and address_match:
@@ -285,22 +403,41 @@ class StoreLocationService:
         if best_name_ratio >= 85 and (phone_match or postal_match):
             return (0.88, f"Strong name match ({best_name_ratio}%) + additional signal")
         
-        # Moderate: Just name match
-        if best_name_ratio >= 90:
-            return (0.85, f"Exact name match ({best_name_ratio}%)")
+        # MODERATE: Just name match (VERY RISKY for chains with many branches)
+        # Require higher threshold and lower confidence for chain stores
+        # But reduce penalty if there's strong location evidence
+        location_bonus = 0
+        if total_specificity >= 8:
+            location_bonus = 0.3  # Significant bonus for high-specificity location match
+        elif total_specificity >= 5:
+            location_bonus = 0.2  # Moderate bonus for specific location match
+        elif location_keyword_match:
+            location_bonus = 0.1  # Small bonus for any location match
+        
+        if best_name_ratio >= 95 and not is_chain_store:
+            return (0.75, f"Exact name match ({best_name_ratio}%) - no location confirmation")
+        elif best_name_ratio >= 90 and not is_chain_store:
+            return (0.65, f"Strong name match ({best_name_ratio}%) - no location confirmation")
+        elif best_name_ratio >= 95 and is_chain_store:
+            # Chain stores need location confirmation, but reduce penalty with location evidence
+            confidence = min(0.75, 0.55 + location_bonus)
+            return (confidence, f"Chain store name match ({best_name_ratio}%) - location bonus: {location_bonus}")
+        elif best_name_ratio >= 90 and is_chain_store:
+            confidence = min(0.65, 0.45 + location_bonus)
+            return (confidence, f"Chain store name match ({best_name_ratio}%) - location bonus: {location_bonus}")
         
         # Lower: Name + weak signals
         if best_name_ratio >= 80 and address_match:
-            return (0.80, f"Strong name match ({best_name_ratio}%) + city match ({city_match})")
+            return (0.75, f"Strong name match ({best_name_ratio}%) + city match ({city_match})")
         
         elif best_name_ratio >= 80:
-            return (0.75, f"Strong name match ({best_name_ratio}%)")
+            return (0.60, f"Strong name match ({best_name_ratio}%) - no location confirmation")
         
         elif best_name_ratio >= 70:
-            return (0.65, f"Moderate name match ({best_name_ratio}%)")
+            return (0.50, f"Moderate name match ({best_name_ratio}%)")
         
         else:
-            return (0.50, f"Weak name match ({best_name_ratio}%)")
+            return (0.30, f"Weak name match ({best_name_ratio}%)")
     
     def _phone_numbers_match(self, phone1: str, phone2: str) -> bool:
         """
@@ -335,7 +472,7 @@ class StoreLocationService:
         
         # Malaysian cities and areas to look for
         malaysian_locations = [
-            'kuala lumpur', 'kl', 'penang', 'pulau pinang', 'george town',
+            'kuala lumpur', 'kl', 'penang', 'pulau pinang', 'pg', 'george town',
             'johor bahru', 'johor', 'ipoh', 'perak', 'shah alam', 'selangor',
             'petaling jaya', 'pj', 'klang', 'melaka', 'malacca',
             'kuching', 'sarawak', 'kota kinabalu', 'sabah',
@@ -361,6 +498,26 @@ class StoreLocationService:
                 return (True, f"Postal code {ocr_postal[0]}")
         
         return (False, None)
+    
+    def _is_chain_store(self, store_name: str) -> bool:
+        """
+        Determine if a store is a chain (has multiple branches).
+        
+        Returns True if the store has more than one location in the database.
+        """
+        store_name_lower = store_name.lower()
+        if store_name_lower in self.store_index:
+            return len(self.store_index[store_name_lower]) > 1
+        
+        # Also check fuzzy matches
+        total_branches = 0
+        for indexed_name, locations in self.store_index.items():
+            if fuzz.ratio(store_name_lower, indexed_name) >= 80:
+                total_branches += len(locations)
+                if total_branches > 1:
+                    return True
+        
+        return False
     
     def _extract_branch_number(self, text: str) -> Optional[str]:
         """
@@ -415,10 +572,18 @@ class StoreLocationService:
         known_locations = [
             # Business parks
             'gravitas', 'gravitas business park',
+            'elite business park', 'elite pavilion',
             'menara', 'plaza', 'tower',
+            'business park', 'commercial centre', 'commercial center',
             
             # Major malls
-            'sunway pyramid', 'sunway', 'mid valley', 'midvalley',
+            'sunway carnival', 'sunway carnival mall',  # Penang location
+            'sunway pyramid', 'sunway pyramid mall',    # Petaling Jaya location
+            'sunway putra', 'sunway putra mall',
+            'sunway velocity', 'sunway velocity mall',
+            'sunway geo', 'sunway giza',
+            'dataran sunway',
+            'mid valley', 'midvalley',
             'pavilion', 'klcc', 'suria klcc',
             'one utama', '1 utama', 'the curve',
             'gurney', 'gurney plaza', 'gurney paragon',
@@ -432,6 +597,7 @@ class StoreLocationService:
             'cheras', 'setapak', 'wangsa maju',
             'kepong', 'puchong', 'subang',
             'usj', 'ss2', 'ss15',
+            'kl', 'kuala lumpur',  # KL abbreviations
             
             # Penang areas
             'egate', 'e-gate', 'butterworth',
@@ -439,6 +605,10 @@ class StoreLocationService:
             'tanjung tokong', 'pulau tikus',
             'jelutong', 'georgetown', 'george town',
             'bukit mertajam', 'seberang jaya',
+            'the sun', 'the zen', 'skyline city',
+            'prangin mall', 'krystal point', 'arena curve',
+            'sunway wellesley', 'golden triangle',
+            'pg', 'penang', 'pulau pinang',  # Penang abbreviations and names
             
             # Other cities
             'ipoh', 'johor bahru', 'jb',
@@ -451,6 +621,21 @@ class StoreLocationService:
                 # Normalize the keyword (remove spaces, hyphens for matching)
                 normalized = location.replace(' ', '').replace('-', '').replace("'", '')
                 keywords.add(normalized)
+                # Also add the original for better matching
+                keywords.add(location)
+        
+        # Additionally extract any capitalized words (likely proper nouns/landmarks)
+        # e.g., "Gravitas", "Queensbay", "KLCC"
+        import re
+        proper_nouns = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b', text)
+        for noun in proper_nouns:
+            if len(noun) > 3:  # Skip short words like "The", "At"
+                keywords.add(noun.lower())
+        
+        # Remove overly generic keywords that don't help disambiguation
+        # (Applied at the end to catch all sources of generic keywords)
+        generic_keywords = {'malaysia', 'malaysian', 'my', 'asia', 'wilayah', 'federal', 'territory'}
+        keywords = keywords - generic_keywords
         
         return keywords
     

@@ -1,32 +1,56 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, ViewChild, TemplateRef, ViewContainerRef, ApplicationRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import * as L from 'leaflet';
-import { firstValueFrom } from 'rxjs';
-import { PriceMapService, StoreWithPrice } from './price-map.service';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
+import { PriceMapService, ProductSuggestion, StoreWithPrice } from './price-map.service';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
+import { TimeAgoPipe } from '../../core/pipes/time-ago.pipe';
+import { APP_CONSTANTS } from '../../core/constants/app.constants';
+import { LocationService } from '../../core/services/location.service';
+import { UserPreferencesService } from '../../core/services/user-preferences.service';
 
 @Component({
     selector: 'app-price-map',
     standalone: true,
-    imports: [CommonModule, FormsModule, MyrPipe],
+    imports: [CommonModule, FormsModule, MyrPipe, TimeAgoPipe],
     templateUrl: './price-map.component.html',
     styleUrl: './price-map.component.scss'
 })
 export class PriceMapComponent implements OnInit, OnDestroy {
+    private locationService = inject(LocationService);
+    private userPreferencesService = inject(UserPreferencesService);
     private map?: L.Map;
     private markers: L.Marker[] = [];
+    // Map of storeId -> marker for quick lookup and selection handling
+    private markersMap: Map<string, L.Marker> = new Map();
+    // Currently selected store id (for visual state)
+    private selectedStoreId: string | null = null;
     private userMarker?: L.Marker;
+
+    @ViewChild('storePopupTpl', { read: TemplateRef }) private storePopupTpl?: TemplateRef<any>;
+    // Keep track of created views so we can cleanup if needed
+    private activePopupViews: { viewRef: any, container: HTMLElement }[] = [];
+    private activePopups: { viewRef: any, container: HTMLElement, popup: any, marker?: L.Marker }[] = [];
 
     searchQuery = signal('');
     searchResults = signal<StoreWithPrice[]>([]);
     selectedStore = signal<StoreWithPrice | null>(null);
-    productSuggestions = signal<string[]>([]);
+    // When showing a specific store's items in the side sheet
+    storeDetails = signal<any | null>(null);
+    previousSearchResults = signal<StoreWithPrice[] | null>(null);
+    productSuggestions = signal<ProductSuggestion[]>([]);
     showSuggestions = signal(false);
-    userLocation = signal<{ lat: number; lon: number } | null>(null);
+    userLocation = computed(() => this.locationService.userLocation());
     isLoading = signal(false);
     errorMessage = signal<string | null>(null);
+    isBottomSheetExpanded = signal(false);
+    showMobileResults = signal(false);
+
+    // Subject for map movement events to enable debouncing
+    // private mapMoveSubject = new Subject<void>();
+    private destroy$ = new Subject<void>();
 
     // Computed properties
     hasResults = computed(() => this.searchResults().length > 0);
@@ -37,31 +61,49 @@ export class PriceMapComponent implements OnInit, OnDestroy {
 
     constructor(
         private priceMapService: PriceMapService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private vcr: ViewContainerRef,
+        private appRef: ApplicationRef,
+        private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit() {
         this.initMap();
-        this.getUserLocation();
+        // Location is already requested during splash screen
+        this.addUserLocationMarker();
         this.loadProductSuggestions();
 
-        // Check for search query params
+        // Set search query from params but don't auto-search
         this.route.queryParams.subscribe(params => {
             if (params['q']) {
                 this.searchQuery.set(params['q']);
-                // Small delay to ensure map is ready
-                setTimeout(() => this.performSearch(), 500);
+                // User needs to manually click search button or press enter
             }
         });
+
+        // Setup debounced map movement listener
+        // Browsing disabled: Map is search-only now.
+        // this.mapMoveSubject.pipe(
+        //     debounceTime(500), 
+        //     takeUntil(this.destroy$)
+        // ).subscribe(() => {
+        //     this.loadItemsInViewport();
+        // });
     }
 
     ngOnDestroy() {
         this.map?.remove();
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     private initMap() {
-        // Center on Kuala Lumpur
-        this.map = L.map('map').setView([3.1390, 101.6869], 11);
+        // Get user location or default to Kuala Lumpur
+        const userLoc = this.userLocation();
+        const initialLat = userLoc?.lat ?? 3.1390;
+        const initialLon = userLoc?.lon ?? 101.6869;
+
+        this.map = L.map('map').setView([initialLat, initialLon], 11);
 
         // Add OpenStreetMap tiles (free, no API key needed!)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -75,52 +117,87 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }, 100);
     }
 
-    private getUserLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    this.userLocation.set({
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude
-                    });
-
-                    // Add user location marker
-                    if (this.map) {
-                        const blueIcon = L.icon({
-                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                            iconSize: [25, 41],
-                            iconAnchor: [12, 41],
-                            popupAnchor: [1, -34],
-                            shadowSize: [41, 41]
-                        });
-
-                        this.userMarker = L.marker([position.coords.latitude, position.coords.longitude], { icon: blueIcon })
-                            .bindPopup('<strong>Your Location</strong>')
-                            .addTo(this.map);
-                    }
-                },
-                (error) => {
-                    console.log('Location access denied:', error);
-                }
-            );
+    private addUserLocationMarker() {
+        const userLoc = this.userLocation();
+        if (!userLoc || !this.map) {
+            console.log('No user location available for map marker');
+            return;
         }
+
+        console.log('✅ Adding user location marker:', userLoc.lat, userLoc.lon);
+
+        const blueIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        this.userMarker = L.marker([userLoc.lat, userLoc.lon], { icon: blueIcon })
+            .bindPopup('<strong>📍 Your Location</strong>')
+            .addTo(this.map);
+
+        // Load initial data based on current view
+        // Browsing disabled: we don't load items initially anymore.
+        // this.loadItemsInViewport();
+
+        // Listen for map movements to lazy load data
+        // this.map.on('moveend', () => {
+        //    this.loadItemsInViewport();
+        // });
     }
 
     onSearchInput(value: string) {
         this.searchQuery.set(value);
-        this.showSuggestions.set(value.length > 0);
+        if (value.length >= 2) {
+            // Get current filters
+            const userLoc = this.userLocation();
+
+            // Get distance preference from user profile
+            const distFilter = this.userPreferencesService.getSearchRadius();
+
+            // Pass lat/lng/radius only if both location and distance filter are available
+            let lat: number | undefined;
+            let lng: number | undefined;
+            let radius: number | undefined;
+
+            if (userLoc && distFilter > 0) {
+                lat = userLoc.lat;
+                lng = userLoc.lon;
+                radius = distFilter;
+            }
+
+            this.priceMapService.searchSuggestions(value, lat, lng, radius).subscribe({
+                next: (suggestions) => {
+                    const uppercased = suggestions.map(s => ({
+                        ...s,
+                        name: s.name.toUpperCase()
+                    }));
+                    this.productSuggestions.set(uppercased);
+                    this.showSuggestions.set(suggestions.length > 0);
+                },
+                error: () => {
+                    this.productSuggestions.set([]);
+                    this.showSuggestions.set(false);
+                }
+            });
+        } else {
+            this.productSuggestions.set([]);
+            this.showSuggestions.set(false);
+        }
     }
 
-    selectSuggestion(productName: string) {
-        this.searchQuery.set(productName);
+    selectSuggestion(suggestion: import('./price-map.service').ProductSuggestion) {
+        this.searchQuery.set(suggestion.name);
         this.showSuggestions.set(false);
-        this.performSearch();
+        this.performSearch(suggestion.id);
     }
 
-    async performSearch() {
+    async performSearch(canonicalItemId?: string) {
         const query = this.searchQuery().trim();
-        if (!query) {
+        if (!query && !canonicalItemId) {
             this.clearSearch();
             return;
         }
@@ -129,16 +206,40 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.errorMessage.set(null);
 
         try {
-            let results = await firstValueFrom(this.priceMapService.searchProduct(query));
-
             const userLoc = this.userLocation();
+            const searchParams: any = {
+                productName: canonicalItemId ? undefined : query,
+                canonicalItemId: canonicalItemId,
+                userLat: userLoc?.lat,
+                userLng: userLoc?.lon
+            };
+
+            let results = await firstValueFrom(this.priceMapService.searchProduct(searchParams));
+
             if (userLoc) {
                 results = this.priceMapService.addDistanceToResults(results, userLoc.lat, userLoc.lon);
+
+                // Apply distance filter from user preferences
+                const distFilter = this.userPreferencesService.getSearchRadius();
+                if (distFilter > 0) {
+                    results = results.filter(r => r.distance !== undefined && r.distance <= distFilter);
+                }
             }
+
+            // Clear any active store detail view so the sheet shows all matching stores
+            this.storeDetails.set(null);
+            this.previousSearchResults.set(null);
+            this.setSelectedMarker(null);
 
             this.searchResults.set(results);
             this.showSuggestions.set(false);
             this.updateMapMarkers(results);
+
+            // Show mobile bottom sheet when search completes
+            if (results.length > 0) {
+                this.showMobileResults.set(true);
+                this.isBottomSheetExpanded.set(true);
+            }
         } catch (error) {
             console.error('Failed to fetch price map data', error);
             this.errorMessage.set('Unable to load price data. Please try again.');
@@ -149,63 +250,82 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         }
     }
 
-    private updateMapMarkers(results: StoreWithPrice[]) {
+    // Browsing disabled
+    // async loadItemsInViewport() { ... }
+
+    private updateMapMarkers(results: StoreWithPrice[], autoZoom: boolean = true) {
         this.clearMarkers();
 
         if (!this.map || results.length === 0) return;
 
         const bounds = L.latLngBounds([]);
-        const cheapest = results[0].price;
-        const mostExpensive = results[results.length - 1].price;
+
+        // Group results by store id so we only create one marker per store
+        const storeMap = new Map<string, { store: any; items: StoreWithPrice[] }>();
+        results.forEach(r => {
+            const key = r.store.id;
+            if (!storeMap.has(key)) {
+                storeMap.set(key, { store: r.store, items: [r] });
+            } else {
+                storeMap.get(key)!.items.push(r);
+            }
+        });
+
+        // Compute overall price bounds for color scaling
+        const allPrices = results.map(r => r.price).sort((a, b) => a - b);
+        const cheapest = allPrices[0] ?? 0;
+        const mostExpensive = allPrices[allPrices.length - 1] ?? cheapest;
         const priceRange = mostExpensive - cheapest;
 
-        results.forEach((result, index) => {
-            const { store, price } = result;
+        // Sort stores by their cheapest item price for ranking
+        const storesByPrice = Array.from(storeMap.entries())
+            .map(([storeId, { store, items }]) => ({
+                storeId,
+                store,
+                items,
+                price: Math.min(...items.map(i => i.price))
+            }))
+            .sort((a, b) => a.price - b.price);
 
-            // Color code based on price (green = cheap, red = expensive)
-            let iconColor = 'green';
-            if (priceRange > 0) {
-                const priceRatio = (price - cheapest) / priceRange;
-                if (priceRatio > 0.66) {
-                    iconColor = 'red';
-                } else if (priceRatio > 0.33) {
-                    iconColor = 'orange';
-                }
+        // Find unique price tiers
+        const uniquePrices = [...new Set(storesByPrice.map(s => s.price))].sort((a, b) => a - b);
+        const cheapestPrice = uniquePrices[0];
+        const secondCheapestPrice = uniquePrices[1];
+
+        // Create one marker per store
+        storesByPrice.forEach(({ storeId, store, items, price }) => {
+            // Assign color based on price tier (handle ties)
+            let iconColor: string;
+            if (price === cheapestPrice) {
+                iconColor = 'green';  // Cheapest (all stores with lowest price)
+            } else if (secondCheapestPrice !== undefined && price === secondCheapestPrice) {
+                iconColor = 'yellow'; // Second cheapest (all stores with 2nd lowest price)
+            } else {
+                iconColor = 'red';    // Higher prices
             }
 
-            // Create custom colored marker
-            const icon = L.icon({
-                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${iconColor}.png`,
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            });
+            const storeInitial = (store.name && store.name.trim().length > 0) ? store.name.trim().charAt(0).toUpperCase() : 'S';
+            const html = `<div class="store-marker marker-${iconColor}"><span class="store-icon material-icons">store</span><span class="store-initial">${storeInitial}</span></div>`;
+            const icon = L.divIcon({ className: 'price-label-icon', html, iconSize: [42, 42], iconAnchor: [21, 42] });
 
-            const popupContent = `
-        <div class="p-2">
-          <h3 class="font-bold text-sm">${store.name}</h3>
-          <p class="text-xs text-gray-600">${store.address}</p>
-          <p class="font-mono font-bold text-purple-600 mt-1">RM ${price.toFixed(2)}</p>
-          ${result.distance ? `<p class="text-xs text-gray-500">${result.distance.toFixed(1)} km away</p>` : ''}
-        </div>
-      `;
+            const marker = L.marker([store.latitude, store.longitude], { icon }).addTo(this.map!);
 
-            const marker = L.marker([store.latitude, store.longitude], { icon })
-                .bindPopup(popupContent)
-                .addTo(this.map!);
-
+            // capture items in closure
+            const itemsForStore = items.slice();
             marker.on('click', () => {
-                this.selectedStore.set(result);
+                // Visually select this marker
+                this.setSelectedMarker(store.id);
+                // Show this store's items in the side sheet instead of popup
+                this.openStoreInSheet(marker, store, itemsForStore);
             });
 
             this.markers.push(marker);
+            this.markersMap.set(store.id, marker);
             bounds.extend([store.latitude, store.longitude]);
         });
 
-        // Fit map to show all markers
-        if (results.length > 0) {
+        // Only fit bounds if autoZoom is true (e.g., when user searches)
+        if (autoZoom && results.length > 0) {
             this.map.fitBounds(bounds, { padding: [50, 50] });
         }
     }
@@ -216,48 +336,244 @@ export class PriceMapComponent implements OnInit, OnDestroy {
         this.selectedStore.set(null);
         this.showSuggestions.set(false);
         this.errorMessage.set(null);
+        this.showMobileResults.set(false);
+        this.isBottomSheetExpanded.set(false);
         this.clearMarkers();
 
-        // Reset map view to KL
+        // Reset map view to user location or default to KL
         if (this.map) {
-            this.map.setView([3.1390, 101.6869], 11);
+            const userLoc = this.userLocation();
+            if (userLoc) {
+                this.map.setView([userLoc.lat, userLoc.lon], 13, { animate: true });
+            } else {
+                this.map.setView([3.1390, 101.6869], 11);
+            }
         }
     }
 
     selectStore(store: StoreWithPrice) {
         this.selectedStore.set(store);
+        const itemsForStore = this.searchResults().filter(r => r.store.id === store.store.id);
+        // If searchResults currently contains many stores, open the store items in the sheet
+        this.openStoreInSheet(undefined as any, store.store, itemsForStore);
         if (this.map) {
-            this.map.setView([store.store.latitude, store.store.longitude], 14, {
+            const currentZoom = this.map.getZoom();
+            const targetZoom = Math.max(currentZoom ?? 11, 15);
+            this.map.flyTo([store.store.latitude, store.store.longitude], targetZoom, {
                 animate: true
             });
 
-            // Open the popup for this store
-            const marker = this.markers.find(m => {
-                const latLng = m.getLatLng();
-                return latLng.lat === store.store.latitude && latLng.lng === store.store.longitude;
-            });
-            marker?.openPopup();
+            // Lookup marker by store id so we can highlight it
+            const marker = this.markersMap.get(store.store.id);
+            if (marker) {
+                // visually select
+                this.setSelectedMarker(store.store.id);
+                // ensure sheet shows the store items as well
+                const itemsForStore = this.searchResults().filter(r => r.store.id === store.store.id);
+                this.openStoreInSheet(marker, store.store, itemsForStore);
+            }
         }
     }
 
-    getFilteredSuggestions() {
-        const query = this.searchQuery().toLowerCase();
-        if (!query) return [];
-        return this.productSuggestions()
-            .filter(name => name.toLowerCase().includes(query))
-            .slice(0, 5);
+    private openStoreInSheet(marker: L.Marker | undefined, store: any, items: StoreWithPrice[]) {
+        // Save current results so we can restore when closing the store view
+        this.previousSearchResults.set(this.searchResults());
+
+        // Set search results to this store's items and open the side sheet / bottom sheet
+        this.storeDetails.set(store);
+        this.searchResults.set(items);
+        this.selectedStore.set(items[0] ?? null);
+        this.showMobileResults.set(true);
+        this.isBottomSheetExpanded.set(true);
+
+        // Center map on marker if provided
+        if (marker && this.map) {
+            const currentZoom = this.map.getZoom();
+            const targetZoom = Math.max(currentZoom ?? 11, 15);
+            this.map.flyTo(marker.getLatLng(), targetZoom, { animate: true });
+        } else if (this.map && store?.latitude && store?.longitude) {
+            const currentZoom = this.map.getZoom();
+            const targetZoom = Math.max(currentZoom ?? 11, 15);
+            this.map.flyTo([store.latitude, store.longitude], targetZoom, { animate: true });
+        }
     }
+
+    private openPopupForStore(marker: L.Marker, store: any, items: StoreWithPrice[]) {
+        if (!this.storePopupTpl || !this.map) return;
+
+        this.clearAllPopups();
+
+        const viewRef = this.storePopupTpl.createEmbeddedView({ $implicit: store, items });
+        this.appRef.attachView(viewRef);
+        this.cdr.detectChanges();
+
+        const container = document.createElement('div');
+        viewRef.rootNodes.forEach((n: Node) => container.appendChild(n));
+
+        const popup = L.popup({ maxWidth: 360, minWidth: 220, className: 'price-map-popup' })
+            .setLatLng(marker.getLatLng())
+            .setContent(container)
+            .openOn(this.map);
+
+        const cleanup = () => {
+            try {
+                this.appRef.detachView(viewRef);
+                viewRef.destroy();
+            } catch (e) {
+                // ignore
+            }
+        };
+
+        popup.on('remove', cleanup);
+
+        this.activePopups.push({ viewRef, container, popup, marker });
+    }
+
+    private clearAllPopups() {
+        while (this.activePopups.length > 0) {
+            const item = this.activePopups.pop();
+            try {
+                item?.popup?.remove();
+            } catch { }
+            try {
+                this.appRef.detachView(item!.viewRef);
+                item!.viewRef.destroy();
+            } catch { }
+        }
+    }
+
+    // Visually mark a marker as selected by store id
+    private setSelectedMarker(storeId: string | null) {
+        // If the selected id is unchanged, do nothing
+        if (this.selectedStoreId === storeId) return;
+
+        // Clear previous selection
+        if (this.selectedStoreId) {
+            const prev = this.markersMap.get(this.selectedStoreId);
+            if (prev) this.setMarkerSelectedVisual(prev, false);
+        }
+
+        this.selectedStoreId = storeId;
+
+        if (storeId) {
+            const marker = this.markersMap.get(storeId);
+            if (marker) {
+                this.setMarkerSelectedVisual(marker, true);
+                try { (marker as any).bringToFront?.(); } catch { }
+            }
+        }
+    }
+
+    private setMarkerSelectedVisual(marker: L.Marker, selected: boolean) {
+        const outerEl = (marker as any).getElement && (marker as any).getElement();
+        if (!outerEl) return;
+        // The divIcon HTML contains an inner element with class 'store-marker'.
+        // Add/remove the selected class on that inner element so our styles apply.
+        const innerEl: HTMLElement | null = outerEl.querySelector && outerEl.querySelector('.store-marker');
+        const targetEl = innerEl ?? outerEl;
+        if (selected) {
+            targetEl.classList.add('selected');
+            // also mark outer for z-index so it overlaps map tiles
+            outerEl.classList.add('selected');
+            (outerEl.style as any).zIndex = '9999';
+        } else {
+            targetEl.classList.remove('selected');
+            outerEl.classList.remove('selected');
+            (outerEl.style as any).zIndex = '';
+        }
+    }
+
+    // Used by the popup template close button
+    clearPopup() {
+        // If we are viewing a store's items in the sheet, restore previous results
+        if (this.storeDetails()) {
+            const prev = this.previousSearchResults();
+            this.searchResults.set(prev ?? []);
+            this.storeDetails.set(null);
+            this.previousSearchResults.set(null);
+            this.isBottomSheetExpanded.set(false);
+            this.showMobileResults.set(false);
+            // Rebuild markers for the restored results
+            if (prev && prev.length > 0) {
+                this.updateMapMarkers(prev, true);
+            } else {
+                this.clearMarkers();
+            }
+            return;
+        }
+
+        this.clearAllPopups();
+    }
+
+    getFilteredSuggestions() {
+        return this.productSuggestions();
+    }
+
+    toggleBottomSheet() {
+        this.isBottomSheetExpanded.update(expanded => !expanded);
+    }
+
+
+    public getRelativeTime(date: Date): string {
+        const now = new Date();
+        const diffMs = now.getTime() - new Date(date).getTime();
+        const diffSecs = Math.floor(diffMs / 1000);
+        const diffMins = Math.floor(diffSecs / 60);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        const diffWeeks = Math.floor(diffDays / 7);
+
+        if (diffSecs < 60) return 'just now';
+        if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`;
+    }
+
+    public getPriceTier(price: number): 'green' | 'yellow' | 'red' {
+        const results = this.searchResults();
+        if (results.length === 0) return 'red';
+
+        // Get unique prices and sort them
+        const uniquePrices = [...new Set(results.map(r => r.price))].sort((a, b) => a - b);
+        const cheapestPrice = uniquePrices[0];
+        const secondCheapestPrice = uniquePrices[1];
+
+        if (price === cheapestPrice) {
+            return 'green';
+        } else if (secondCheapestPrice !== undefined && price === secondCheapestPrice) {
+            return 'yellow';
+        } else {
+            return 'red';
+        }
+    }
+
+    private loadProductSuggestions() {
+        // No-op: Suggestions are now loaded dynamically via searchSuggestions()
+    }
+
+    /*
+    // Old implementation removed
     private async loadProductSuggestions() {
         try {
-            const suggestions = await firstValueFrom(this.priceMapService.getProductSuggestions());
+            const suggestions = await firstValueFrom(this.priceMapService.getProductSuggestions(60));
             this.productSuggestions.set(suggestions);
         } catch (error) {
             console.warn('Unable to load product suggestions', error);
         }
     }
+    */
 
     private clearMarkers() {
+        // Close and cleanup any open popups first
+        this.clearAllPopups();
         this.markers.forEach(marker => marker.remove());
         this.markers = [];
+        // clear map and selection state
+        this.markersMap.forEach(m => {
+            try { (m as any).remove(); } catch { };
+        });
+        this.markersMap.clear();
+        this.setSelectedMarker(null);
     }
 }

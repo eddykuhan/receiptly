@@ -1,9 +1,9 @@
-<div class="drawer lg:drawer-open">
+<div class="drawer" [class.lg:drawer-open]="!isAuthPage()">
   <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
 
-  <div class="drawer-content flex flex-col bg-base-200 min-h-screen relative">
-    <!-- Navbar (Mobile only) -->
-    <div class="navbar bg-base-100 lg:hidden shadow-sm z-10">
+  <div class="drawer-content flex flex-col bg-base-200 h-[100dvh] overflow-hidden relative">
+    <!-- Navbar (Mobile only) - Hidden on auth pages -->
+    <div *ngIf="!isAuthPage()" class="navbar bg-base-100 lg:hidden shadow-sm z-40 sticky top-0 flex-none">
       <div class="flex-1">
         <a class="btn btn-ghost text-xl text-primary font-bold">Cheapsy</a>
       </div>
@@ -20,33 +20,38 @@
     </div>
 
 
-    <!-- Bottom Navigation (Mobile) -->
-    <div class="btm-nav lg:hidden z-30 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-      <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
-        <span class="material-icons">home</span>
-        <span class="btm-nav-label text-xs">Home</span>
-      </button>
-      <button (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="text-primary">
-        <span class="material-icons">map</span>
-        <span class="btm-nav-label text-xs">Explore</span>
-      </button>
-      <button (click)="onCameraClick()" class="text-primary">
-        <span class="material-icons">photo_camera</span>
-        <span class="btm-nav-label text-xs">Scan</span>
-      </button>
-      <button (click)="onAskAIClick()" [class.active]="isRouteActive('/ask-ai')" class="text-primary">
-        <span class="material-icons">auto_awesome</span>
-        <span class="btm-nav-label text-xs">Ask AI</span>
-      </button>
-      <button (click)="onProfileClick()" [class.active]="isRouteActive('/profile')" class="text-primary">
-        <span class="material-icons">account_circle</span>
-        <span class="btm-nav-label text-xs">Profile</span>
-      </button>
+    <!-- Bottom Navigation (Mobile) - Hidden on auth pages -->
+    <div *ngIf="!isAuthPage()"
+      class="lg:hidden z-30 fixed bottom-0 left-0 right-0 bg-base-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+      <!-- Navigation buttons container -->
+      <div class="btm-nav relative shadow-none"
+        style="height: calc(4rem + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px);">
+        <button (click)="onTabChange(0)" [class.active]="activeTabIndex === 0" class="text-primary">
+          <span class="material-icons">home</span>
+          <span class="btm-nav-label text-xs">Home</span>
+        </button>
+        <button (click)="onTabChange(1)" [class.active]="activeTabIndex === 1" class="text-primary">
+          <span class="material-icons">map</span>
+          <span class="btm-nav-label text-xs">Explore</span>
+        </button>
+        <button (click)="onCameraClick()" class="text-primary">
+          <span class="material-icons">photo_camera</span>
+          <span class="btm-nav-label text-xs">Scan</span>
+        </button>
+        <button (click)="onAskAIClick()" [class.active]="isRouteActive('/ask-ai')" class="text-primary">
+          <span class="material-icons">auto_awesome</span>
+          <span class="btm-nav-label text-xs">Ask AI</span>
+        </button>
+        <button (click)="onProfileClick()" [class.active]="isRouteActive('/profile')" class="text-primary">
+          <span class="material-icons">account_circle</span>
+          <span class="btm-nav-label text-xs">Profile</span>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Sidebar (Desktop) -->
-  <div class="drawer-side z-40">
+  <!-- Sidebar (Desktop) - Hidden on auth pages -->
+  <div *ngIf="!isAuthPage()" class="drawer-side z-40">
     <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
     <ul class="menu p-4 w-80 min-h-full bg-base-100 text-base-content shadow-xl">
       <!-- Sidebar Content -->
@@ -97,5 +102,8 @@
 
   </div>
 </div>
+
+<!-- Toast Notifications -->
+<app-toast-container></app-toast-container>
 
 <app-pwa-install-prompt></app-pwa-install-prompt>

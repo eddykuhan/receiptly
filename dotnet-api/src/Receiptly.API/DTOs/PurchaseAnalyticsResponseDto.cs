@@ -14,7 +14,7 @@ public class PurchaseAnalyticsResponseDto
 public class PurchaseAnalyticsItemDto
 {
     public Guid ItemId { get; init; }
-    public Guid ReceiptId { get; init; }
+    public Guid? ReceiptId { get; init; }
     public string ItemName { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string? CanonicalName { get; init; }
@@ -23,6 +23,7 @@ public class PurchaseAnalyticsItemDto
     public decimal? TotalPrice { get; init; }
     public DateTime PurchaseDate { get; init; }
     public string StoreName { get; init; } = string.Empty;
+    public string? Category { get; init; }
     public PurchaseAnalyticsMetadataDto? Metadata { get; init; }
 }
 

@@ -1,12 +1,13 @@
-import { Component, signal, inject, ViewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, signal, inject, ViewChild, ElementRef, OnDestroy, OnInit, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CameraService } from '../../core/services/camera.service';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { OpenCVService } from '../../core/services/opencv.service';
-import { ReceiptValidatorService, ValidationResult } from '../../core/services/receipt-validator.service';
 import { Receipt } from '../../core/models/receipt.model';
 import { MyrPipe } from '../../core/pipes/myr.pipe';
+import { ReceiptProcessingService } from '../../core/services/receipt-processing.service';
+import { Router } from '@angular/router';
 import { CameraOverlayComponent } from './components/camera-overlay.component';
 
 @Component({
@@ -25,11 +26,22 @@ export class CameraComponent {
   private cameraService = inject(CameraService);
   private receiptService = inject(ReceiptService);
   private opencvService = inject(OpenCVService);
-  private validatorService = inject(ReceiptValidatorService);
+  private receiptProcessingService = inject(ReceiptProcessingService);
+  private router = inject(Router);
 
   // State signals
+  // State signals
   capturedImage = signal<string | null>(null);
-  isUploading = signal(false);
+
+  // Processing state from service
+  activeUploads = this.receiptProcessingService.activeUploads;
+  hasActiveUploads = computed(() => this.activeUploads().length > 0);
+
+  // Check if there are any uploads actually in progress (not just errors)
+  hasOngoingUploads = computed(() => this.activeUploads().some(u => u.status === 'uploading' || u.status === 'processing'));
+
+  // Local state
+  isUploading = signal(false); // Deprecated, kept for backward compatibility if needed, but logic moved to service
   uploadProgress = signal(0);
   processedReceipt = signal<Receipt | null>(null);
   isProcessing = signal(false);
@@ -41,21 +53,50 @@ export class CameraComponent {
   stream: MediaStream | null = null;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
-  // Validation State
-  isValidating = signal(false);
-  validationResult = signal<ValidationResult | null>(null);
-  validationInstruction = signal('Align receipt within the frame');
-
   // Toast state
   toastMessage = signal<string | null>(null);
   toastType = signal<'success' | 'error'>('success');
 
   // Processing options
-  autoCrop = signal(false);
+  autoCrop = signal(true); // Auto crop enabled by default
 
   // Editing state
   isEditing = signal(false);
   editedReceipt: Partial<Receipt> = {};
+
+  // Funny messages for upload progress
+  private funnyMessages = [
+    '🤔 Decoding your shopping secrets...',
+    '📊 Converting pixels to prices...',
+    '🎯 Teaching AI to read receipts...',
+    '💰 Counting your beans (literally)...',
+    '🔍 Finding those sneaky charges...',
+    '📱 Asking ChatGPT for help...',
+    '✨ Making sense of hieroglyphics...',
+    '🎨 Translating receipt art...',
+    '🧠 Exercising our AI brain...',
+    '🎭 Deciphering merchant handwriting...',
+    '🚀 Processing at light speed...',
+    '💡 Calculating your regrets...',
+    '🎪 Performing receipt magic...',
+    '🌟 Turning receipts into wisdom...',
+    '📜 Reading the scroll of expenses...'
+  ];
+
+  currentFunnyMessage = signal(0);
+  private messageRotationInterval: ReturnType<typeof setInterval> | null = null;
+  private messageTimer: ReturnType<typeof setInterval> | null = null;
+
+  constructor() {
+    // Set up message rotation effect in constructor (proper injection context)
+    effect(() => {
+      if (this.hasActiveUploads()) {
+        this.startMessageRotation();
+      } else {
+        this.stopMessageRotation();
+      }
+    });
+  }
 
   startEditing() {
     const receipt = this.processedReceipt();
@@ -88,16 +129,52 @@ export class CameraComponent {
     }
   }
 
+  // Get current funny message and rotate through them
+  getFunnyMessage(): string {
+    return this.funnyMessages[this.currentFunnyMessage()];
+  }
+
+  // Start rotating funny messages during upload
+  private startMessageRotation() {
+    // Clear any existing intervals
+    if (this.messageRotationInterval) {
+      clearInterval(this.messageRotationInterval);
+      this.messageRotationInterval = null;
+    }
+    if (this.messageTimer) {
+      clearInterval(this.messageTimer);
+      this.messageTimer = null;
+    }
+
+    // Reset to first message when starting
+    this.currentFunnyMessage.set(0);
+
+    // Rotate through messages every 2.5 seconds
+    this.messageTimer = setInterval(() => {
+      const nextIndex = (this.currentFunnyMessage() + 1) % this.funnyMessages.length;
+      this.currentFunnyMessage.set(nextIndex);
+    }, 2500);
+  }
+
+  // Stop rotating messages
+  private stopMessageRotation() {
+    if (this.messageTimer) {
+      clearInterval(this.messageTimer);
+      this.messageTimer = null;
+    }
+    if (this.messageRotationInterval) {
+      clearInterval(this.messageRotationInterval);
+      this.messageRotationInterval = null;
+    }
+    // Reset to first message
+    this.currentFunnyMessage.set(0);
+  }
+
   async ngOnInit() {
     // OpenCV.js is loaded after a short delay
     setTimeout(() => {
       this.loadOpenCV();
     }, 1000);
-
-    // Initialize validator worker
-    this.validatorService.initializeWorker().catch(err =>
-      console.error('Failed to init validator:', err)
-    );
   }
 
   private async loadOpenCV() {
@@ -124,7 +201,6 @@ export class CameraComponent {
 
   ngOnDestroy() {
     this.stopCamera();
-    this.validatorService.terminateWorker();
   }
 
   // ... (keep existing OpenCV methods) ...
@@ -165,58 +241,34 @@ export class CameraComponent {
   async processImage(blob: Blob, filename: string) {
     this.isProcessing.set(true);
     this.processedReceipt.set(null);
-    this.validationResult.set(null);
 
     try {
-      // Step 1: Auto-Crop (if enabled and OpenCV loaded)
+      // Auto-Crop (if enabled and OpenCV loaded)
       let processedBlob = blob;
-      if (this.opencvLoaded()) {
-        if (this.autoCrop()) {
-          console.log('Auto-cropping receipt...');
-          try {
-            const croppedBlob = await this.opencvService.cropReceipt(blob);
-            if (croppedBlob.size > 0) {
-              processedBlob = croppedBlob;
-              console.log('Auto-crop successful');
-            }
-          } catch (cropError) {
-            console.warn('Auto-crop failed, using original image:', cropError);
+      if (this.opencvLoaded() && this.autoCrop()) {
+        console.log('Auto-cropping receipt...');
+        try {
+          const croppedBlob = await this.opencvService.cropReceipt(blob);
+          if (croppedBlob.size > 0) {
+            processedBlob = croppedBlob;
+            console.log('Auto-crop successful');
           }
+        } catch (cropError) {
+          console.warn('Auto-crop failed, using original image:', cropError);
         }
       }
 
       // Update preview with processed image
       const dataUrl = await this.blobToDataUrl(processedBlob);
       this.capturedImage.set(dataUrl);
+      this.isProcessing.set(false);
 
-      // Step 2: Validate
-      this.isValidating.set(true);
-      this.isProcessing.set(false); // Done with heavy processing, now validating
-
-      try {
-        const result = await this.validatorService.validateReceipt(dataUrl);
-        this.validationResult.set(result);
-
-        if (result.isValid) {
-          // Auto-proceed if valid
-          await this.uploadImage(processedBlob, filename);
-        } else {
-          // Show validation feedback
-          this.showError('Receipt quality check failed. Please review suggestions.');
-        }
-      } catch (validationError) {
-        console.error('Validation error:', validationError);
-        // Fallback to upload anyway if validation crashes
-        await this.uploadImage(processedBlob, filename);
-      } finally {
-        this.isValidating.set(false);
-      }
-
+      // Upload directly to backend
+      await this.uploadImage(processedBlob, filename);
     } catch (error) {
       console.error('Processing error:', error);
       this.showError('Failed to process image');
       this.isProcessing.set(false);
-      this.isValidating.set(false);
     }
   }
 
@@ -231,7 +283,7 @@ export class CameraComponent {
     const ctx = canvas.getContext('2d')!;
     ctx.drawImage(video, 0, 0);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
     this.stopCamera();
 
     const blob = await (await fetch(dataUrl)).blob();
@@ -266,21 +318,7 @@ export class CameraComponent {
     }
   }
 
-  proceedAnyway() {
-    if (this.capturedImage()) {
-      this.isValidating.set(false);
-      this.validationResult.set(null);
-      fetch(this.capturedImage()!)
-        .then(res => res.blob())
-        .then(blob => this.uploadImage(blob, `receipt_${Date.now()}.jpg`));
-    }
-  }
 
-  retakePhoto() {
-    this.capturedImage.set(null);
-    this.validationResult.set(null);
-    this.startCamera();
-  }
 
   /**
    * Convert Blob to Data URL for preview
@@ -295,40 +333,21 @@ export class CameraComponent {
   }
 
   private async uploadImage(blob: Blob, filename: string) {
-    this.isUploading.set(true);
-    this.uploadProgress.set(0);
+    console.log('🚀 Starting background upload:', filename);
 
-    // Simulate progress (real progress tracking would need backend support)
-    const progressInterval = setInterval(() => {
-      const current = this.uploadProgress();
-      if (current < 90) {
-        this.uploadProgress.set(current + 10);
-      }
-    }, 200);
+    // Delegate to processing service
+    this.receiptProcessingService.processReceipt(blob, filename);
 
-    this.receiptService.uploadReceipt(blob, filename).subscribe({
-      next: (response) => {
-        clearInterval(progressInterval);
-        this.uploadProgress.set(100);
-        this.isUploading.set(false);
+    // Clear local state immediately for next scan
+    this.clearImage();
 
-        if (response.success && response.receipt) {
-          this.processedReceipt.set(response.receipt);
-          this.showSuccess('Receipt processed successfully!');
-        }
-      },
-      error: (error) => {
-        clearInterval(progressInterval);
-        this.isUploading.set(false);
-        this.uploadProgress.set(0);
+    // Provide immediate feedback to user
+    // We rely on the service's toasts, but we can also do a redirect here if preferred.
+    // For now, let's keep the user on the camera screen but reset it, 
+    // effectively allowing them to "Navigate away" or generic use since it's non-blocking.
 
-        if (error.existingReceiptId) {
-          this.showError('Duplicate receipt detected!');
-        } else {
-          this.showError(error.error || 'Failed to upload receipt');
-        }
-      }
-    });
+    // Optional: Redirect to history if that's the desired UX flow "After scan, go to history"
+    // this.router.navigate(['/history']); 
   }
 
   clearImage() {
@@ -347,5 +366,13 @@ export class CameraComponent {
     this.toastMessage.set(message);
     this.toastType.set('error');
     setTimeout(() => this.toastMessage.set(null), 5000);
+  }
+
+  retryUpload(id: string) {
+    this.receiptProcessingService.retryUpload(id);
+  }
+
+  dismissUpload(id: string) {
+    this.receiptProcessingService.dismissUpload(id);
   }
 }

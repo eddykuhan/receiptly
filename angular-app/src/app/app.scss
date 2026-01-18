@@ -1,2 +1,66 @@
 // Component-specific styles for App Component
 // Global styles are now in src/styles.scss
+
+// Bottom Navigation Optimization for iPhones
+:host ::ng-deep {
+    .btm-nav {
+        // Let height be determined by content + safe area padding
+        min-height: 4rem; // 64px minimum - will grow with safe area
+
+        button {
+            // Ensure buttons are within the safe tappable area
+            height: 4rem; // Fixed button height
+            min-height: 44px; // Apple's minimum touch target size
+            padding-bottom: 0.25rem;
+
+            // Improve button spacing
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.125rem;
+
+            // Ensure icons and labels are properly sized
+            .material-icons {
+                font-size: 24px;
+                line-height: 1;
+            }
+
+            .btm-nav-label {
+                font-size: 0.625rem; // 10px
+                line-height: 1.2;
+                margin-top: 2px;
+            }
+
+            // Active state should be more visible
+            &.active {
+
+                .material-icons,
+                .btm-nav-label {
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+
+    // Ensure the background extends properly with safe area
+    .bottom-nav-container {
+        // Add backdrop blur for modern iOS feel
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+}
+
+// Support for devices with safe area insets
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    :host ::ng-deep {
+        .btm-nav {
+
+            // Ensure content doesn't get too close to the home indicator
+            button {
+                // Add a small margin to keep buttons visually separated from home indicator
+                margin-bottom: 0;
+            }
+        }
+    }
+}

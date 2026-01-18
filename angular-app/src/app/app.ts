@@ -1,19 +1,34 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { PwaInstallPromptComponent } from './shared/components/pwa-install-prompt.component';
+import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
+import { ThemeService } from './core/services/theme.service';
+import { ToastService } from './core/services/toast.service';
+import { PwaUpdateService } from './core/services/pwa-update.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, PwaInstallPromptComponent],
+  imports: [CommonModule, RouterOutlet, PwaInstallPromptComponent, ToastContainerComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
   activeTabIndex = 0;
   currentRoute = signal('');
+  
+  // Inject theme service to initialize it on app startup
+  private themeService = inject(ThemeService);
+  private toastService = inject(ToastService);
+  private pwaUpdateService = inject(PwaUpdateService);  // Initialize PWA updates
+  
+  // Check if current route is an authentication page
+  isAuthPage = computed(() => {
+    const route = this.currentRoute();
+    return route.includes('/sign-in') || route.includes('/sign-up');
+  });
 
   constructor(private router: Router) {
     // Update active tab based on route

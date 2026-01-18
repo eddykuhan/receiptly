@@ -1,0 +1,821 @@
+[
+  {
+    "branch_name": "AEON Wellness",
+    "address": "Lot 101 (LG, UG, L1), Setia City Mall 7, Persiaran Setia Dagang Bandar Setia Alam Seksyen U13, Setia Alam 40170 Shah Alam, Selangor",
+    "phone": "",
+    "latitude": 3.1288834,
+    "longitude": 101.6350101
+  },
+  {
+    "branch_name": "AEON Mall Bukit Raja",
+    "address": "Persiaran Bukit Raja 2 Bandar Baru Klang, 41150 Klang, Selangor.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Mall Rawang Anggun",
+    "address": "No. 1, Kompleks Beli-belah AEON Rawang Anggun, Persiaran Anggun, Taman Anggun, 48000 Rawang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.2021197999999997,
+    "longitude": 101.7341702
+  },
+  {
+    "branch_name": "AEON Mall Cheras Selatan",
+    "address": "Aras Satu, Lebuh Tun Hussien Onn, 43200 Balakong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0335152,
+    "longitude": 101.76502359999999
+  },
+  {
+    "branch_name": "AEON Bukit Tinggi Store & Shopping Centre, No 1, Persiaran Batu Nilam 1/KS 6, Bandar Bukit Tinggi 2, 41200 Klang, Selangor Darul Ehsan.",
+    "address": "No. 2, Jalan Equine Taman Equine, Bandar Putra Permai, 43300 Seri Kembangan, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0934,
+    "longitude": 101.5326
+  },
+  {
+    "branch_name": "AEON MaxValu Prime Evo Bangi",
+    "address": "No. G.09, Ground Floor, Kompleks Evo, Jalan Pusat Bandar 2, 43650 Bandar Baru Bangi.",
+    "phone": "",
+    "latitude": 3.1107125000000004,
+    "longitude": 101.6675485
+  },
+  {
+    "branch_name": "AEON MaxValu Prime Selayang",
+    "address": "Lot LG.45, Lower Ground Floor, Selayang Mall, Jalan SU9, Taman Selayang Utama, 68100 Batu Cave., Lot No. 2-09, 2-10, 2-11, Second Floor, KTCC Mall, 219, Jalan Sultan Zainal Abidin, 20200 Kuala Terengganu, Terengganu., Lot F51, 1st Floor, AEON Cheras Selatan Mall, Jalan Cheras Perdana, Cheras, 43200 Balakong, Selangor., First Floor (Lot No. F-05), AEON Mall Shah Alam, 40100, Shah Alam, Selangor., Lot UG11, Upper Ground Floor, D’Pulze Shopping Centre, Persiaran Multimedia, 63000 Cyberjaya.",
+    "phone": "",
+    "latitude": 3.1107125000000004,
+    "longitude": 101.6675485
+  },
+  {
+    "branch_name": "AEON Putrajaya Store",
+    "address": "Management Office, 2nd Floor, East Wing, IOI City Mall, Lebuh IRC, IOI Resort City, 62502 PUTRAJAYA., No 88, Lot 3458, Block 10 KCLD, Jalan Datuk Patinggi Ahmad Zaidi Adruce, 93150 Kuching, Sarawak., First Floor, Lot No. 157B, 158 & 159, Lot 304, The Spring Shopping Mall, Persiaran Spring, 93300 Kuching, Sarawak.",
+    "phone": "",
+    "latitude": 2.9408437000000003,
+    "longitude": 101.7118184
+  },
+  {
+    "branch_name": "AEON Wellness Kuching Central",
+    "address": "Wellness Kuching Central, AEON Co. (M) Bhd. Lot G40 & 41, AEON Mall Kuching Central, No.88, Jalan Datuk Patinggi Haji Ahmad Zaidi Adruce, 93200 Kuching Sarawak.",
+    "phone": "",
+    "latitude": 1.5275039,
+    "longitude": 110.33732769999999
+  },
+  {
+    "branch_name": "AEON Mall Kuching Central",
+    "address": "No 88, Lot 3458, Block 10 KCLD, Jalan Datuk Patinggi Ahmad Zaidi Adruce, 93150 Kuching, Sarawak., Lot T05, Level 3, 1 64 13, Persiaran Akuatik, Seksyen 13, 40100 Shah Alam, Selangor.",
+    "phone": "",
+    "latitude": 1.5275039,
+    "longitude": 110.33732769999999
+  },
+  {
+    "branch_name": "AEON Bandar Baru Klang Store",
+    "address": "1st floor, Persiaran Bukit Raja 2, Bandar Baru Klang, 41150 Klang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0406,
+    "longitude": 101.5224
+  },
+  {
+    "branch_name": "AEON Bandar Puchong Store",
+    "address": "Jalan Puchong, Bandar Puchong Jaya, Jalan Puchong, Bandar Puchong Jaya, 47100 Puchong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 2.991505,
+    "longitude": 101.61432289999999
+  },
+  {
+    "branch_name": "AEON Bandar Utama Store",
+    "address": "Lot F 125, First Floor, 1 Utama Shopping Centre, No 1 Lebuh Bandar Utama, Bandar Utama, 47800 Petaling Jaya, Selangor.",
+    "phone": "",
+    "latitude": 3.1480280000000005,
+    "longitude": 101.615361
+  },
+  {
+    "branch_name": "AEON Shah Alam Store",
+    "address": "No.1, Jalan Akuatik 13/64, Seksyen 13, 40100 Shah Alam, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0767621,
+    "longitude": 101.5482713
+  },
+  {
+    "branch_name": "AEON Bukit Tinggi Store",
+    "address": "Mezzanine Floor, No1, Persiaran Batu Nilam 1/KS8, Bandar Bukit Tinggi 2, 41200 Klang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 2.9925924999999998,
+    "longitude": 101.4439515
+  },
+  {
+    "branch_name": "AEON Cheras Selatan Store",
+    "address": "Aras Mezzanine, Lebuh Tun Hussein Onn, 43200 Balakong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0335152,
+    "longitude": 101.76502359999999
+  },
+  {
+    "branch_name": "AEON Rawang Store",
+    "address": "No.1, Persiaran Anggun, Taman Anggun, 48000 Rawang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.2032,
+    "longitude": 101.7338
+  },
+  {
+    "branch_name": "AEON Taman Equine Store",
+    "address": "No.2, Jalan Equine, Taman Equine, Bandar Putra Permai, 43300 Seri Kembangan, Selangor., Lot No. G.09 & SG.09, Ground Floor, Evo Mall, Seksyen 9, Bandar Baru Bangi, 43650, Selangor., Lot F-125, First Floor, The Starling Mall, Jalan SS 21/37, Damansara Utama, 47400 Petaling Jaya, Selangor.",
+    "phone": "",
+    "latitude": 2.99525,
+    "longitude": 101.6751274
+  },
+  {
+    "branch_name": "AEON Ipoh Falim Store",
+    "address": "No.1, Hala Falim 1, Taman Mas Jaya, 30200, Ipoh Perak.",
+    "phone": "",
+    "latitude": 4.581887099999999,
+    "longitude": 101.0616433
+  },
+  {
+    "branch_name": "AEON Ipoh Klebang Store",
+    "address": "Lot 12080, Klebang Perdana, 31200 Chemor, Perak.",
+    "phone": "",
+    "latitude": 4.597,
+    "longitude": 101.4524
+  },
+  {
+    "branch_name": "AEON Taiping Store",
+    "address": "1st Floor,Pusat Membeli-belah Aeon, Lot 8576 & 8577 Jalan Kamunting,34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.873151099999999,
+    "longitude": 100.7308056
+  },
+  {
+    "branch_name": "AEON Seri Manjung Store",
+    "address": "Pusat Perniagaan Manjung Point 3, 32040 Seri Manjung, Perak., Lot KCF55, 1st Floor, AEON Kinta City Shopping Centre, No.2, Jalan Teh Lean Swee, Off Jalan Sultan Azlan Shah Utara, 31400 Ipoh, Perak., Lot S22, 2nd Floor, AEON Mall Ipoh Klebang, 31200, Chemor, Perak., Lot F28 & F29, AEON Ipoh Station 18 Shopping Centre, No 2, Susuran Stesen 18, Station 18, 31650 Ipoh, Perak, Malaysia., Lot F09, 1st Floor, AEON Mall Taiping, Jalan Kamunting, 34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.2201989,
+    "longitude": 100.67094230000001
+  },
+  {
+    "branch_name": "AEON Mall Kinta City",
+    "address": "No 2, Jalan Teh Lean Swee, Off Jalan Sultan Azlan Shah Utara, 31400 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.613871,
+    "longitude": 101.1180371
+  },
+  {
+    "branch_name": "AEON Mall Ipoh Station 18",
+    "address": "No.2, Susuran Stesen 18, Station 18, 31650 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.544637799999999,
+    "longitude": 101.0703202
+  },
+  {
+    "branch_name": "AEON Mall Seri Manjung",
+    "address": "Pusat Perniagaan Manjung Point 3, 32040 Seri Manjung, Perak.",
+    "phone": "",
+    "latitude": 4.2201989,
+    "longitude": 100.67094230000001
+  },
+  {
+    "branch_name": "AEON Mall Taiping",
+    "address": "Lot 8576 & 8577, Jalan Kamunting, 34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.873151099999999,
+    "longitude": 100.7308056
+  },
+  {
+    "branch_name": "AEON Seremban 2 Store",
+    "address": "112, Persiaran S2 B1, Seremban 2, 70300 Seremban, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.7013838999999997,
+    "longitude": 101.9119475
+  },
+  {
+    "branch_name": "AEON Nilai Store",
+    "address": "No.2, Persiaran Pusat Bandar, Putra Point, Putra Nilai, 71800, Nilai, Negeri Sembilan Darul Khusus., Lot F41, 1st floor, AEON MALL Nilai, No.2 Persiaran Pusat Bandar, Pusat Point, Putra Nilai, 71800 Nilai, Negeri Sembilan, Malaysia., F24 & F25, 1st Floor, Palm Mall, Kemayan Square, Jalan Sungai Ujong, 70200 Seremban, Negeri Sembilan, Malaysia.",
+    "phone": "",
+    "latitude": 2.8173141,
+    "longitude": 101.7893502
+  },
+  {
+    "branch_name": "AEON Mall Seremban 2",
+    "address": "112 Persiaran S2 B1, Seremban 2, 70300 Seremban, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.7013838999999997,
+    "longitude": 101.9119475
+  },
+  {
+    "branch_name": "AEON Mall Nilai",
+    "address": "No 2, Persiaran Pusat Bandar, Putra Point, Putra Nilai, 71800 Nilai, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.8174815,
+    "longitude": 101.79141849999999
+  },
+  {
+    "branch_name": "AEON Palm Mall",
+    "address": "G-16, Ground Floor, Palm Mall Seremban, Kemayan Square, Jalan Sg Ujong, 70200 Seremban.",
+    "phone": "",
+    "latitude": 2.7197405999999997,
+    "longitude": 101.92240969999999
+  },
+  {
+    "branch_name": "AEON Bukit Mertajam Store",
+    "address": "1st Floor, AEON Mall Bukit Mertajam, No 3393, Jalan Rozhan Alma, Seberang Perai Tengah 14000, Bukit Mertajam, Pulau Pinang.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Queensbay Store",
+    "address": "1F-61, Persiaran Bayan Indah, Sg. Nibong,11900, Bayan Lepas,Pulau Pinang., Lot S42, 2nd Floor, AEON Mall Bukit Mertajam, Seberang Perai Tengah, 14000 Bukit Mertajam, Pulau Pinang., Lot 07 & 08, First Floor, North Zone, Queensbay Mall, Persiaran Bayan Indah, 11900 Bayan Lepas, Pulau Pinang, Malaysia.",
+    "phone": "",
+    "latitude": 5.3326784,
+    "longitude": 100.30658559999999
+  },
+  {
+    "branch_name": "AEON CO. (M) BHD. AEON Wellness Bukit Mertajam AEON Mall Bukit Mertajam Lot 30908,Mukim 15 Jalan Rozhan, Alma, 14000, Bukit Mertajam, Pulau Pinang.",
+    "address": "Wellness BIG Penang Prai",
+    "phone": "",
+    "latitude": 5.3497,
+    "longitude": 100.4821
+  },
+  {
+    "branch_name": "AEON Mall Bukit Mertajam",
+    "address": "Management Office, Lot No. 30908, Jalan Rozhan Alma, Seberang Perai Tengah, 14000 Bukit Mertajam, Pulau Pinang.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Ipoh Station 18 Store",
+    "address": "No.2, Susuran Station 18, Station 18, 31650 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.544637799999999,
+    "longitude": 101.0703202
+  },
+  {
+    "branch_name": "AEON Co. (M) Bhd. Wellness The Waterfront DPC FF-28, The Waterfront @ParkCity, No. 5, Persiaran Residen, Desa ParkCity, 52200 Kuala Lumpur.",
+    "address": "Jalan R1, Seksyen 1, Bandar Baru Wangsa Maju, 53300 Kuala Lumpur., Jalan Jejaka, Taman Maluri Cheras, 55100 Kuala Lumpur.",
+    "phone": "",
+    "latitude": 3.1789,
+    "longitude": 101.6852
+  },
+  {
+    "branch_name": "AEON Mall Metro Prima",
+    "address": "No 1, Jalan Metro Prima Kepong, 52100 Kuala Lumpur.",
+    "phone": "",
+    "latitude": 3.2133417,
+    "longitude": 101.63951840000001
+  },
+  {
+    "branch_name": "AEON Mall AU2",
+    "address": "Setiawangsa, Lower Ground Floor, No.6 Jalan Taman Setiawangsa (Jalan 37/56), AU2, Taman Keramat, 54200 Kuala Lumpur., Johor, Kuala Lumpur, Pahang, Penang",
+    "phone": "",
+    "latitude": 2.8174815,
+    "longitude": 101.79141849999999
+  },
+  {
+    "branch_name": "AEON Wellness",
+    "address": "Lot 101 (LG, UG, L1), Setia City Mall 7, Persiaran Setia Dagang Bandar Setia Alam Seksyen U13, Setia Alam 40170 Shah Alam, Selangor",
+    "phone": "",
+    "latitude": 3.1288834,
+    "longitude": 101.6350101
+  },
+  {
+    "branch_name": "AEON Mall Bukit Raja",
+    "address": "Persiaran Bukit Raja 2 Bandar Baru Klang, 41150 Klang, Selangor.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Mall Rawang Anggun",
+    "address": "No. 1, Kompleks Beli-belah AEON Rawang Anggun, Persiaran Anggun, Taman Anggun, 48000 Rawang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.2021197999999997,
+    "longitude": 101.7341702
+  },
+  {
+    "branch_name": "AEON Mall Cheras Selatan",
+    "address": "Aras Satu, Lebuh Tun Hussien Onn, 43200 Balakong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0335152,
+    "longitude": 101.76502359999999
+  },
+  {
+    "branch_name": "AEON Bukit Tinggi Store & Shopping Centre, No 1, Persiaran Batu Nilam 1/KS 6, Bandar Bukit Tinggi 2, 41200 Klang, Selangor Darul Ehsan.",
+    "address": "No. 2, Jalan Equine Taman Equine, Bandar Putra Permai, 43300 Seri Kembangan, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0934,
+    "longitude": 101.5326
+  },
+  {
+    "branch_name": "AEON MaxValu Prime Evo Bangi",
+    "address": "No. G.09, Ground Floor, Kompleks Evo, Jalan Pusat Bandar 2, 43650 Bandar Baru Bangi.",
+    "phone": "",
+    "latitude": 3.1107125000000004,
+    "longitude": 101.6675485
+  },
+  {
+    "branch_name": "AEON MaxValu Prime Selayang",
+    "address": "Lot LG.45, Lower Ground Floor, Selayang Mall, Jalan SU9, Taman Selayang Utama, 68100 Batu Cave., Lot No. 2-09, 2-10, 2-11, Second Floor, KTCC Mall, 219, Jalan Sultan Zainal Abidin, 20200 Kuala Terengganu, Terengganu., Lot F51, 1st Floor, AEON Cheras Selatan Mall, Jalan Cheras Perdana, Cheras, 43200 Balakong, Selangor., First Floor (Lot No. F-05), AEON Mall Shah Alam, 40100, Shah Alam, Selangor., Lot UG11, Upper Ground Floor, D’Pulze Shopping Centre, Persiaran Multimedia, 63000 Cyberjaya.",
+    "phone": "",
+    "latitude": 3.1107125000000004,
+    "longitude": 101.6675485
+  },
+  {
+    "branch_name": "AEON Putrajaya Store",
+    "address": "Management Office, 2nd Floor, East Wing, IOI City Mall, Lebuh IRC, IOI Resort City, 62502 PUTRAJAYA., No 88, Lot 3458, Block 10 KCLD, Jalan Datuk Patinggi Ahmad Zaidi Adruce, 93150 Kuching, Sarawak., First Floor, Lot No. 157B, 158 & 159, Lot 304, The Spring Shopping Mall, Persiaran Spring, 93300 Kuching, Sarawak.",
+    "phone": "",
+    "latitude": 2.9408437000000003,
+    "longitude": 101.7118184
+  },
+  {
+    "branch_name": "AEON Wellness Kuching Central",
+    "address": "Wellness Kuching Central, AEON Co. (M) Bhd. Lot G40 & 41, AEON Mall Kuching Central, No.88, Jalan Datuk Patinggi Haji Ahmad Zaidi Adruce, 93200 Kuching Sarawak.",
+    "phone": "",
+    "latitude": 1.5275039,
+    "longitude": 110.33732769999999
+  },
+  {
+    "branch_name": "AEON Mall Kuching Central",
+    "address": "No 88, Lot 3458, Block 10 KCLD, Jalan Datuk Patinggi Ahmad Zaidi Adruce, 93150 Kuching, Sarawak., Lot T05, Level 3, 1 64 13, Persiaran Akuatik, Seksyen 13, 40100 Shah Alam, Selangor.",
+    "phone": "",
+    "latitude": 1.5275039,
+    "longitude": 110.33732769999999
+  },
+  {
+    "branch_name": "AEON Bandar Baru Klang Store",
+    "address": "1st floor, Persiaran Bukit Raja 2, Bandar Baru Klang, 41150 Klang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0406,
+    "longitude": 101.5224
+  },
+  {
+    "branch_name": "AEON Bandar Puchong Store",
+    "address": "Jalan Puchong, Bandar Puchong Jaya, Jalan Puchong, Bandar Puchong Jaya, 47100 Puchong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 2.991505,
+    "longitude": 101.61432289999999
+  },
+  {
+    "branch_name": "AEON Bandar Utama Store",
+    "address": "Lot F 125, First Floor, 1 Utama Shopping Centre, No 1 Lebuh Bandar Utama, Bandar Utama, 47800 Petaling Jaya, Selangor.",
+    "phone": "",
+    "latitude": 3.1480280000000005,
+    "longitude": 101.615361
+  },
+  {
+    "branch_name": "AEON Shah Alam Store",
+    "address": "No.1, Jalan Akuatik 13/64, Seksyen 13, 40100 Shah Alam, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0767621,
+    "longitude": 101.5482713
+  },
+  {
+    "branch_name": "AEON Bukit Tinggi Store",
+    "address": "Mezzanine Floor, No1, Persiaran Batu Nilam 1/KS8, Bandar Bukit Tinggi 2, 41200 Klang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 2.9925924999999998,
+    "longitude": 101.4439515
+  },
+  {
+    "branch_name": "AEON Cheras Selatan Store",
+    "address": "Aras Mezzanine, Lebuh Tun Hussein Onn, 43200 Balakong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0335152,
+    "longitude": 101.76502359999999
+  },
+  {
+    "branch_name": "AEON Rawang Store",
+    "address": "No.1, Persiaran Anggun, Taman Anggun, 48000 Rawang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.2032,
+    "longitude": 101.7338
+  },
+  {
+    "branch_name": "AEON Taman Equine Store",
+    "address": "No.2, Jalan Equine, Taman Equine, Bandar Putra Permai, 43300 Seri Kembangan, Selangor., Lot No. G.09 & SG.09, Ground Floor, Evo Mall, Seksyen 9, Bandar Baru Bangi, 43650, Selangor., Lot F-125, First Floor, The Starling Mall, Jalan SS 21/37, Damansara Utama, 47400 Petaling Jaya, Selangor.",
+    "phone": "",
+    "latitude": 2.99525,
+    "longitude": 101.6751274
+  },
+  {
+    "branch_name": "AEON Ipoh Falim Store",
+    "address": "No.1, Hala Falim 1, Taman Mas Jaya, 30200, Ipoh Perak.",
+    "phone": "",
+    "latitude": 4.581887099999999,
+    "longitude": 101.0616433
+  },
+  {
+    "branch_name": "AEON Ipoh Klebang Store",
+    "address": "Lot 12080, Klebang Perdana, 31200 Chemor, Perak.",
+    "phone": "",
+    "latitude": 4.597,
+    "longitude": 101.4524
+  },
+  {
+    "branch_name": "AEON Taiping Store",
+    "address": "1st Floor,Pusat Membeli-belah Aeon, Lot 8576 & 8577 Jalan Kamunting,34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.873151099999999,
+    "longitude": 100.7308056
+  },
+  {
+    "branch_name": "AEON Seri Manjung Store",
+    "address": "Pusat Perniagaan Manjung Point 3, 32040 Seri Manjung, Perak., Lot KCF55, 1st Floor, AEON Kinta City Shopping Centre, No.2, Jalan Teh Lean Swee, Off Jalan Sultan Azlan Shah Utara, 31400 Ipoh, Perak., Lot S22, 2nd Floor, AEON Mall Ipoh Klebang, 31200, Chemor, Perak., Lot F28 & F29, AEON Ipoh Station 18 Shopping Centre, No 2, Susuran Stesen 18, Station 18, 31650 Ipoh, Perak, Malaysia., Lot F09, 1st Floor, AEON Mall Taiping, Jalan Kamunting, 34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.2201989,
+    "longitude": 100.67094230000001
+  },
+  {
+    "branch_name": "AEON Mall Kinta City",
+    "address": "No 2, Jalan Teh Lean Swee, Off Jalan Sultan Azlan Shah Utara, 31400 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.613871,
+    "longitude": 101.1180371
+  },
+  {
+    "branch_name": "AEON Mall Ipoh Station 18",
+    "address": "No.2, Susuran Stesen 18, Station 18, 31650 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.544637799999999,
+    "longitude": 101.0703202
+  },
+  {
+    "branch_name": "AEON Mall Seri Manjung",
+    "address": "Pusat Perniagaan Manjung Point 3, 32040 Seri Manjung, Perak.",
+    "phone": "",
+    "latitude": 4.2201989,
+    "longitude": 100.67094230000001
+  },
+  {
+    "branch_name": "AEON Mall Taiping",
+    "address": "Lot 8576 & 8577, Jalan Kamunting, 34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.873151099999999,
+    "longitude": 100.7308056
+  },
+  {
+    "branch_name": "AEON Seremban 2 Store",
+    "address": "112, Persiaran S2 B1, Seremban 2, 70300 Seremban, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.7013838999999997,
+    "longitude": 101.9119475
+  },
+  {
+    "branch_name": "AEON Nilai Store",
+    "address": "No.2, Persiaran Pusat Bandar, Putra Point, Putra Nilai, 71800, Nilai, Negeri Sembilan Darul Khusus., Lot F41, 1st floor, AEON MALL Nilai, No.2 Persiaran Pusat Bandar, Pusat Point, Putra Nilai, 71800 Nilai, Negeri Sembilan, Malaysia., F24 & F25, 1st Floor, Palm Mall, Kemayan Square, Jalan Sungai Ujong, 70200 Seremban, Negeri Sembilan, Malaysia.",
+    "phone": "",
+    "latitude": 2.8173141,
+    "longitude": 101.7893502
+  },
+  {
+    "branch_name": "AEON Mall Seremban 2",
+    "address": "112 Persiaran S2 B1, Seremban 2, 70300 Seremban, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.7013838999999997,
+    "longitude": 101.9119475
+  },
+  {
+    "branch_name": "AEON Mall Nilai",
+    "address": "No 2, Persiaran Pusat Bandar, Putra Point, Putra Nilai, 71800 Nilai, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.8174815,
+    "longitude": 101.79141849999999
+  },
+  {
+    "branch_name": "AEON Palm Mall",
+    "address": "G-16, Ground Floor, Palm Mall Seremban, Kemayan Square, Jalan Sg Ujong, 70200 Seremban.",
+    "phone": "",
+    "latitude": 2.7197405999999997,
+    "longitude": 101.92240969999999
+  },
+  {
+    "branch_name": "AEON Bukit Mertajam Store",
+    "address": "1st Floor, AEON Mall Bukit Mertajam, No 3393, Jalan Rozhan Alma, Seberang Perai Tengah 14000, Bukit Mertajam, Pulau Pinang.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Queensbay Store",
+    "address": "1F-61, Persiaran Bayan Indah, Sg. Nibong,11900, Bayan Lepas,Pulau Pinang., Lot S42, 2nd Floor, AEON Mall Bukit Mertajam, Seberang Perai Tengah, 14000 Bukit Mertajam, Pulau Pinang., Lot 07 & 08, First Floor, North Zone, Queensbay Mall, Persiaran Bayan Indah, 11900 Bayan Lepas, Pulau Pinang, Malaysia.",
+    "phone": "",
+    "latitude": 5.3326784,
+    "longitude": 100.30658559999999
+  },
+  {
+    "branch_name": "AEON CO. (M) BHD. AEON Wellness Bukit Mertajam AEON Mall Bukit Mertajam Lot 30908,Mukim 15 Jalan Rozhan, Alma, 14000, Bukit Mertajam, Pulau Pinang.",
+    "address": "Wellness BIG Penang Prai",
+    "phone": "",
+    "latitude": 5.3497,
+    "longitude": 100.4821
+  },
+  {
+    "branch_name": "AEON Mall Bukit Mertajam",
+    "address": "Management Office, Lot No. 30908, Jalan Rozhan Alma, Seberang Perai Tengah, 14000 Bukit Mertajam, Pulau Pinang.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Ipoh Station 18 Store",
+    "address": "No.2, Susuran Station 18, Station 18, 31650 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.544637799999999,
+    "longitude": 101.0703202
+  },
+  {
+    "branch_name": "AEON Co. (M) Bhd. Wellness The Waterfront DPC FF-28, The Waterfront @ParkCity, No. 5, Persiaran Residen, Desa ParkCity, 52200 Kuala Lumpur.",
+    "address": "Jalan R1, Seksyen 1, Bandar Baru Wangsa Maju, 53300 Kuala Lumpur., Jalan Jejaka, Taman Maluri Cheras, 55100 Kuala Lumpur.",
+    "phone": "",
+    "latitude": 3.1789,
+    "longitude": 101.6852
+  },
+  {
+    "branch_name": "AEON Mall Metro Prima",
+    "address": "No 1, Jalan Metro Prima Kepong, 52100 Kuala Lumpur.",
+    "phone": "",
+    "latitude": 3.2133417,
+    "longitude": 101.63951840000001
+  },
+  {
+    "branch_name": "AEON Mall AU2",
+    "address": "Setiawangsa, Lower Ground Floor, No.6 Jalan Taman Setiawangsa (Jalan 37/56), AU2, Taman Keramat, 54200 Kuala Lumpur., Johor, Kuala Lumpur, Pahang, Penang",
+    "phone": "",
+    "latitude": 2.8174815,
+    "longitude": 101.79141849999999
+  },
+  {
+    "branch_name": "AEON Wellness",
+    "address": "Lot 101 (LG, UG, L1), Setia City Mall 7, Persiaran Setia Dagang Bandar Setia Alam Seksyen U13, Setia Alam 40170 Shah Alam, Selangor",
+    "phone": "",
+    "latitude": 3.1288834,
+    "longitude": 101.6350101
+  },
+  {
+    "branch_name": "AEON Mall Bukit Raja",
+    "address": "Persiaran Bukit Raja 2 Bandar Baru Klang, 41150 Klang, Selangor.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Mall Rawang Anggun",
+    "address": "No. 1, Kompleks Beli-belah AEON Rawang Anggun, Persiaran Anggun, Taman Anggun, 48000 Rawang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.2021197999999997,
+    "longitude": 101.7341702
+  },
+  {
+    "branch_name": "AEON Mall Cheras Selatan",
+    "address": "Aras Satu, Lebuh Tun Hussien Onn, 43200 Balakong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0335152,
+    "longitude": 101.76502359999999
+  },
+  {
+    "branch_name": "AEON Bukit Tinggi Store & Shopping Centre, No 1, Persiaran Batu Nilam 1/KS 6, Bandar Bukit Tinggi 2, 41200 Klang, Selangor Darul Ehsan.",
+    "address": "No. 2, Jalan Equine Taman Equine, Bandar Putra Permai, 43300 Seri Kembangan, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0934,
+    "longitude": 101.5326
+  },
+  {
+    "branch_name": "AEON MaxValu Prime Evo Bangi",
+    "address": "No. G.09, Ground Floor, Kompleks Evo, Jalan Pusat Bandar 2, 43650 Bandar Baru Bangi.",
+    "phone": "",
+    "latitude": 3.1107125000000004,
+    "longitude": 101.6675485
+  },
+  {
+    "branch_name": "AEON MaxValu Prime Selayang",
+    "address": "Lot LG.45, Lower Ground Floor, Selayang Mall, Jalan SU9, Taman Selayang Utama, 68100 Batu Cave., Lot No. 2-09, 2-10, 2-11, Second Floor, KTCC Mall, 219, Jalan Sultan Zainal Abidin, 20200 Kuala Terengganu, Terengganu., Lot F51, 1st Floor, AEON Cheras Selatan Mall, Jalan Cheras Perdana, Cheras, 43200 Balakong, Selangor., First Floor (Lot No. F-05), AEON Mall Shah Alam, 40100, Shah Alam, Selangor., Lot UG11, Upper Ground Floor, D’Pulze Shopping Centre, Persiaran Multimedia, 63000 Cyberjaya.",
+    "phone": "",
+    "latitude": 3.1107125000000004,
+    "longitude": 101.6675485
+  },
+  {
+    "branch_name": "AEON Putrajaya Store",
+    "address": "Management Office, 2nd Floor, East Wing, IOI City Mall, Lebuh IRC, IOI Resort City, 62502 PUTRAJAYA., No 88, Lot 3458, Block 10 KCLD, Jalan Datuk Patinggi Ahmad Zaidi Adruce, 93150 Kuching, Sarawak., First Floor, Lot No. 157B, 158 & 159, Lot 304, The Spring Shopping Mall, Persiaran Spring, 93300 Kuching, Sarawak.",
+    "phone": "",
+    "latitude": 2.9408437000000003,
+    "longitude": 101.7118184
+  },
+  {
+    "branch_name": "AEON Wellness Kuching Central",
+    "address": "Wellness Kuching Central, AEON Co. (M) Bhd. Lot G40 & 41, AEON Mall Kuching Central, No.88, Jalan Datuk Patinggi Haji Ahmad Zaidi Adruce, 93200 Kuching Sarawak.",
+    "phone": "",
+    "latitude": 1.5275039,
+    "longitude": 110.33732769999999
+  },
+  {
+    "branch_name": "AEON Mall Kuching Central",
+    "address": "No 88, Lot 3458, Block 10 KCLD, Jalan Datuk Patinggi Ahmad Zaidi Adruce, 93150 Kuching, Sarawak., Lot T05, Level 3, 1 64 13, Persiaran Akuatik, Seksyen 13, 40100 Shah Alam, Selangor.",
+    "phone": "",
+    "latitude": 1.5275039,
+    "longitude": 110.33732769999999
+  },
+  {
+    "branch_name": "AEON Bandar Baru Klang Store",
+    "address": "1st floor, Persiaran Bukit Raja 2, Bandar Baru Klang, 41150 Klang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0406,
+    "longitude": 101.5224
+  },
+  {
+    "branch_name": "AEON Bandar Puchong Store",
+    "address": "Jalan Puchong, Bandar Puchong Jaya, Jalan Puchong, Bandar Puchong Jaya, 47100 Puchong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 2.991505,
+    "longitude": 101.61432289999999
+  },
+  {
+    "branch_name": "AEON Bandar Utama Store",
+    "address": "Lot F 125, First Floor, 1 Utama Shopping Centre, No 1 Lebuh Bandar Utama, Bandar Utama, 47800 Petaling Jaya, Selangor.",
+    "phone": "",
+    "latitude": 3.1480280000000005,
+    "longitude": 101.615361
+  },
+  {
+    "branch_name": "AEON Shah Alam Store",
+    "address": "No.1, Jalan Akuatik 13/64, Seksyen 13, 40100 Shah Alam, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0767621,
+    "longitude": 101.5482713
+  },
+  {
+    "branch_name": "AEON Bukit Tinggi Store",
+    "address": "Mezzanine Floor, No1, Persiaran Batu Nilam 1/KS8, Bandar Bukit Tinggi 2, 41200 Klang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 2.9925924999999998,
+    "longitude": 101.4439515
+  },
+  {
+    "branch_name": "AEON Cheras Selatan Store",
+    "address": "Aras Mezzanine, Lebuh Tun Hussein Onn, 43200 Balakong, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.0335152,
+    "longitude": 101.76502359999999
+  },
+  {
+    "branch_name": "AEON Rawang Store",
+    "address": "No.1, Persiaran Anggun, Taman Anggun, 48000 Rawang, Selangor Darul Ehsan.",
+    "phone": "",
+    "latitude": 3.2032,
+    "longitude": 101.7338
+  },
+  {
+    "branch_name": "AEON Taman Equine Store",
+    "address": "No.2, Jalan Equine, Taman Equine, Bandar Putra Permai, 43300 Seri Kembangan, Selangor., Lot No. G.09 & SG.09, Ground Floor, Evo Mall, Seksyen 9, Bandar Baru Bangi, 43650, Selangor., Lot F-125, First Floor, The Starling Mall, Jalan SS 21/37, Damansara Utama, 47400 Petaling Jaya, Selangor.",
+    "phone": "",
+    "latitude": 2.99525,
+    "longitude": 101.6751274
+  },
+  {
+    "branch_name": "AEON Ipoh Falim Store",
+    "address": "No.1, Hala Falim 1, Taman Mas Jaya, 30200, Ipoh Perak.",
+    "phone": "",
+    "latitude": 4.581887099999999,
+    "longitude": 101.0616433
+  },
+  {
+    "branch_name": "AEON Ipoh Klebang Store",
+    "address": "Lot 12080, Klebang Perdana, 31200 Chemor, Perak.",
+    "phone": "",
+    "latitude": 4.597,
+    "longitude": 101.4524
+  },
+  {
+    "branch_name": "AEON Taiping Store",
+    "address": "1st Floor,Pusat Membeli-belah Aeon, Lot 8576 & 8577 Jalan Kamunting,34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.873151099999999,
+    "longitude": 100.7308056
+  },
+  {
+    "branch_name": "AEON Seri Manjung Store",
+    "address": "Pusat Perniagaan Manjung Point 3, 32040 Seri Manjung, Perak., Lot KCF55, 1st Floor, AEON Kinta City Shopping Centre, No.2, Jalan Teh Lean Swee, Off Jalan Sultan Azlan Shah Utara, 31400 Ipoh, Perak., Lot S22, 2nd Floor, AEON Mall Ipoh Klebang, 31200, Chemor, Perak., Lot F28 & F29, AEON Ipoh Station 18 Shopping Centre, No 2, Susuran Stesen 18, Station 18, 31650 Ipoh, Perak, Malaysia., Lot F09, 1st Floor, AEON Mall Taiping, Jalan Kamunting, 34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.2201989,
+    "longitude": 100.67094230000001
+  },
+  {
+    "branch_name": "AEON Mall Kinta City",
+    "address": "No 2, Jalan Teh Lean Swee, Off Jalan Sultan Azlan Shah Utara, 31400 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.613871,
+    "longitude": 101.1180371
+  },
+  {
+    "branch_name": "AEON Mall Ipoh Station 18",
+    "address": "No.2, Susuran Stesen 18, Station 18, 31650 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.544637799999999,
+    "longitude": 101.0703202
+  },
+  {
+    "branch_name": "AEON Mall Seri Manjung",
+    "address": "Pusat Perniagaan Manjung Point 3, 32040 Seri Manjung, Perak.",
+    "phone": "",
+    "latitude": 4.2201989,
+    "longitude": 100.67094230000001
+  },
+  {
+    "branch_name": "AEON Mall Taiping",
+    "address": "Lot 8576 & 8577, Jalan Kamunting, 34000 Taiping, Perak.",
+    "phone": "",
+    "latitude": 4.873151099999999,
+    "longitude": 100.7308056
+  },
+  {
+    "branch_name": "AEON Seremban 2 Store",
+    "address": "112, Persiaran S2 B1, Seremban 2, 70300 Seremban, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.7013838999999997,
+    "longitude": 101.9119475
+  },
+  {
+    "branch_name": "AEON Nilai Store",
+    "address": "No.2, Persiaran Pusat Bandar, Putra Point, Putra Nilai, 71800, Nilai, Negeri Sembilan Darul Khusus., Lot F41, 1st floor, AEON MALL Nilai, No.2 Persiaran Pusat Bandar, Pusat Point, Putra Nilai, 71800 Nilai, Negeri Sembilan, Malaysia., F24 & F25, 1st Floor, Palm Mall, Kemayan Square, Jalan Sungai Ujong, 70200 Seremban, Negeri Sembilan, Malaysia.",
+    "phone": "",
+    "latitude": 2.8173141,
+    "longitude": 101.7893502
+  },
+  {
+    "branch_name": "AEON Mall Seremban 2",
+    "address": "112 Persiaran S2 B1, Seremban 2, 70300 Seremban, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.7013838999999997,
+    "longitude": 101.9119475
+  },
+  {
+    "branch_name": "AEON Mall Nilai",
+    "address": "No 2, Persiaran Pusat Bandar, Putra Point, Putra Nilai, 71800 Nilai, Negeri Sembilan Darul Khusus.",
+    "phone": "",
+    "latitude": 2.8174815,
+    "longitude": 101.79141849999999
+  },
+  {
+    "branch_name": "AEON Palm Mall",
+    "address": "G-16, Ground Floor, Palm Mall Seremban, Kemayan Square, Jalan Sg Ujong, 70200 Seremban.",
+    "phone": "",
+    "latitude": 2.7197405999999997,
+    "longitude": 101.92240969999999
+  },
+  {
+    "branch_name": "AEON Bukit Mertajam Store",
+    "address": "1st Floor, AEON Mall Bukit Mertajam, No 3393, Jalan Rozhan Alma, Seberang Perai Tengah 14000, Bukit Mertajam, Pulau Pinang.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Queensbay Store",
+    "address": "1F-61, Persiaran Bayan Indah, Sg. Nibong,11900, Bayan Lepas,Pulau Pinang., Lot S42, 2nd Floor, AEON Mall Bukit Mertajam, Seberang Perai Tengah, 14000 Bukit Mertajam, Pulau Pinang., Lot 07 & 08, First Floor, North Zone, Queensbay Mall, Persiaran Bayan Indah, 11900 Bayan Lepas, Pulau Pinang, Malaysia.",
+    "phone": "",
+    "latitude": 5.3326784,
+    "longitude": 100.30658559999999
+  },
+  {
+    "branch_name": "AEON CO. (M) BHD. AEON Wellness Bukit Mertajam AEON Mall Bukit Mertajam Lot 30908,Mukim 15 Jalan Rozhan, Alma, 14000, Bukit Mertajam, Pulau Pinang.",
+    "address": "Wellness BIG Penang Prai",
+    "phone": "",
+    "latitude": 5.3497,
+    "longitude": 100.4821
+  },
+  {
+    "branch_name": "AEON Mall Bukit Mertajam",
+    "address": "Management Office, Lot No. 30908, Jalan Rozhan Alma, Seberang Perai Tengah, 14000 Bukit Mertajam, Pulau Pinang.",
+    "phone": "",
+    "latitude": 5.3210688,
+    "longitude": 100.4775282
+  },
+  {
+    "branch_name": "AEON Ipoh Station 18 Store",
+    "address": "No.2, Susuran Station 18, Station 18, 31650 Ipoh, Perak.",
+    "phone": "",
+    "latitude": 4.544637799999999,
+    "longitude": 101.0703202
+  },
+  {
+    "branch_name": "AEON Co. (M) Bhd. Wellness The Waterfront DPC FF-28, The Waterfront @ParkCity, No. 5, Persiaran Residen, Desa ParkCity, 52200 Kuala Lumpur.",
+    "address": "Jalan R1, Seksyen 1, Bandar Baru Wangsa Maju, 53300 Kuala Lumpur., Jalan Jejaka, Taman Maluri Cheras, 55100 Kuala Lumpur.",
+    "phone": "",
+    "latitude": 3.1789,
+    "longitude": 101.6852
+  },
+  {
+    "branch_name": "AEON Mall Metro Prima",
+    "address": "No 1, Jalan Metro Prima Kepong, 52100 Kuala Lumpur.",
+    "phone": "",
+    "latitude": 3.2133417,
+    "longitude": 101.63951840000001
+  },
+  {
+    "branch_name": "AEON Mall AU2",
+    "address": "Setiawangsa, Lower Ground Floor, No.6 Jalan Taman Setiawangsa (Jalan 37/56), AU2, Taman Keramat, 54200 Kuala Lumpur.",
+    "phone": "",
+    "latitude": 2.8174815,
+    "longitude": 101.79141849999999
+  }
+]

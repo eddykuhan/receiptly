@@ -42,6 +42,15 @@ resource "aws_security_group" "ocr_service" {
     cidr_blocks = var.allowed_cidr_blocks
   }
 
+  # Allow HTTP access to LLM service (port 8500)
+  ingress {
+    description = "LLM service"
+    from_port   = 8500
+    to_port     = 8500
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_cidr_blocks
+  }
+
   # Allow HTTPS access (port 443)
   ingress {
     description = "HTTPS"
@@ -53,7 +62,7 @@ resource "aws_security_group" "ocr_service" {
 
   # Allow HTTP access (port 80) for Let's Encrypt validation
   ingress {
-    description = "HTTP for Let's Encrypt"
+    description = "HTTP for LetsEncrypt"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -195,6 +204,7 @@ locals {
     # Create deployment directories
     mkdir -p /opt/receiptly/api
     mkdir -p /opt/receiptly/ocr
+    mkdir -p /opt/receiptly/llm
     mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
     
     # Configure CloudWatch Agent
@@ -247,7 +257,7 @@ locals {
     cat > /etc/systemd/system/receiptly-api.service <<'EOF'
     [Unit]
     Description=Receiptly .NET API Service
-    After=docker.service
+    After=docker.service receiptly-ocr.service receiptly-llm.service
     Requires=docker.service
     
     [Service]
@@ -255,7 +265,8 @@ locals {
     WorkingDirectory=/opt/receiptly/api
     ExecStartPre=-/usr/bin/docker stop receiptly-api
     ExecStartPre=-/usr/bin/docker rm receiptly-api
-    ExecStart=/usr/bin/docker run --name receiptly-api --network receiptly_default -p 5000:5000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/api --log-opt awslogs-stream=receiptly-api --env-file /opt/receiptly/api/.env receiptly-api:latest
+    ExecStartPre=/usr/bin/bash -c 'aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com'
+    ExecStart=/usr/bin/bash -c 'docker run --name receiptly-api --network receiptly_default -p 5000:5000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/api --log-opt awslogs-stream=receiptly-api --env-file /opt/receiptly/api/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .dotnet_api_repository):latest'
     ExecStop=/usr/bin/docker stop receiptly-api
     Restart=always
     
@@ -267,7 +278,7 @@ locals {
     cat > /etc/systemd/system/receiptly-ocr.service <<'EOF'
     [Unit]
     Description=Receiptly Python OCR Service
-    After=docker.service
+    After=docker.service receiptly-llm.service
     Requires=docker.service
     
     [Service]
@@ -275,7 +286,8 @@ locals {
     WorkingDirectory=/opt/receiptly/ocr
     ExecStartPre=-/usr/bin/docker stop receiptly-ocr
     ExecStartPre=-/usr/bin/docker rm receiptly-ocr
-    ExecStart=/usr/bin/docker run --name receiptly-ocr --network receiptly_default -p 8000:8000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/ocr --log-opt awslogs-stream=receiptly-ocr --env-file /opt/receiptly/ocr/.env python-ocr:latest
+    ExecStartPre=/usr/bin/bash -c 'aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com'
+    ExecStart=/usr/bin/bash -c 'docker run --name receiptly-ocr --network receiptly_default -p 8000:8000 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/ocr --log-opt awslogs-stream=receiptly-ocr --env-file /opt/receiptly/ocr/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .python_ocr_repository):latest'
     ExecStop=/usr/bin/docker stop receiptly-ocr
     Restart=always
     
@@ -283,8 +295,32 @@ locals {
     WantedBy=multi-user.target
     EOF
     
-    # Reload systemd
+    # Create systemd service for LLM Service
+    cat > /etc/systemd/system/receiptly-llm.service <<'EOF'
+    [Unit]
+    Description=Receiptly LLM Service
+    After=docker.service
+    Requires=docker.service
+    
+    [Service]
+    Type=simple
+    WorkingDirectory=/opt/receiptly/llm
+    ExecStartPre=-/usr/bin/docker stop receiptly-llm
+    ExecStartPre=-/usr/bin/docker rm receiptly-llm
+    ExecStartPre=/usr/bin/bash -c 'aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.${var.aws_region}.amazonaws.com'
+    ExecStart=/usr/bin/bash -c 'docker run --name receiptly-llm --network receiptly_default -p 8500:8500 --log-driver=awslogs --log-opt awslogs-region=${var.aws_region} --log-opt awslogs-group=/receiptly/${var.environment}/llm --log-opt awslogs-stream=receiptly-llm --env-file /opt/receiptly/llm/.env $(aws secretsmanager get-secret-value --secret-id receiptly/ecr/repositories --query SecretString --output text | jq -r .llm_service_repository):latest'
+    ExecStop=/usr/bin/docker stop receiptly-llm
+    Restart=always
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+    
+    # Reload systemd and enable services
     systemctl daemon-reload
+    systemctl enable receiptly-llm
+    systemctl enable receiptly-ocr
+    systemctl enable receiptly-api
     
     ${var.enable_https ? <<-HTTPS
     # ==========================================
@@ -294,12 +330,53 @@ locals {
     # Install Nginx and Certbot
     dnf install -y nginx certbot python3-certbot-nginx
     
-    # Create Nginx configuration for reverse proxy
+    # Create directory for Let's Encrypt challenges
+    mkdir -p /var/www/certbot
+    
+    # STAGE 1: Create temporary HTTP-only Nginx config for certificate acquisition
     cat > /etc/nginx/conf.d/receiptly.conf <<'NGINXEOF'
-    # HTTP server - redirect to HTTPS
+    # Temporary HTTP-only configuration for Let's Encrypt
     server {
         listen 80;
-        server_name ${var.domain_name};
+        server_name ${var.domain_name} api.${var.domain_name} ocr.${var.domain_name} llm.${var.domain_name};
+        
+        # Let's Encrypt challenge location
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+        
+        # Temporary allow all HTTP traffic for initial setup
+        location / {
+            return 200 'Server starting up...';
+            add_header Content-Type text/plain;
+        }
+    }
+    NGINXEOF
+    
+    # Start Nginx with HTTP-only config
+    systemctl start nginx
+    systemctl enable nginx
+    
+    # Wait for Nginx to be ready
+    sleep 5
+    
+    # Obtain SSL certificate from Let's Encrypt for all subdomains
+    certbot certonly --nginx \
+      --non-interactive \
+      --agree-tos \
+      --email ${var.letsencrypt_email} \
+      -d ${var.domain_name} \
+      -d api.${var.domain_name} \
+      -d ocr.${var.domain_name} \
+      -d llm.${var.domain_name} \
+      --expand
+    
+    # STAGE 2: Replace with full HTTPS configuration
+    cat > /etc/nginx/conf.d/receiptly.conf <<'NGINXEOF'
+    # Redirect HTTP to HTTPS for all domains
+    server {
+        listen 80;
+        server_name ${var.domain_name} api.${var.domain_name} ocr.${var.domain_name} llm.${var.domain_name};
         
         # Let's Encrypt challenge location
         location /.well-known/acme-challenge/ {
@@ -308,81 +385,115 @@ locals {
         
         # Redirect all other HTTP traffic to HTTPS
         location / {
-            return 301 https://$server_name$request_uri;
+            return 301 https://$${server_name}$${request_uri};
         }
     }
     
-    # HTTPS server
+    # Main domain - redirect to API Swagger
     server {
-        listen 443 ssl http2;
+        listen 443 ssl;
+        http2 on;
         server_name ${var.domain_name};
         
-        # SSL certificate paths (will be configured by certbot)
         ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
-        
-        # SSL configuration
         ssl_protocols TLSv1.2 TLSv1.3;
         ssl_ciphers HIGH:!aNULL:!MD5;
         ssl_prefer_server_ciphers on;
         
-        # API endpoints
-        location /api/ {
-            proxy_pass http://localhost:5000/api/;
+        location / {
+            return 301 https://api.${var.domain_name}/swagger;
+        }
+    }
+    
+    # API subdomain - .NET API service
+    server {
+        listen 443 ssl;
+        http2 on;
+        server_name api.${var.domain_name};
+        
+        ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+        
+        # Proxy all requests to .NET API
+        location / {
+            proxy_pass http://localhost:5000;
             proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_cache_bypass $http_upgrade;
+            proxy_set_header Host $${host};
+            proxy_set_header X-Real-IP $${remote_addr};
+            proxy_set_header X-Forwarded-For $${proxy_add_x_forwarded_for};
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $${host};
+            proxy_cache_bypass $${http_upgrade};
             proxy_read_timeout 90;
+            client_max_body_size 15M;
         }
+    }
+    
+    # OCR subdomain - Python OCR service
+    server {
+        listen 443 ssl;
+        http2 on;
+        server_name ocr.${var.domain_name};
         
-        # OCR endpoints
-        location /ocr/ {
-            proxy_pass http://localhost:8000/;
+        ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+        
+        # Proxy all requests to OCR service
+        location / {
+            proxy_pass http://localhost:8000;
             proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_cache_bypass $http_upgrade;
+            proxy_set_header Host $${host};
+            proxy_set_header X-Real-IP $${remote_addr};
+            proxy_set_header X-Forwarded-For $${proxy_add_x_forwarded_for};
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $${host};
+            proxy_set_header Upgrade $${http_upgrade};
+            proxy_set_header Connection "upgrade";
+            proxy_cache_bypass $${http_upgrade};
             proxy_read_timeout 300;
-            client_max_body_size 10M;
+            client_max_body_size 15M;
         }
+    }
+    
+    # LLM subdomain - LLM service
+    server {
+        listen 443 ssl;
+        http2 on;
+        server_name llm.${var.domain_name};
         
-        # Health check endpoint
-        location /health {
-            return 200 'OK';
-            add_header Content-Type text/plain;
+        ssl_certificate /etc/letsencrypt/live/${var.domain_name}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${var.domain_name}/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+        
+        # Proxy all requests to LLM service
+        location / {
+            proxy_pass http://localhost:8500;
+            proxy_http_version 1.1;
+            proxy_set_header Host $${host};
+            proxy_set_header X-Real-IP $${remote_addr};
+            proxy_set_header X-Forwarded-For $${proxy_add_x_forwarded_for};
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $${host};
+            proxy_set_header Upgrade $${http_upgrade};
+            proxy_set_header Connection "upgrade";
+            proxy_cache_bypass $${http_upgrade};
+            proxy_read_timeout 300;
+            client_max_body_size 15M;
         }
     }
     NGINXEOF
     
-    # Create directory for Let's Encrypt challenges
-    mkdir -p /var/www/certbot
-    
-    # Start and enable Nginx
-    systemctl start nginx
-    systemctl enable nginx
-    
-    # Wait for services to be ready
-    sleep 10
-    
-    # Obtain SSL certificate from Let's Encrypt
-    certbot certonly --nginx \
-      --non-interactive \
-      --agree-tos \
-      --email ${var.letsencrypt_email} \
-      -d ${var.domain_name} \
-      --redirect
-    
-    # Reload Nginx to apply SSL certificate
-    systemctl reload nginx
+    # Test and reload Nginx with HTTPS configuration
+    nginx -t && systemctl reload nginx
     
     # Set up automatic certificate renewal
     echo "0 12 * * * root certbot renew --quiet --post-hook 'systemctl reload nginx'" > /etc/cron.d/certbot-renew
@@ -398,11 +509,12 @@ locals {
 
 # EC2 Instance
 resource "aws_instance" "ocr_service" {
-  ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = var.instance_type
-  subnet_id              = var.subnet_id
-  vpc_security_group_ids = [aws_security_group.ocr_service.id]
-  iam_instance_profile   = aws_iam_instance_profile.ocr_instance.name
+  ami                         = data.aws_ami.amazon_linux_2023.id
+  instance_type               = var.instance_type
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = [aws_security_group.ocr_service.id]
+  iam_instance_profile        = aws_iam_instance_profile.ocr_instance.name
+  user_data_replace_on_change = true
   
   user_data = local.user_data
 

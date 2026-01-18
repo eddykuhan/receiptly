@@ -21,35 +21,14 @@ public class CanonicalizationService
         _logger = logger;
     }
 
-    public async Task<string> GetCanonicalNameAsync(string rawName)
+    public async Task<CanonicalizationResult> GetCanonicalNameAsync(string rawName)
     {
-        if (string.IsNullOrWhiteSpace(rawName)) return rawName;
+        if (string.IsNullOrWhiteSpace(rawName)) 
+            return new CanonicalizationResult { CanonicalName = rawName };
 
-        // 1. Check DB Cache
-        var cached = await _context.CanonicalCache.FindAsync(rawName);
-        if (cached != null)
-        {
-            return cached.CanonicalName;
-        }
-
-        // 2. Call LLM
-        var canonical = await _llmClient.CanonicalizeItemAsync(rawName);
-
-        // 3. Save to DB
-        try
-        {
-            _context.CanonicalCache.Add(new CanonicalCache
-            {
-                RawName = rawName,
-                CanonicalName = canonical
-            });
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to save canonical cache for {RawName}", rawName);
-        }
-
-        return canonical;
+        // Call LLM Service (which handles cleanup, vector search, and its own caching)
+        return await _llmClient.CanonicalizeItemAsync(rawName);
     }
 }
+
+

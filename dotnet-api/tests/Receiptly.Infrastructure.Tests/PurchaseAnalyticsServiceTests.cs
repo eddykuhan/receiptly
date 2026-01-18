@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using Receiptly.Core.Interfaces;
 using Receiptly.Domain.Enums;
 using Receiptly.Domain.Models;
@@ -63,7 +64,8 @@ public class PurchaseAnalyticsServiceTests
         context.Receipts.AddRange(targetReceipt, otherReceipt);
         await context.SaveChangesAsync();
 
-        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance);
+        var categoryNormalization = new CategoryNormalizationService(NullLogger<CategoryNormalizationService>.Instance);
+        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance, categoryNormalization);
         var query = new PurchaseAnalyticsQuery
         {
             StartDate = DateTime.UtcNow.AddDays(-2),
@@ -112,7 +114,8 @@ public class PurchaseAnalyticsServiceTests
 
         await context.SaveChangesAsync();
 
-        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance);
+        var categoryNormalization = new CategoryNormalizationService(NullLogger<CategoryNormalizationService>.Instance);
+        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance, categoryNormalization);
         var result = await service.GetPurchasesAsync(new PurchaseAnalyticsQuery
         {
             PageSize = 1000
@@ -176,7 +179,8 @@ public class PurchaseAnalyticsServiceTests
         context.Receipts.AddRange(milkReceipt, breadReceipt);
         await context.SaveChangesAsync();
 
-        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance);
+        var categoryNormalization = new CategoryNormalizationService(NullLogger<CategoryNormalizationService>.Instance);
+        var service = new PurchaseAnalyticsService(context, NullLogger<PurchaseAnalyticsService>.Instance, categoryNormalization);
         var result = await service.GetPurchasesAsync(new PurchaseAnalyticsQuery
         {
             ProductName = "milk"

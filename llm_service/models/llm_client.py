@@ -1,26 +1,32 @@
-import os
 from openai import AsyncOpenAI
 from groq import AsyncGroq
-
-USE_GROQ = os.getenv("USE_GROQ", "false").lower() == "true"
+from config import get_settings
 
 class LLMClient:
     def __init__(self):
-        if USE_GROQ:
-            self.client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
+        settings = get_settings()
+        if settings.USE_GROQ:
+            if not settings.GROQ_API_KEY:
+                raise ValueError("GROQ_API_KEY is not set but USE_GROQ=true")
+            self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
             self.model = "llama-3.1-8b-instant"
         else:
-            self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            self.model = os.getenv("MODEL_NAME", "gpt-4o-mini")
+            if not settings.OPENAI_API_KEY:
+                raise ValueError("OPENAI_API_KEY is not set")
+            self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+            self.model = settings.MODEL_NAME
 
     async def chat(self, system_prompt, user_prompt):
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            temperature=0,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-        )
-
-        return response.choices[0].message.content.strip()
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                temperature=0,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"LLM API Error: {type(e).__name__}: {str(e)}")
+            raise

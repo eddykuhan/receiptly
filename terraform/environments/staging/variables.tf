@@ -61,13 +61,13 @@ variable "enable_https" {
 variable "domain_name" {
   description = "Domain name for SSL certificate (e.g., api.receiptly.com)"
   type        = string
-  default     = "cheapsy.duckdns.org" # Set your domain name here
+  default     = "cheap-sy.com"
 }
 
 variable "letsencrypt_email" {
   description = "Email address for Let's Encrypt SSL certificate notifications"
   type        = string
-  default     = "your-email@example.com" # Set your email here
+  default     = "eddykuhan92@gmail.com"
 }
 
 variable "db_backup_retention_period" {
@@ -115,4 +115,49 @@ variable "azure_cv_api_key" {
   type        = string
   sensitive   = true
   default     = ""
+}
+
+# ==========================================
+# LLM Service Configuration
+# ==========================================
+variable "openai_api_key" {
+  description = "OpenAI API key for LLM service"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "groq_api_key" {
+  description = "Groq API key for LLM service (alternative to OpenAI)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "use_groq" {
+  description = "Use Groq instead of OpenAI for LLM service"
+  type        = bool
+  default     = false
+}
+
+variable "model_name" {
+  description = "LLM model name to use"
+  type        = string
+  default     = "gpt-4o-mini"
+}
+
+# ==========================================
+# Google Places API Configuration
+# ==========================================
+variable "google_places_api_key" {
+  description = "Google Places API key for address autocomplete"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "google_places_enabled" {
+  description = "Enable Google Places API autocomplete functionality"
+  type        = bool
+  default     = true
 }
