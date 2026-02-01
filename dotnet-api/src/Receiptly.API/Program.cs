@@ -1,14 +1,9 @@
 using Receiptly.API.Configuration;
-using Serilog;
 
-// Configure Serilog
-SerilogConfiguration.ConfigureLogger();
+var builder = WebApplication.CreateBuilder(args);
 
 try
 {
-    Log.Information("Starting Receiptly API");
-
-    var builder = WebApplication.CreateBuilder(args);
 
     // Configure Kestrel for mobile uploads (large files, longer processing time)
     builder.WebHost.ConfigureKestrel(options =>
@@ -17,9 +12,6 @@ try
         options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // 5 minutes
         options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
     });
-
-    // Add Serilog
-    builder.Host.UseSerilog();
 
     // Configure CORS policies
     builder.Services.AddCorsConfiguration(builder.Configuration);
@@ -30,6 +22,15 @@ try
         options.MultipartBodyLengthLimit = 15 * 1024 * 1024; // 15MB
         options.ValueLengthLimit = 15 * 1024 * 1024;
         options.BufferBodyLengthLimit = 15 * 1024 * 1024;
+    });
+
+    // Configure OpenTelemetry (Tracing, Metrics & Logging)
+    builder.Services.AddOpenTelemetryConfiguration(builder.Configuration, builder.Environment);
+
+    // Add HTTP logging for request/response logging
+    builder.Services.AddHttpLogging(logging =>
+    {
+        logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
     });
 
     // Configure Controllers with JSON options
@@ -80,9 +81,6 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application terminated unexpectedly");
-}
-finally
-{
-    Log.CloseAndFlush();
+    Console.WriteLine($"Application terminated unexpectedly: {ex}");
+    throw;
 }

@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Serilog;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Receiptly.API.Middleware;

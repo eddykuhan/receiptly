@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Receiptly.API.Middleware;
 using Receiptly.Infrastructure.Data;
-using Serilog;
 
 namespace Receiptly.API.Configuration;
 
@@ -13,15 +12,16 @@ public static class WebApplicationExtensions
         {
             using var scope = app.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
             try
             {
-                Log.Information("Applying database migrations...");
+                logger.LogInformation("Applying database migrations...");
                 await dbContext.Database.MigrateAsync();
-                Log.Information("Database migrations applied successfully");
+                logger.LogInformation("Database migrations applied successfully");
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Could not apply database migrations. Database may not be available yet.");
+                logger.LogWarning(ex, "Could not apply database migrations. Database may not be available yet.");
             }
         }
 
@@ -46,8 +46,8 @@ public static class WebApplicationExtensions
         // Clerk JWT authentication middleware
         app.UseMiddleware<ClerkJwtMiddleware>();
 
-        // Request logging
-        app.UseSerilogRequestLogging();
+        // Request logging (using ASP.NET Core built-in logging)
+        app.UseHttpLogging();
 
         return app;
     }

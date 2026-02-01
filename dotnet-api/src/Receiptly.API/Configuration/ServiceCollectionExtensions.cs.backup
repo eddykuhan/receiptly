@@ -67,7 +67,7 @@ public static class ServiceCollectionExtensions
             var dbSecretId = configuration["AWS:DatabaseSecretId"] ?? "receiptly/database/credentials";
             var region = configuration["AWS:Region"] ?? "ap-southeast-1";
 
-//             Log.Information("Retrieving database credentials from Secrets Manager: {SecretId}", dbSecretId);
+            Console.WriteLine($"[INFO] " + "Retrieving database credentials from Secrets Manager: {SecretId}", dbSecretId);
 
             using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
             var dbSecretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
@@ -79,11 +79,11 @@ public static class ServiceCollectionExtensions
                 ?? throw new InvalidOperationException("Failed to deserialize database credentials from Secrets Manager");
 
             connectionString = dbConfig.ToConnectionString();
-//             Log.Information("Successfully retrieved database credentials for: {Database}@{Host}", dbConfig.Database, dbConfig.Host);
+            Console.WriteLine($"[INFO] " + "Successfully retrieved database credentials for: {Database}@{Host}", dbConfig.Database, dbConfig.Host);
         }
         catch (Exception ex)
         {
-//             Log.Error(ex, "Failed to retrieve database credentials from Secrets Manager. Falling back to configuration.");
+            Console.WriteLine($"[ERROR] " + "Failed to retrieve database credentials from Secrets Manager. Falling back to configuration." + $", Error: {ex.Message}");
 
             // Fallback to appsettings.json/user secrets for local development
             connectionString = configuration.GetConnectionString("DefaultConnection")
@@ -122,7 +122,7 @@ public static class ServiceCollectionExtensions
             var secretId = configuration["AWS:S3SecretId"] ?? "receiptly/s3/credentials";
             var region = configuration["AWS:Region"] ?? "ap-southeast-1";
 
-//             Log.Information("Retrieving S3 credentials from Secrets Manager: {SecretId}", secretId);
+            Console.WriteLine($"[INFO] " + "Retrieving S3 credentials from Secrets Manager: {SecretId}", secretId);
 
             using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
             var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
@@ -133,11 +133,11 @@ public static class ServiceCollectionExtensions
             s3Config = JsonSerializer.Deserialize<S3SecretsConfig>(secretResponse.SecretString)
                 ?? throw new InvalidOperationException("Failed to deserialize S3 credentials from Secrets Manager");
 
-//             Log.Information("Successfully retrieved S3 credentials for bucket: {BucketName}", s3Config.BucketName);
+            Console.WriteLine($"[INFO] " + "Successfully retrieved S3 credentials for bucket: {BucketName}", s3Config.BucketName);
         }
         catch (Exception ex)
         {
-//             Log.Error(ex, "Failed to retrieve S3 credentials from Secrets Manager. Falling back to configuration.");
+            Console.WriteLine($"[ERROR] " + "Failed to retrieve S3 credentials from Secrets Manager. Falling back to configuration." + $", Error: {ex.Message}");
 
             // Fallback to appsettings.json/user secrets for local development
             s3Config = new S3SecretsConfig
@@ -169,7 +169,7 @@ public static class ServiceCollectionExtensions
             
             if (!string.IsNullOrEmpty(configuredBaseUrl))
             {
-//                 Log.Information("Development mode: Using OCR service URL from configuration: {BaseUrl}", configuredBaseUrl);
+                Console.WriteLine($"[INFO] " + "Development mode: Using OCR service URL from configuration: {BaseUrl}", configuredBaseUrl);
                 
                 ocrConfig = new OcrServiceSecretsConfig
                 {
@@ -198,7 +198,7 @@ public static class ServiceCollectionExtensions
             var secretId = configuration["AWS:OcrSecretId"] ?? "receiptly/ocr/service";
             var region = configuration["AWS:Region"] ?? "ap-southeast-1";
 
-//             Log.Information("Retrieving OCR service configuration from Secrets Manager: {SecretId}", secretId);
+            Console.WriteLine($"[INFO] " + "Retrieving OCR service configuration from Secrets Manager: {SecretId}", secretId);
 
             using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
             var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
@@ -209,11 +209,11 @@ public static class ServiceCollectionExtensions
             ocrConfig = JsonSerializer.Deserialize<OcrServiceSecretsConfig>(secretResponse.SecretString)
                 ?? throw new InvalidOperationException("Failed to deserialize OCR service configuration from Secrets Manager");
 
-//             Log.Information("Successfully retrieved OCR service configuration: {BaseUrl}", ocrConfig.BaseUrl);
+            Console.WriteLine($"[INFO] " + "Successfully retrieved OCR service configuration: {BaseUrl}", ocrConfig.BaseUrl);
         }
         catch (Exception ex)
         {
-//             Log.Error(ex, "Failed to retrieve OCR service configuration from Secrets Manager. Falling back to configuration.");
+            Console.WriteLine($"[ERROR] " + "Failed to retrieve OCR service configuration from Secrets Manager. Falling back to configuration." + $", Error: {ex.Message}");
 
             // Fallback to appsettings.json/user secrets for local development
             ocrConfig = new OcrServiceSecretsConfig
@@ -291,7 +291,7 @@ public static class ServiceCollectionExtensions
             
             if (!string.IsNullOrEmpty(configuredBaseUrl))
             {
-//                 Log.Information("Development mode: Using LLM service URL from configuration: {BaseUrl}", configuredBaseUrl);
+                Console.WriteLine($"[INFO] " + "Development mode: Using LLM service URL from configuration: {BaseUrl}", configuredBaseUrl);
                 
                 llmConfig = new LlmServiceSecretsConfig
                 {
@@ -317,7 +317,7 @@ public static class ServiceCollectionExtensions
             var secretId = configuration["AWS:LlmSecretId"] ?? "receiptly/llm/service";
             var region = configuration["AWS:Region"] ?? "ap-southeast-1";
 
-//             Log.Information("Retrieving LLM service configuration from Secrets Manager: {SecretId}", secretId);
+            Console.WriteLine($"[INFO] " + "Retrieving LLM service configuration from Secrets Manager: {SecretId}", secretId);
 
             using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
             var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
@@ -328,11 +328,11 @@ public static class ServiceCollectionExtensions
             llmConfig = JsonSerializer.Deserialize<LlmServiceSecretsConfig>(secretResponse.SecretString)
                 ?? throw new InvalidOperationException("Failed to deserialize LLM service configuration from Secrets Manager");
 
-//             Log.Information("Successfully retrieved LLM service configuration: {BaseUrl}", llmConfig.BaseUrl);
+            Console.WriteLine($"[INFO] " + "Successfully retrieved LLM service configuration: {BaseUrl}", llmConfig.BaseUrl);
         }
         catch (Exception ex)
         {
-//             Log.Error(ex, "Failed to retrieve LLM service configuration from Secrets Manager. Falling back to configuration.");
+            Console.WriteLine($"[ERROR] " + "Failed to retrieve LLM service configuration from Secrets Manager. Falling back to configuration." + $", Error: {ex.Message}");
 
             // Fallback to appsettings.json/user secrets for local development
             llmConfig = new LlmServiceSecretsConfig
@@ -367,7 +367,7 @@ public static class ServiceCollectionExtensions
             
             if (!string.IsNullOrEmpty(configuredApiKey))
             {
-//                 Log.Information("Development mode: Using Google Places API key from configuration");
+                Console.WriteLine($"[INFO] " + "Development mode: Using Google Places API key from configuration");
                 
                 googleConfig = new GooglePlacesSecretsConfig
                 {
@@ -393,7 +393,7 @@ public static class ServiceCollectionExtensions
             var secretId = configuration["AWS:GooglePlacesSecretId"] ?? "receiptly/google/credentials";
             var region = configuration["AWS:Region"] ?? "ap-southeast-1";
 
-//             Log.Information("Retrieving Google Places configuration from Secrets Manager: {SecretId}", secretId);
+            Console.WriteLine($"[INFO] " + "Retrieving Google Places configuration from Secrets Manager: {SecretId}", secretId);
 
             using var secretsClient = new AmazonSecretsManagerClient(Amazon.RegionEndpoint.GetBySystemName(region));
             var secretResponse = await secretsClient.GetSecretValueAsync(new GetSecretValueRequest
@@ -404,11 +404,11 @@ public static class ServiceCollectionExtensions
             googleConfig = JsonSerializer.Deserialize<GooglePlacesSecretsConfig>(secretResponse.SecretString)
                 ?? throw new InvalidOperationException("Failed to deserialize Google Places configuration from Secrets Manager");
 
-//             Log.Information("Successfully retrieved Google Places configuration");
+            Console.WriteLine($"[INFO] " + "Successfully retrieved Google Places configuration");
         }
         catch (Exception ex)
         {
-//             Log.Warning(ex, "Failed to retrieve Google Places configuration from Secrets Manager. Service will be disabled.");
+            Console.WriteLine($"[WARN] " + "Failed to retrieve Google Places configuration from Secrets Manager. Service will be disabled." + $", Error: {ex.Message}");
 
             // Disable service if credentials not available
             googleConfig = new GooglePlacesSecretsConfig
@@ -439,7 +439,8 @@ public static class ServiceCollectionExtensions
                 sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                 onRetry: (outcome, timespan, retryCount, context) =>
                 {
-                    // Startup logging removed (Serilog removed)
+                    Console.WriteLine(
+                        $"[WARN] Retry {retryCount}/3. Waiting {timespan.TotalSeconds}s before next attempt. Reason: {outcome.Exception?.Message ?? outcome.Result?.ReasonPhrase ?? "Unknown"}");
                 });
     }
 }
